@@ -18,6 +18,7 @@ if (Auth::check()) {
 
 $errors     = [];
 $didTimeout = Session::getFlash('timeout');
+$resetDone  = Session::getFlash('reset_done');
 
 $email  = '';
 
@@ -272,6 +273,10 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
 
             <?php if ($didTimeout): ?>
                 <div class="lg-alert lg-alert-info" role="status">Your session expired. Please sign in again.</div>
+            <?php endif; ?>
+
+            <?php if ($resetDone): ?>
+                <div class="lg-alert lg-alert-info" role="status">Password updated. Sign in with your new password.</div>
             <?php endif; ?>
 
             <?php if (!empty($errors['general'])): ?>

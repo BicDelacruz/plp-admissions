@@ -611,6 +611,7 @@ CREATE TABLE password_resets (
     token      varchar(64)  NOT NULL,
     expires_at timestamp(0) NOT NULL,
     used       smallint     NOT NULL DEFAULT 0,
+    attempts   smallint     NOT NULL DEFAULT 0,
     created_at timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_resets_user
         FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE

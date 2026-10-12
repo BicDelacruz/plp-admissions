@@ -318,3 +318,9 @@ define('PROGRESS_STEPS', [
     'interview' => 'Interview',
     'result'    => 'Result',
 ]);
+
+// -- Password reset (6-digit code) --------------------------------
+define('RESET_CODE_TTL_SECS',  900);   // code lifetime: 15 min
+define('RESET_RESEND_SECS',     60);   // rest between sends
+define('RESET_MAX_ATTEMPTS',     5);   // wrong tries before the code dies
+define('RESET_OK_TTL_SECS',    600);   // time to set a new password after confirming the code
