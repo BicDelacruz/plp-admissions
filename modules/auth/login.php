@@ -75,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $logoUrl  = asset('img/' . rawurlencode('plp logo.png'));
 $photoUrl = asset('img/' . rawurlencode('schol blg.jpg'));
 
-header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://*.hcaptcha.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; frame-src https://newassets.hcaptcha.com https://*.hcaptcha.com; connect-src 'self' https://*.hcaptcha.com;");
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://*.hcaptcha.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob: https:; frame-src https://newassets.hcaptcha.com https://*.hcaptcha.com; connect-src 'self' https://*.hcaptcha.com;");
 header("X-Content-Type-Options: nosniff");
 header("X-Frame-Options: SAMEORIGIN");
 header("Referrer-Policy: strict-origin-when-cross-origin");
@@ -91,6 +91,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Anton&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <?= phosphor_head() ?>
 
     <style>
     :root {
@@ -107,6 +108,9 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
         --radius: 8px;
         --lg-font-display: "Anton", "Arial Narrow", Impact, sans-serif;
         --lg-font-body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+        --lg-radius: 8px;
+        --lg-radius-lg: 16px;
+        --lg-weight-semibold: 600;
         color-scheme: light;
     }
     * { box-sizing: border-box; }
@@ -121,7 +125,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
     .lg-bar { background: var(--lg-paper); color: var(--lg-ink); padding: 12px clamp(16px, 8vw, 150px); display: flex; align-items: center; gap: 14px; }
     .lg-logo { width: 52px; height: 52px; object-fit: contain; flex: none; display: block; }
     .lg-bar-name { min-width: 0; }
-    .lg-bar-title { margin: 0; font-size: 1.5rem; font-weight: 700; color: var(--lg-green-700); line-height: 1.1; }
+    .lg-bar-title { margin: 0; font-size: 1.5rem; font-weight: var(--lg-weight-semibold); color: var(--lg-green-700); line-height: 1.1; }
     .lg-bar-sub { margin: 2px 0 0; font-size: .72rem; letter-spacing: .06em; color: var(--lg-muted); text-transform: uppercase; }
 
     /* hero */
@@ -130,55 +134,56 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
         padding: clamp(32px, 6vw, 72px) clamp(16px, 8vw, 150px);
         display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 420px); gap: clamp(24px, 5vw, 80px); align-items: center;
         background:
-            linear-gradient(90deg, rgba(10,38,22,.92) 0%, rgba(10,38,22,.72) 55%, rgba(10,38,22,.55) 100%),
             url("<?= e($photoUrl) ?>") center / cover no-repeat,
             #0c2a1a;
     }
+    /* One flat green wash over the photo (no gradient) */
+    .lg-hero::before { content: ''; position: absolute; inset: 0; background: rgba(10,38,22,.72); }
     .lg-hero > * { position: relative; z-index: 1; }
 
     .lg-intro { min-width: 0; }
-    .lg-school { margin: 0 0 14px; font-size: .95rem; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.9); }
+    .lg-school { margin: 0 0 14px; font-size: .95rem; font-weight: var(--lg-weight-semibold); letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.9); }
     .lg-big { margin: 0 0 32px; font-family: var(--lg-font-display); font-weight: 400; font-size: clamp(3rem, 7.2vw, 5.4rem); line-height: .98; text-transform: uppercase; letter-spacing: .005em; text-wrap: balance; }
 
-    .lg-tabs { display:inline-flex;align-items:center;gap:4px;padding:4px;margin:0 0 18px;max-width:100%;border:1px solid rgba(255,255,255,.28);border-radius:var(--radius);background:rgba(255,255,255,.08); }
-    .lg-tab { background:transparent;border:0;border-radius:var(--radius);padding:8px 12px;margin:0;font:inherit;font-size:1rem;font-weight:600;color:rgba(255,255,255,.78);cursor:pointer;white-space:nowrap;transition:background .15s,color .15s; }
-    .lg-tab[aria-selected="true"] { color:var(--lg-green-800);background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.16); }
-    .lg-tab:focus-visible { outline:2px solid #fff;outline-offset:3px; }
+    .lg-tabs { display: flex; gap: 28px; border-bottom: 1px solid rgba(255,255,255,.28); margin-bottom: 18px; }
+    .lg-tab { background: none; border: 0; padding: 0 0 10px; margin-bottom: -1px; font: inherit; font-size: 1.02rem; font-weight: 600; color: rgba(255,255,255,.7); cursor: pointer; border-bottom: 3px solid transparent; }
+    .lg-tab[aria-selected="true"] { color: #fff; border-bottom-color: #3fbf6e; }
+    .lg-tab:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
 
-    .lg-notice { margin: 0 0 18px; padding: 10px 14px; background: var(--lg-green-600); border-radius: var(--radius); font-size: .92rem; max-width: 640px; }
+    .lg-notice { margin: 0 0 18px; padding: 10px 14px; background: var(--lg-green-600); border-radius: 4px; font-size: .92rem; max-width: 640px; }
 
     .lg-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; max-width: 640px; }
-    .lg-info { background: rgba(8,22,14,.72); border: 1px solid rgba(255,255,255,.14); border-radius: var(--radius); padding: 16px 16px 16px 18px; display: flex; gap: 12px; justify-content: space-between; min-width: 0; }
+    .lg-info { background: rgba(8,22,14,.72); border: 1px solid rgba(255,255,255,.14); border-radius: 8px; padding: 16px 16px 16px 18px; display: flex; gap: 12px; justify-content: space-between; min-width: 0; }
     .lg-info h3 { margin: 0 0 8px; font-size: 1.05rem; font-weight: 700; }
     .lg-info p { margin: 0; font-size: .8rem; line-height: 1.5; color: rgba(255,255,255,.78); }
-    .lg-info svg { width: 52px; height: 52px; flex: none; fill: none; stroke: #fff; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; opacity: .92; }
+    .lg-info i { font-size: 52px; line-height: 1; flex: none; color: #fff; opacity: .92; }
 
     /* login card */
-    .lg-card { background: var(--lg-paper); color: var(--lg-ink); border-radius: var(--radius); padding: 34px 32px 28px; box-shadow: 0 24px 60px rgba(0,0,0,.38); }
+    .lg-card { background: var(--lg-paper); color: var(--lg-ink); border-radius: 12px; padding: 34px 32px 28px; box-shadow: 0 24px 60px rgba(0,0,0,.38); }
     .lg-lead { margin: 0 0 24px; text-align: center; font-size: 1.3rem; font-weight: 700; color: var(--lg-green-700); }
 
-    .lg-alert { display: flex; gap: 8px; align-items: flex-start; margin: 0 0 16px; padding: 10px 12px; border-radius: var(--radius); font-size: .86rem; line-height: 1.4; }
+    .lg-alert { display: flex; gap: 8px; align-items: flex-start; margin: 0 0 16px; padding: 10px 12px; border-radius: 6px; font-size: .86rem; line-height: 1.4; }
     .lg-alert-error { background: #fdecea; color: var(--lg-danger); border: 1px solid #f3c1bc; }
     .lg-alert-info  { background: #e8f3ec; color: var(--lg-green-800); border: 1px solid #bfdcc9; }
 
     .lg-field { margin-bottom: 16px; }
-    .lg-field label { display: block; margin-bottom: 6px; font-size: .82rem; font-weight: 700; }
+    .lg-field label { display: block; margin-bottom: 6px; font-size: .82rem; font-weight: var(--lg-weight-semibold); }
     .lg-input-wrap { position: relative; }
-    .lg-field input { width: 100%; height: 48px; padding: 0 14px; border: 2px solid transparent; border-radius: var(--radius); background: var(--lg-field); font: inherit; font-size: .95rem; color: var(--lg-ink); }
+    .lg-field input { width: 100%; height: 48px; padding: 0 14px; border: 2px solid transparent; border-radius: 6px; background: var(--lg-field); font: inherit; font-size: .95rem; color: var(--lg-ink); }
     .lg-field input::placeholder { color: #8b97a0; }
-    .lg-field input:focus { outline: none; border-color: var(--lg-green-600); background: #fff; box-shadow: 0 0 0 3px rgba(31,122,63,.18); }
+    .lg-field input:focus { outline: none; border-color: var(--lg-green-600); background: #fff; }
     .lg-field input.lg-bad { border-color: var(--lg-danger); background: #fdecea; }
     .lg-err { display: block; margin-top: 5px; font-size: .78rem; color: var(--lg-danger); }
     .lg-has-eye input { padding-right: 48px; }
-    .lg-eye { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border: 0; background: none; border-radius: var(--radius); cursor: pointer; display: grid; place-items: center; color: var(--lg-muted); }
+    .lg-eye { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border: 0; background: none; border-radius: 6px; cursor: pointer; display: grid; place-items: center; color: var(--lg-muted); }
     .lg-eye:hover { background: rgba(0,0,0,.06); }
     .lg-eye:focus-visible { outline: 2px solid var(--lg-green-600); }
-    .lg-eye svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+    .lg-eye i { font-size: 20px; line-height: 1; display: block; }
     .lg-eye.on { color: var(--lg-green-700); }
 
     .lg-forgot { text-align: right; margin: -4px 0 20px; }
     .lg-forgot a, .lg-signup a { color: var(--lg-link); font-size: .86rem; font-weight: 500; text-decoration: underline; text-underline-offset: 3px; }
-    .lg-go { width: 100%; height: 50px; border: 0; border-radius: var(--radius); background: var(--lg-green-700); color: #fff; font: inherit; font-size: 1rem; font-weight: 700; cursor: pointer; transition: background .15s; }
+    .lg-go { width: 100%; height: 50px; border: 0; border-radius: 6px; background: var(--lg-green-700); color: #fff; font: inherit; font-size: 1rem; font-weight: 700; cursor: pointer; transition: background .15s; }
     .lg-go:hover { background: var(--lg-green-800); }
     .lg-go:disabled { opacity: .7; cursor: wait; }
     .lg-go:focus-visible { outline: 3px solid rgba(31,122,63,.4); outline-offset: 2px; }
@@ -229,14 +234,14 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                             <h3>Submit Documents</h3>
                             <p>Upload your PSA birth certificate, Form 137 or 138, IDs, and other requirements.</p>
                         </div>
-                        <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M12 5h17l9 9v29H12z"/><path d="M29 5v9h9M18 24h14M18 30h14M18 36h9"/></svg>
+                        <i class="ph-fill ph-file-text" aria-hidden="true"></i>
                     </article>
                     <article class="lg-info">
                         <div>
                             <h3>Exam &amp; Interview</h3>
                             <p>See your entrance exam schedule, interview slot, and final result as they are released.</p>
                         </div>
-                        <svg viewBox="0 0 48 48" aria-hidden="true"><rect x="7" y="9" width="34" height="32" rx="3"/><path d="M7 19h34M16 5v8M32 5v8M16 27h6M26 27h6M16 34h6"/></svg>
+                        <i class="ph-fill ph-calendar-check" aria-hidden="true"></i>
                     </article>
                 </div>
             </div>
@@ -249,14 +254,14 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                             <h3>Check your email</h3>
                             <p>New accounts must verify their email with the code we send before signing in.</p>
                         </div>
-                        <svg viewBox="0 0 48 48" aria-hidden="true"><rect x="6" y="11" width="36" height="26" rx="3"/><path d="M7 14l17 13 17-13"/></svg>
+                        <i class="ph-fill ph-envelope-simple" aria-hidden="true"></i>
                     </article>
                     <article class="lg-info">
                         <div>
                             <h3>Account lock</h3>
                             <p>Too many failed sign-ins lock your account for 15 minutes.</p>
                         </div>
-                        <svg viewBox="0 0 48 48" aria-hidden="true"><rect x="10" y="21" width="28" height="20" rx="3"/><path d="M16 21v-6a8 8 0 0 1 16 0v6M24 29v5"/></svg>
+                        <i class="ph-fill ph-lock" aria-hidden="true"></i>
                     </article>
                 </div>
             </div>
@@ -307,7 +312,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                             required
                         >
                         <button type="button" class="lg-eye" id="lg-eye" aria-label="Show password">
-                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                            <i class="ph-bold ph-eye" aria-hidden="true"></i>
                         </button>
                     </div>
                     <?php if (!empty($errors['password'])): ?>
@@ -337,6 +342,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
     </main>
 </div>
 
+<script src="<?= asset('js/jquery.min.js') ?>"></script>
 <script src="<?= asset('js/app.js') ?>"></script>
 <?php if (HCAPTCHA_ENABLED): ?>
 <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
@@ -354,6 +360,19 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
             });
         });
     });
+
+    // Live email check on blur
+    if (window.jQuery) {
+        var emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        jQuery('#email').on('blur input', function (ev) {
+            var $in = jQuery(this), v = jQuery.trim($in.val());
+            if (ev.type === 'input' && !$in.hasClass('lg-bad')) return;
+            var bad = v !== '' && !emailRe.test(v);
+            $in.siblings('.lg-err').remove();
+            $in.toggleClass('lg-bad', bad);
+            if (bad) jQuery('<span class="lg-err">Enter a valid email address.</span>').insertAfter($in);
+        });
+    }
 
     // Show / hide password
     var pw  = document.getElementById('password');

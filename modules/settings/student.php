@@ -96,6 +96,13 @@ ob_start();
     <div class="alert alert-success" style="margin-bottom:var(--space-3)"><?= e($s) ?></div>
 <?php endforeach; ?>
 
+<div style="display:flex;justify-content:flex-start;margin-bottom:var(--space-4);max-width:560px;margin-left:auto;margin-right:auto">
+    <a href="javascript:history.back()" class="btn btn-ghost btn-sm" style="display:flex;align-items:center;gap:5px">
+        <?= icon('ic_fluent_arrow_left_24_regular', 16) ?>
+        Back
+    </a>
+</div>
+
 <div style="display:flex;flex-direction:column;gap:var(--space-6);max-width:560px;margin:0 auto">
 
     <!-- Appearance (per-device text size) -->
@@ -181,7 +188,7 @@ ob_start();
                     <div>
                         <label class="form-label">Email</label>
                         <input type="email" class="form-control" value="<?= e($user['email']) ?>" disabled>
-                        <p style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:4px">
+                        <p style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:var(--space-1)">
                             Email cannot be changed.
                         </p>
                     </div>
@@ -237,7 +244,7 @@ function setSettingsSex(val) {
 }
 </script>
 <style>
-.sex-toggle-settings { display:flex; gap:8px; height:38px; }
+.sex-toggle-settings { display:flex; gap:var(--space-2); height:40px; }
 .sex-btn-s {
     flex:1; border:1px solid var(--border); border-radius:var(--radius-md);
     background:var(--bg-elevated); color:var(--text-secondary);

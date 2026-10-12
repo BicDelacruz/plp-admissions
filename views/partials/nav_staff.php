@@ -23,13 +23,12 @@ $_navIntReady = (int)$_navDb->query(
 // Flat list — only Interview Queue now. Dashboard removed;
 // Staff (Professor) role lands directly on the Interview Queue.
 $items = [
-    ['href' => '/staff/interviews/queue',  'key' => 'interviews', 'label' => 'Interview Queue', 'icon' => 'ic_fluent_people_24_regular',     'alert' => !$_navIntReady],
+    ['href' => '/staff/interviews/queue',  'key' => 'interviews', 'label' => 'Interview Queue', 'icon' => 'users',     'alert' => !$_navIntReady],
 ];
 ?>
 <?php foreach ($items as $item): ?>
     <a href="<?= url($item['href']) ?>"
        class="nav-item <?= $nav === $item['key'] ? 'active' : '' ?>"
-         title="<?= e($item['label']) ?>"
        aria-current="<?= $nav === $item['key'] ? 'page' : 'false' ?>">
         <?php include __DIR__ . '/icons/' . $item['icon'] . '.svg'; ?>
         <?= e($item['label']) ?>

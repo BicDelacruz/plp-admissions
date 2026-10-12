@@ -24,7 +24,7 @@ $stepperCurrent = 'exam';
 // covers cases where a document was rejected-then-replaced-then-approved
 // but the auto-advance didn't fire (e.g. a race or a partial state).
 if (in_array($applicant['overall_status'] ?? '', ['submitted', 'documents'], true)) {
-    $requiredDocs = docs_for_type($applicant['applicant_type'] ?? '');
+    $requiredDocs = docs_for_type($applicant['applicant_type'] ?? '', $applicant['doc_flags'] ?? null);
     if (!empty($requiredDocs)) {
         $slugs = array_keys($requiredDocs);
         $placeholders = implode(',', array_fill(0, count($slugs), '?'));
@@ -185,10 +185,7 @@ if (!$mySlot) {
     <div style="max-width:480px;margin:var(--space-12) auto;text-align:center">
         <div style="width:72px;height:72px;border-radius:50%;background:var(--bg-subtle);
                     display:flex;align-items:center;justify-content:center;margin:0 auto var(--space-6)">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="9" stroke="var(--text-secondary)" stroke-width="1.8"/>
-                <path stroke="var(--text-secondary)" stroke-width="1.8" stroke-linecap="round" d="M12 7v5l3 2"/>
-            </svg>
+            <?= icon('clock:fill', 32, 'color:var(--text-secondary)') ?>
         </div>
         <h2 style="font-size:var(--text-2xl);font-weight:var(--weight-semibold);margin-bottom:var(--space-2)">
             Awaiting Slot Assignment
@@ -322,7 +319,7 @@ if ($isSlotFuture) {
                                 </div>
                             <?php endif; ?>
                             <?php if ($h['status'] === 'denied' && !empty($h['deny_reason'])): ?>
-                                <div style="margin-top:var(--space-2);color:var(--text-tertiary);font-style:italic">
+                                <div style="margin-top:var(--space-2);color:var(--text-tertiary)">
                                     Staff: <?= e($h['deny_reason']) ?>
                                 </div>
                             <?php endif; ?>
@@ -428,7 +425,7 @@ if ($isSlotPast) {
                                 </div>
                             <?php endif; ?>
                             <?php if ($h['status'] === 'denied' && !empty($h['deny_reason'])): ?>
-                                <div style="margin-top:var(--space-2);color:var(--text-tertiary);font-style:italic">
+                                <div style="margin-top:var(--space-2);color:var(--text-tertiary)">
                                     Staff: <?= e($h['deny_reason']) ?>
                                 </div>
                             <?php endif; ?>
@@ -497,10 +494,7 @@ if ($needsPwGate && !$isUnlocked) {
         <div style="max-width:420px;margin:var(--space-12) auto;text-align:center">
             <div style="width:72px;height:72px;border-radius:50%;background:var(--bg-subtle);
                         display:flex;align-items:center;justify-content:center;margin:0 auto var(--space-6)">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-                    <rect x="3" y="11" width="18" height="11" rx="2" stroke="var(--text-secondary)" stroke-width="1.8"/>
-                    <path stroke="var(--text-secondary)" stroke-width="1.8" stroke-linecap="round" d="M7 11V7a5 5 0 0110 0v4"/>
-                </svg>
+                <?= icon('lock:fill', 32, 'color:var(--text-secondary)') ?>
             </div>
             <h2 style="font-size:var(--text-2xl);font-weight:var(--weight-semibold);margin-bottom:var(--space-2)">
                 Exam Access Code
@@ -762,10 +756,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         font-size:var(--text-sm);
                         margin-bottom:var(--space-3)">
                 <?php if ($passed): ?>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                    <?= icon('check', 14) ?>
                     Passed
                 <?php else: ?>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    <?= icon('x', 14) ?>
                     Did not pass
                 <?php endif; ?>
             </div>
@@ -819,7 +813,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <!-- Passed → next step CTA -->
         <div class="card" style="padding:var(--space-5);display:flex;align-items:center;gap:var(--space-4)">
             <div style="width:40px;height:40px;border-radius:50%;background:#dcfce7;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path stroke="#22c55e" stroke-width="2" stroke-linecap="round" d="M8 12l3 3 5-5"/></svg>
+                <?= icon('check', 18, 'color:#22c55e') ?>
             </div>
             <div style="flex:1">
                 <div style="font-weight:var(--weight-semibold);font-size:var(--text-sm)">Next: Interview</div>
@@ -834,7 +828,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="card" style="padding:var(--space-5);margin-bottom:var(--space-4)">
             <div style="display:flex;align-items:flex-start;gap:var(--space-3);margin-bottom:var(--space-4)">
                 <div style="width:36px;height:36px;border-radius:50%;background:#fef3c7;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path stroke="#f59e0b" stroke-width="2" stroke-linecap="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <?= icon('warning-circle:fill', 16, 'color:#f59e0b') ?>
                 </div>
                 <div>
                     <div style="font-weight:var(--weight-semibold);font-size:var(--text-sm)">Available Alternatives</div>
@@ -872,7 +866,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="card" style="padding:var(--space-5);margin-bottom:var(--space-4)">
             <div style="display:flex;align-items:center;gap:var(--space-3)">
                 <div style="width:36px;height:36px;border-radius:50%;background:#fee2e2;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path stroke="#ef4444" stroke-width="2" stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    <?= icon('x', 16, 'color:#ef4444') ?>
                 </div>
                 <div style="font-size:var(--text-sm);color:var(--text-secondary)">
                     Unfortunately, your score does not currently qualify for any available course.
@@ -1008,7 +1002,6 @@ ob_start();
 .choice-label.chosen {
     background: var(--accent-muted);
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(45,106,79,.08);
 }
 .choice-label input { accent-color: var(--accent); flex-shrink: 0; width: 16px; height: 16px; }
 .choice-label span { font-size: var(--text-sm); line-height: var(--leading-normal); }
@@ -1037,7 +1030,7 @@ ob_start();
 .short-answer-input:hover:not(:focus) { border-color: var(--border-strong); }
 .short-answer-input:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(45,106,79,.10);
+    outline: 1px solid var(--accent);
 }
 
 /* ── Paragraph ───────────────────────────────────────────── */
@@ -1060,7 +1053,7 @@ ob_start();
 .paragraph-input:hover:not(:focus) { border-color: var(--border-strong); }
 .paragraph-input:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(45,106,79,.10);
+    outline: 1px solid var(--accent);
 }
 
 /* ── Linear scale ────────────────────────────────────────── */

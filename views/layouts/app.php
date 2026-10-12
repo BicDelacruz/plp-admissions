@@ -16,7 +16,6 @@ $activeNav    = $activeNav ?? '';
 $showStepper  = $showStepper ?? false;
 $pageWide     = $pageWide ?? false;
 $isStudent    = ($userRole === 'student');
-$hasPageHeading = !empty($content) && preg_match('/<h1\b|class=["\'][^"\']*\bpage-title\b/i', $content);
 ?>
 <?php
 // CSP header
@@ -26,7 +25,7 @@ $hasPageHeading = !empty($content) && preg_match('/<h1\b|class=["\'][^"\']*\bpag
 // returned at runtime. A strict allow-list breaks every time Puter changes
 // infra. (The old documents AI Validate feature has been removed; Puter is
 // only used by the exam builder now.)
-header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://*.hcaptcha.com https://cdnjs.cloudflare.com https://js.puter.com; worker-src 'self' blob: https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; frame-src https://newassets.hcaptcha.com https://*.hcaptcha.com https://*.puter.com; connect-src 'self' https: blob: data:;");
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://*.hcaptcha.com https://cdnjs.cloudflare.com https://js.puter.com; worker-src 'self' blob: https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob: https:; frame-src https://newassets.hcaptcha.com https://*.hcaptcha.com https://*.puter.com; connect-src 'self' https: blob: data:;");
 header("X-Content-Type-Options: nosniff");
 header("X-Frame-Options: SAMEORIGIN");
 header("Referrer-Policy: strict-origin-when-cross-origin");
@@ -43,6 +42,8 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
+    <?= phosphor_head() ?>
+
     <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
 
     <?php if ($schoolLogo): ?>
@@ -55,6 +56,8 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
         (function(){
             const t = localStorage.getItem('plp_theme') || 'light';
             document.documentElement.dataset.theme = t;
+            var fs = null; try { fs = localStorage.getItem('plp_font_size'); } catch (e) {}
+            document.documentElement.dataset.fontSize = ['small','medium','large','xlarge'].indexOf(fs) > -1 ? fs : 'medium';
             document.addEventListener('DOMContentLoaded', function() {
                 const pill = document.querySelector('.theme-pill');
                 if (pill) pill.dataset.theme = t;
@@ -79,7 +82,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                 <img src="<?= str_starts_with($schoolLogo, 'http') ? e($schoolLogo) : e(url('/' . $schoolLogo)) ?>" alt="Logo" class="sidebar-logo">
             <?php else: ?>
                 <div class="sidebar-logo-placeholder">
-                    <?php include __DIR__ . '/../partials/icons/ic_fluent_building_bank_24_regular.svg'; ?>
+                    <?= icon('bank:fill', 18) ?>
                 </div>
             <?php endif; ?>
             <span class="sidebar-school-name"><?= e($schoolName) ?></span>
@@ -99,7 +102,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
         <?php $notifCount = notification_count(Auth::id()); ?>
         <div class="dropdown" id="notif-dropdown">
             <button class="btn-icon" data-dropdown type="button" aria-label="Notifications" style="position:relative">
-                <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/></svg>
+                <?= icon('bell', 20) ?>
                 <?php if ($notifCount > 0): ?>
                 <span class="notif-badge" id="notif-badge"><?= $notifCount > 9 ? '9+' : $notifCount ?></span>
                 <?php endif; ?>
@@ -142,7 +145,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                 </div>
                 <div class="dropdown-separator"></div>
                 <a href="<?= url('/student/settings') ?>" class="dropdown-item">
-                    <?php include __DIR__ . '/../partials/icons/ic_fluent_settings_24_regular.svg'; ?>
+                    <?= icon('gear', 15) ?>
                     Settings
                 </a>
                 <div class="dropdown-item theme-toggle-row" onclick="
@@ -175,13 +178,13 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                 <?php if ($_canWithdraw): ?>
                 <div class="dropdown-separator"></div>
                 <a href="#" class="dropdown-item danger" onclick="event.preventDefault();document.getElementById('withdraw-modal').style.display='flex'">
-                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M9 9l6 6m0-6l-6 6M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <?= icon('x-circle', 15) ?>
                     Withdraw Application
                 </a>
                 <?php endif; ?>
                 <div class="dropdown-separator"></div>
                 <a href="<?= url('/logout') ?>" class="dropdown-item danger">
-                    <?php include __DIR__ . '/../partials/icons/ic_fluent_sign_out_24_regular.svg'; ?>
+                    <?= icon('sign-out', 15) ?>
                     Log out
                 </a>
             </div>
@@ -200,95 +203,97 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
 
         <!-- Brand -->
         <div class="sidebar-brand">
-            <button class="sidebar-brand-toggle" id="sidebar-brand-toggle" type="button"
-                    aria-label="Collapse navigation" aria-controls="sidebar" aria-expanded="true"
-                    title="Collapse navigation">
-                <?php if ($schoolLogo): ?>
-                    <img src="<?= str_starts_with($schoolLogo, 'http') ? e($schoolLogo) : e(url('/' . $schoolLogo)) ?>" alt="" class="sidebar-logo">
-                <?php else: ?>
-                    <span class="sidebar-logo-placeholder">
-                        <?php include __DIR__ . '/../partials/icons/ic_fluent_building_bank_24_regular.svg'; ?>
-                    </span>
-                <?php endif; ?>
-                <span class="sidebar-school-name"><?= e($schoolName) ?></span>
-                <span class="sidebar-brand-chevron" aria-hidden="true"><?= icon('ic_fluent_chevron_left_24_regular', 18) ?></span>
-            </button>
+            <?php if ($schoolLogo): ?>
+                <img src="<?= str_starts_with($schoolLogo, 'http') ? e($schoolLogo) : e(url('/' . $schoolLogo)) ?>" alt="Logo" class="sidebar-logo">
+            <?php else: ?>
+                <div class="sidebar-logo-placeholder">
+                    <?php include __DIR__ . '/../partials/icons/ic_fluent_building_bank_24_regular.svg'; ?>
+                </div>
+            <?php endif; ?>
+            <span class="sidebar-school-name"><?= e($schoolName) ?></span>
         </div>
 
-        <!-- Navigation — rendered per role.
-             Professor (staff) uses the trimmed nav_staff.php.
-             Proctor uses nav_proctor.php (exam-only sidebar).
-             Admin / SSO / Dean share the management nav, which itself
-             filters individual items per role. -->
-        <nav class="sidebar-nav" aria-label="Main navigation">
-            <?php if ($userRole === ROLE_STAFF): ?>
-                <?php include __DIR__ . '/../partials/nav_staff.php'; ?>
-            <?php elseif ($userRole === ROLE_PROCTOR): ?>
-                <?php include __DIR__ . '/../partials/nav_proctor.php'; ?>
-            <?php elseif (in_array($userRole, [ROLE_ADMIN, ROLE_SSO, ROLE_DEAN], true)): ?>
-                <?php include __DIR__ . '/../partials/nav_admin.php'; ?>
-            <?php endif; ?>
-        </nav>
+            <!-- Navigation — rendered per role.
+                 Professor (staff) uses the trimmed nav_staff.php.
+                 Proctor uses nav_proctor.php (exam-only sidebar).
+                 Admin / SSO / Dean share the management nav, which itself
+                 filters individual items per role. All three build their list
+                 and hand it to partials/sidebar_nav_items.php. -->
+            <nav class="sidebar-nav" aria-label="Main navigation">
+                <?php if ($userRole === ROLE_STAFF): ?>
+                    <?php include __DIR__ . '/../partials/nav_staff.php'; ?>
+                <?php elseif ($userRole === ROLE_PROCTOR): ?>
+                    <?php include __DIR__ . '/../partials/nav_proctor.php'; ?>
+                <?php elseif (in_array($userRole, [ROLE_ADMIN, ROLE_SSO, ROLE_DEAN], true)): ?>
+                    <?php include __DIR__ . '/../partials/nav_admin.php'; ?>
+                <?php endif; ?>
+            </nav>
 
-        <!-- User footer -->
-        <div class="sidebar-footer">
-            <div class="dropdown">
-                <div class="sidebar-user" data-dropdown tabindex="0" role="button" aria-label="User menu">
-                    <div class="user-avatar"><?= e($userInitials) ?></div>
-                    <div class="user-info">
-                        <div class="user-name truncate"><?= e($authUser['name'] ?? '') ?></div>
-                        <div class="user-role"><?= e(Auth::roleLabel($userRole)) ?></div>
+            <!-- User footer: the account row is the menu trigger. Collapsed, only
+                 the avatar shows. The menu opens upward and hugs the row's left
+                 edge (Lakbay: side="top" align="start"). -->
+            <div class="sidebar-footer">
+                <div class="dropdown">
+                    <div class="sidebar-user" data-dropdown tabindex="0" role="button"
+                         aria-label="User menu" aria-haspopup="true"
+                         data-tooltip="<?= e($authUser['name'] ?? 'Account') ?>">
+                        <div class="user-avatar"><?= e($userInitials) ?></div>
+                        <div class="user-info">
+                            <div class="user-name truncate"><?= e($authUser['name'] ?? '') ?></div>
+                            <div class="user-role"><?= e(Auth::roleLabel($userRole)) ?></div>
+                        </div>
+                        <?= icon('caret-up-down', 16, 'flex-shrink:0;color:var(--text-tertiary)', 'class="sidebar-user-caret"') ?>
                     </div>
-                    <?= icon('ic_fluent_more_horizontal_24_filled', 20, 'flex-shrink:0;color:var(--text-tertiary)') ?>
-                </div>
-                <div class="dropdown-menu">
-                    <?php
-                        // Only ROLE_ADMIN may visit /admin/settings (school
-                        // branding + admin password). Everyone else (Staff /
-                        // SSO / Dean) lands on /staff/settings, which is now
-                        // a personal-only page (theme, password, help).
-                        $settingsHref = ($userRole === ROLE_ADMIN)
-                            ? '/admin/settings'
-                            : '/staff/settings';
-                    ?>
-                    <a href="<?= url($settingsHref) ?>" class="dropdown-item">
-                        <?php include __DIR__ . '/../partials/icons/ic_fluent_settings_24_regular.svg'; ?>
-                        Settings
-                    </a>
-                    <div class="dropdown-item theme-toggle-row" onclick="
-                        const t = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-                        document.documentElement.dataset.theme = t;
-                        localStorage.setItem('plp_theme', t);
-                        document.querySelector('.theme-pill').dataset.theme = t;" style="cursor:pointer;justify-content:space-between;">
-                        <span style="display:flex;align-items:center;gap:var(--space-2)">
-                            <?= icon('ic_fluent_weather_moon_24_regular', 15) ?>
-                            Dark Mode
-                        </span>
-                        <div class="theme-pill" data-theme="light" style="
-                            position:relative;width:32px;height:18px;border-radius:999px;
-                            background:var(--border);transition:background .2s;flex-shrink:0;pointer-events:none;">
-                            <div style="
-                                position:absolute;top:3px;left:3px;width:12px;height:12px;
-                                border-radius:50%;background:#fff;
-                                transition:transform .2s;
-                                transform:translateX(0);">
+                    <div class="dropdown-menu">
+                        <?php
+                            // Only ROLE_ADMIN may visit /admin/settings (school
+                            // branding + admin password). Everyone else (Staff /
+                            // SSO / Dean) lands on /staff/settings, which is now
+                            // a personal-only page (theme, password, help).
+                            $settingsHref = ($userRole === ROLE_ADMIN)
+                                ? '/admin/settings'
+                                : '/staff/settings';
+                        ?>
+                        <a href="<?= url($settingsHref) ?>" class="dropdown-item">
+                            <?= icon('gear', 15) ?>
+                            Settings
+                        </a>
+                        <div class="dropdown-item theme-toggle-row" onclick="
+                            const t = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+                            document.documentElement.dataset.theme = t;
+                            localStorage.setItem('plp_theme', t);
+                            document.querySelector('.theme-pill').dataset.theme = t;" style="cursor:pointer;justify-content:space-between;">
+                            <span style="display:flex;align-items:center;gap:var(--space-2)">
+                                <?= icon('ic_fluent_weather_moon_24_regular', 15) ?>
+                                Dark Mode
+                            </span>
+                            <div class="theme-pill" data-theme="light" style="
+                                position:relative;width:32px;height:18px;border-radius:999px;
+                                background:var(--border);transition:background .2s;flex-shrink:0;pointer-events:none;">
+                                <div style="
+                                    position:absolute;top:3px;left:3px;width:12px;height:12px;
+                                    border-radius:50%;background:#fff;
+                                    transition:transform .2s;
+                                    transform:translateX(0);">
+                                </div>
                             </div>
                         </div>
+                        <style>
+                            .theme-pill[data-theme='dark'] { background: var(--accent) !important; }
+                            .theme-pill[data-theme='dark'] div { transform: translateX(14px) !important; }
+                        </style>
+                        <div class="dropdown-separator"></div>
+                        <a href="<?= url('/logout') ?>" class="dropdown-item danger">
+                            <?= icon('sign-out', 15) ?>
+                            Log out
+                        </a>
                     </div>
-                    <style>
-                        .theme-pill[data-theme='dark'] { background: var(--accent) !important; }
-                        .theme-pill[data-theme='dark'] div { transform: translateX(14px) !important; }
-                    </style>
-                    <div class="dropdown-separator"></div>
-                    <a href="<?= url('/logout') ?>" class="dropdown-item danger">
-                        <?php include __DIR__ . '/../partials/icons/ic_fluent_sign_out_24_regular.svg'; ?>
-                        Log out
-                    </a>
                 </div>
             </div>
-        </div>
 
-    </aside>
+          </div><!-- /.sidebar-inner -->
+        </aside>
+    </div><!-- /.sidebar-wrapper -->
 
 <?php endif; ?>
 
@@ -296,15 +301,6 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
          MAIN
     ==================================================== -->
     <div class="main">
-
-        <?php if (!$isStudent): ?>
-        <button class="btn-icon mobile-menu-toggle" id="sidebar-toggle" type="button"
-                aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false" title="Open navigation">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-            </svg>
-        </button>
-        <?php endif; ?>
 
         <!-- Flash messages -->
         <?php if (Session::hasFlash('success') || Session::hasFlash('error') || Session::hasFlash('info')): ?>
@@ -346,18 +342,12 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
 </div><!-- /.layout -->
 
 <script>window.__baseUrl = '<?= rtrim(BASE_URL, '/') ?>';</script>
+<script src="<?= asset('js/jquery.min.js') ?>"></script>
 <script src="<?= asset('js/app.js') ?>"></script>
 <script>
     // Inject accent from DB
     setAccentColor('<?= e($accentColor) ?>');
 
-    // Show hamburger on mobile (staff/admin only)
-    <?php if (!$isStudent): ?>
-    if (window.innerWidth <= 768) {
-        const toggle = document.getElementById('sidebar-toggle');
-        if (toggle) toggle.style.display = 'flex';
-    }
-    <?php endif; ?>
 </script>
 
 <?php if (Auth::check()): ?>
@@ -481,9 +471,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
             <div class="modal-body" style="display:flex;flex-direction:column;gap:var(--space-4)">
                 <div style="background:#fff7ed;border:1px solid #f97316;border-radius:var(--radius-md);padding:var(--space-4)">
                     <div style="display:flex;gap:var(--space-3);align-items:flex-start">
-                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px">
-                            <path stroke="#f97316" stroke-width="2" stroke-linecap="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
+                        <?= icon('warning-circle:fill', 18, 'margin-top:1px;color:#f97316') ?>
                         <div>
                             <div style="font-weight:var(--weight-semibold);font-size:var(--text-sm);color:#c2410c;margin-bottom:2px">This cannot be undone</div>
                             <p style="font-size:var(--text-sm);color:var(--text-secondary)">

@@ -23,13 +23,12 @@ $_navExamReady = (int)$_navSlotStmt->fetchColumn() > 0;
 
 // Single item — Proctor goes straight to Exam Slots (no dashboard).
 $items = [
-    ['href' => '/staff/exam/slots',  'key' => 'exam',      'label' => 'Exam Slots', 'icon' => 'ic_fluent_calendar_ltr_24_regular', 'alert' => !$_navExamReady],
+    ['href' => '/staff/exam/slots',  'key' => 'exam',      'label' => 'Exam Slots', 'icon' => 'calendar-blank', 'alert' => !$_navExamReady],
 ];
 ?>
 <?php foreach ($items as $item): ?>
     <a href="<?= url($item['href']) ?>"
        class="nav-item <?= $nav === $item['key'] ? 'active' : '' ?>"
-         title="<?= e($item['label']) ?>"
        aria-current="<?= $nav === $item['key'] ? 'page' : 'false' ?>">
         <?php include __DIR__ . '/icons/' . $item['icon'] . '.svg'; ?>
         <?= e($item['label']) ?>

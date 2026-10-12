@@ -258,7 +258,6 @@ ob_start();
 .db-kpi-item {
     background: var(--bg-subtle);
     border-radius: var(--radius-md);
-    border-left: 3px solid var(--accent);
     padding: var(--space-5) var(--space-4);
     display: flex;
     flex-direction: column;
@@ -380,14 +379,9 @@ ob_start();
                     font-size:var(--text-sm);cursor:pointer;white-space:nowrap;
                     transition:border-color var(--transition-fast),color var(--transition-fast);
                 ">
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                        <rect x="1" y="2.5" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.3"/>
-                        <path d="M5 1v3M11 1v3M1 7h14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
-                    </svg>
+                    <?= icon('calendar-blank', 14) ?>
                     <span id="dpLabel"><?= e($rangeLabel) ?></span>
-                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                        <path d="M2 3.5l3 3 3-3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
+                    <?= icon('caret-down', 10) ?>
                 </button>
                 <div class="dp-menu app-dropdown-panel" id="dpMenu">
                     <button class="dp-item <?= $range==='today'      ?'active':''?>" onclick="dpSet('today')">Today</button>
@@ -419,9 +413,7 @@ ob_start();
                 font-size:var(--text-sm);cursor:pointer;white-space:nowrap;text-decoration:none;
                 transition:border-color var(--transition-fast),color var(--transition-fast);
             ">
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                    <path d="M3 12.5h10M8 1.5v8M5 6.5l3 3 3-3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+                <?= icon('download-simple', 14) ?>
                 Export CSV
             </a>
 
