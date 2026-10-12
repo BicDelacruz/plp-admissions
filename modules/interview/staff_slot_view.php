@@ -183,13 +183,6 @@ ob_start();
     <div class="alert alert-success" style="margin-bottom:var(--space-4)"><?= e($s) ?></div>
 <?php endforeach; ?>
 
-<!-- Breadcrumb -->
-<div style="margin-bottom:var(--space-4);font-size:var(--text-sm)">
-    <a href="<?= url('/staff/interviews') ?>" style="color:var(--text-secondary)">
-        ← Back to sessions
-    </a>
-</div>
-
 <!-- Slot summary -->
 <div class="card" style="padding:var(--space-5);margin-bottom:var(--space-5)">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--space-3)">
@@ -363,5 +356,6 @@ ob_start();
 <?php
 $content   = ob_get_clean();
 $pageTitle = 'Interview Roster';
+$pageActions = '<a href="' . e(url('/staff/interviews')) . '" class="btn-icon" aria-label="Back to interviews" title="Back to interviews">' . icon('ic_fluent_arrow_left_24_regular', 18) . '</a>';
 $activeNav = 'interviews';
 include VIEWS_PATH . '/layouts/app.php';

@@ -111,21 +111,6 @@ if ($applicantId) {
 
     ob_start();
 ?>
-<div style="display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-6)">
-    <a href="<?= url('/staff/applicants') ?>" class="btn btn-ghost btn-sm">
-        <?= icon('ic_fluent_arrow_left_24_regular', 16) ?>
-        Back
-    </a>
-    <div style="margin-left:auto"></div>
-    <?php if ($approvableCount > 0): ?>
-        <button type="button" class="btn btn-success btn-sm" id="approve-all-btn"
-                onclick="approveAllAjax()">
-            <?= icon('ic_fluent_checkmark_circle_24_regular', 15) ?>
-            Approve All (<?= $approvableCount ?>)
-        </button>
-    <?php endif; ?>
-</div>
-
 <?php if ($msg = Session::getFlash('success')): ?>
     <div class="alert alert-success" style="margin-bottom:var(--space-4)"><?= e($msg) ?></div>
 <?php endif; ?>
@@ -695,6 +680,8 @@ function undoApproveAll() {
 <?php
     $content   = ob_get_clean();
     $pageTitle = 'Review: ' . format_full_name($applicant);
+    $pageActions = '<a href="' . e(url('/staff/applicants')) . '" class="btn-icon" aria-label="Back to applicants" title="Back to applicants">' . icon('ic_fluent_arrow_left_24_regular', 18) . '</a>'
+        . ($approvableCount > 0 ? '<button type="button" class="btn btn-success btn-sm" id="approve-all-btn" onclick="approveAllAjax()">' . icon('ic_fluent_checkmark_circle_24_regular', 15) . ' Approve All (' . (int)$approvableCount . ')</button>' : '');
     $activeNav = 'documents';
     include VIEWS_PATH . '/layouts/app.php';
     return;
@@ -838,10 +825,8 @@ $docFilterUrl = function (array $merge = []) use ($statusFilter, $typeFilter, $c
                 <?php endif; ?>
             </button>
 
-            <div id="filter-dropdown" style="
+            <div id="filter-dropdown" class="app-dropdown-panel" style="
                 display:none;position:absolute;left:0;top:calc(100% + 6px);z-index:200;
-                background:var(--bg-elevated);border:1px solid var(--border);
-                border-radius:var(--radius-md);box-shadow:var(--shadow-md);
                 min-width:260px;max-height:480px;overflow-y:auto;padding:var(--space-3);
             ">
                 <!-- Applicant Type -->

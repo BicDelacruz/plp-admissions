@@ -152,8 +152,11 @@ $courseCountsMap = array_column($courseCountsStmt->fetchAll(PDO::FETCH_ASSOC), '
 // Dean still gets dept-scoped counts (zeros for other colleges' courses)
 // from the dept-filtered query above, but the chart context stays
 // complete so they can see the full catalog at a glance.
-$courseLabels = PLP_COURSES;
-$courseData   = array_map(fn($c) => (int)($courseCountsMap[$c] ?? 0), $courseLabels);
+$courseFullLabels = PLP_COURSES;
+$courseLabels = array_map(static function ($course) {
+    return preg_match('/\(([^()]*)\)\s*$/', $course, $match) ? $match[1] : $course;
+}, $courseFullLabels);
+$courseData = array_map(fn($course) => (int)($courseCountsMap[$course] ?? 0), $courseFullLabels);
 
 // ── SHS Strand — all strands from config, 0 if no data ────────────
 $strandCountsStmt = $pdo->prepare("
@@ -170,9 +173,10 @@ $strandCountsMap = array_column($strandCountsStmt->fetchAll(PDO::FETCH_ASSOC), '
 $strandLabels = [];
 $strandData   = [];
 foreach (SHS_STRANDS as $key => $label) {
-    $strandLabels[] = $label;
+    $strandLabels[] = $key;
     $strandData[]   = (int)($strandCountsMap[$key] ?? 0);
 }
+$strandFullLabels = array_values(SHS_STRANDS);
 
 // ── Sex ────────────────────────────────────────────────────────────
 $sexStmt = $pdo->prepare("
@@ -221,8 +225,8 @@ ob_start();
     font-size:var(--text-xl); font-weight:var(--weight-semibold);
     color:var(--text-primary); margin:0 0 var(--space-1); letter-spacing:-0.2px;
 }
-.db-sub      { font-size:var(--text-xs); color:var(--text-tertiary); margin:0; }
-.db-controls { display:flex; align-items:center; gap:var(--space-2); flex-wrap:wrap; }
+.db-sub      { font-size:var(--text-sm); color:var(--text-tertiary); margin:0; }
+.db-controls { display:flex; align-items:center; justify-content:flex-end; width:100%; gap:var(--space-2); flex-wrap:wrap; }
 
 /* ── 3-column grid: 30% | 40% | 30%
    Col1 and Col2 are plain flex stacks — no row-spanning.
@@ -287,15 +291,15 @@ ob_start();
 .db-donut-fill { stroke:var(--accent); stroke-linecap:round; transition:stroke-dashoffset .5s ease; }
 .db-donut-lbl  { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1; gap:2px; }
 .db-donut-pct  { font-size:18px; font-weight:var(--weight-semibold); color:var(--text-primary); }
-.db-donut-sub  { font-size:10px; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:.05em; }
+.db-donut-sub  { font-size:12px; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:0; }
 
 /* Card chart header */
 .db-ch     { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:var(--space-4); }
-.db-ch-sub { font-size:var(--text-xs); color:var(--text-secondary); font-weight:var(--weight-medium); }
+.db-ch-sub { font-size:var(--text-sm); color:var(--text-secondary); font-weight:var(--weight-medium); }
 
 /* Legend */
 .db-legend      { display:flex; flex-wrap:wrap; gap:var(--space-3); margin-top:var(--space-3); justify-content:center; }
-.db-legend-item { display:flex; align-items:center; gap:var(--space-2); font-size:var(--text-xs); color:var(--text-secondary); }
+.db-legend-item { display:flex; align-items:center; gap:var(--space-2); font-size:var(--text-sm); color:var(--text-secondary); }
 .db-legend-dot  { width:8px; height:8px; border-radius:2px; flex-shrink:0; }
 
 
@@ -306,9 +310,7 @@ ob_start();
 .dp-wrap { position:relative; }
 .dp-menu {
     display:none; position:absolute; left:0; top:calc(100% + var(--space-1));
-    min-width:176px; background:var(--bg-elevated); border:1px solid var(--border);
-    border-radius:var(--radius-md); box-shadow:var(--shadow-md);
-    padding:var(--space-1) 0; z-index:200;
+    min-width:176px;padding:var(--space-1) 0;z-index:200;
 }
 .dp-menu.open { display:block; }
 .dp-item {
@@ -332,6 +334,10 @@ ob_start();
 }
 @media (max-width:560px) {
     .db-grid { grid-template-columns:1fr; }
+}
+@media (max-width:768px) {
+    .db-kpi-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .db-kpi-item { min-width:0;padding:var(--space-4) var(--space-3); }
 }
 </style>
 
@@ -383,7 +389,7 @@ ob_start();
                         <path d="M2 3.5l3 3 3-3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </button>
-                <div class="dp-menu" id="dpMenu">
+                <div class="dp-menu app-dropdown-panel" id="dpMenu">
                     <button class="dp-item <?= $range==='today'      ?'active':''?>" onclick="dpSet('today')">Today</button>
                     <button class="dp-item <?= $range==='yesterday'  ?'active':''?>" onclick="dpSet('yesterday')">Yesterday</button>
                     <div class="dp-divider"></div>
@@ -542,15 +548,16 @@ ob_start();
         var textPrimary = v('--text-primary');
         var textSecond  = v('--text-secondary');
         var border      = v('--border');
+        var radius      = parseFloat(v('--radius')) || 8;
         // Single accent color family for all charts — no rainbow
         var barColor    = accentLight || accent;
 
-        Chart.defaults.font  = { family: v('--font-sans') || 'DM Sans,sans-serif', size: 12 };
+        Chart.defaults.font  = { family: v('--font-sans') || 'DM Sans,sans-serif', size: 14 };
         Chart.defaults.color = textSecond;
 
         var xGrid = { grid:{color:border}, border:{display:false}, ticks:{color:textSecond, precision:0} };
-        var yFlat  = { grid:{display:false}, border:{display:false}, ticks:{color:textPrimary, font:{size:12}} };
-    var yWide  = { grid:{display:false}, border:{display:false}, ticks:{color:textPrimary, font:{size:12}}, afterFit:function(axis){ axis.width = axis.chart.width * 0.58; } };
+        var yFlat  = { grid:{display:false}, border:{display:false}, ticks:{color:textPrimary, font:{size:14}}, afterFit:function(axis){ axis.width = Math.max(axis.width, 96); } };
+        var yWide  = { grid:{display:false}, border:{display:false}, ticks:{color:textPrimary, font:{size:14}}, afterFit:function(axis){ axis.width = axis.chart.width * 0.58; } };
         var tip   = { callbacks:{ label:function(c){ return ' '+c.raw+' applicants'; } } };
 
         // Pipeline — horizontal bar (same accent, different opacity per stage)
@@ -558,7 +565,7 @@ ob_start();
             type: 'bar',
             data: {
                 labels: DATA.pipeline.labels,
-                datasets: [{ data: DATA.pipeline.data, borderRadius:5, borderSkipped:false,
+                datasets: [{ data: DATA.pipeline.data, borderRadius:radius, borderSkipped:false,
                     backgroundColor: DATA.pipeline.data.map(function(){ return barColor; }) }]
             },
             options: { indexAxis:'y', responsive:true, maintainAspectRatio:false,
@@ -570,9 +577,14 @@ ob_start();
         charts.course = new Chart(document.getElementById('chartCourse'), {
             type: 'bar',
             data: { labels:DATA.course.labels,
-                datasets:[{ data:DATA.course.data, backgroundColor:barColor, borderRadius:4, borderSkipped:false, barThickness:10, maxBarThickness:12 }] },
+                datasets:[{ data:DATA.course.data, backgroundColor:barColor, borderRadius:radius, borderSkipped:false, barThickness:10, maxBarThickness:12 }] },
             options: { indexAxis:'y', responsive:true, maintainAspectRatio:false,
-                plugins:{ legend:{display:false}, tooltip:tip },
+                plugins:{ legend:{display:false}, tooltip:{callbacks:{
+                    title:function(items){
+                        return items.length ? <?= json_encode($courseFullLabels) ?>[items[0].dataIndex] : '';
+                    },
+                    label:function(c){ return ' '+c.raw+' applicants'; }
+                }} },
                 scales:{ x:xGrid, y:yWide } }
         });
 
@@ -580,11 +592,14 @@ ob_start();
         charts.strand = new Chart(document.getElementById('chartStrand'), {
             type: 'bar',
             data: { labels:DATA.strand.labels,
-                datasets:[{ data:DATA.strand.data, backgroundColor:barColor, borderRadius:5, borderSkipped:false }] },
+                datasets:[{ data:DATA.strand.data, backgroundColor:barColor, borderRadius:radius, borderSkipped:false }] },
             options: { indexAxis:'y', responsive:true, maintainAspectRatio:false,
-                plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:function(c){
-                    return ' '+c.raw+' applicants';
-                }}}},
+                plugins:{ legend:{display:false}, tooltip:{ callbacks:{
+                    title:function(items){
+                        return items.length ? <?= json_encode($strandFullLabels) ?>[items[0].dataIndex] : '';
+                    },
+                    label:function(c){ return ' '+c.raw+' applicants'; }
+                }}},
                 scales:{ x:xGrid, y:yWide } }
         });
         var sl=document.getElementById('strandLegend');

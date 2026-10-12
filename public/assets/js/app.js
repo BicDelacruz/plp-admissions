@@ -68,20 +68,51 @@ const Dropdown = (() => {
 // ============================================================
 const Sidebar = (() => {
     let overlay = null;
+    const COLLAPSED_KEY = 'plp_sidebar_collapsed';
 
     function init() {
         const toggle = document.getElementById('sidebar-toggle');
-        if (!toggle) return;
+        const brandToggle = document.getElementById('sidebar-brand-toggle');
+        const layout = document.querySelector('.layout:not(.layout-student)');
 
-        toggle.addEventListener('click', open);
+        if (!layout) return;
+
+        if (localStorage.getItem(COLLAPSED_KEY) === 'true' && window.innerWidth > 768) {
+            layout.classList.add('sidebar-collapsed');
+            syncBrandToggle(true);
+        }
+
+        toggle?.addEventListener('click', () => {
+            if (document.querySelector('.sidebar.open')) close();
+            else open();
+        });
+        brandToggle?.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                close();
+                return;
+            }
+            const collapsed = layout.classList.toggle('sidebar-collapsed');
+            localStorage.setItem(COLLAPSED_KEY, String(collapsed));
+            syncBrandToggle(collapsed);
+        });
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) close();
+            syncBrandToggle();
+        });
     }
 
     function open() {
         const sidebar = document.querySelector('.sidebar');
         if (!sidebar) return;
         sidebar.classList.add('open');
+        document.getElementById('sidebar-toggle')?.setAttribute('aria-expanded', 'true');
+        document.getElementById('sidebar-toggle')?.setAttribute('aria-label', 'Close navigation');
+        document.getElementById('sidebar-toggle')?.setAttribute('title', 'Close navigation');
+        syncBrandToggle();
 
         overlay = document.createElement('div');
+        overlay.className = 'sidebar-overlay';
         overlay.style.cssText = `
             position: fixed; inset: 0;
             background: rgba(0,0,0,0.3);
@@ -96,6 +127,27 @@ const Sidebar = (() => {
         document.querySelector('.sidebar')?.classList.remove('open');
         overlay?.remove();
         overlay = null;
+        document.getElementById('sidebar-toggle')?.setAttribute('aria-expanded', 'false');
+        document.getElementById('sidebar-toggle')?.setAttribute('aria-label', 'Open navigation');
+        document.getElementById('sidebar-toggle')?.setAttribute('title', 'Open navigation');
+        syncBrandToggle();
+    }
+
+    function syncBrandToggle(collapsed = false) {
+        const button = document.getElementById('sidebar-brand-toggle');
+        if (!button) return;
+        if (window.innerWidth <= 768) {
+            const open = document.querySelector('.sidebar')?.classList.contains('open') || false;
+            const label = open ? 'Close navigation' : 'Open navigation';
+            button.setAttribute('aria-expanded', String(open));
+            button.setAttribute('aria-label', label);
+            button.setAttribute('title', label);
+            return;
+        }
+        const isCollapsed = collapsed || document.querySelector('.layout')?.classList.contains('sidebar-collapsed');
+        button.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+        button.setAttribute('aria-label', isCollapsed ? 'Expand navigation' : 'Collapse navigation');
+        button.setAttribute('title', isCollapsed ? 'Expand navigation' : 'Collapse navigation');
     }
 
     return { init };

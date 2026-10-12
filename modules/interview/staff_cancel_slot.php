@@ -257,10 +257,6 @@ foreach ($slots as $s) {
 ob_start();
 ?>
 
-<div style="margin-bottom:var(--space-5)">
-    <a href="<?= url('/staff/interviews/setup') ?>" class="btn btn-ghost btn-sm">← Back to Interview Slots</a>
-</div>
-
 <div class="card" style="padding:var(--space-6);margin-bottom:var(--space-5)">
     <h2 style="font-size:var(--text-xl);font-weight:var(--weight-semibold);margin:0 0 var(--space-2)">
         Cancel an interview slot
@@ -367,6 +363,7 @@ ob_start();
 <?php
 $content   = ob_get_clean();
 $pageTitle = 'Cancel Interview Slot (Bulk)';
+$pageActions = '<a href="' . e(url('/staff/interviews/setup')) . '" class="btn-icon" aria-label="Back to interview slots" title="Back to interview slots">' . icon('ic_fluent_arrow_left_24_regular', 18) . '</a>';
 $activeNav = 'interview';
 $pageWide  = true; // table-heavy page — match staff_slots / staff_review / staff_manage
 include VIEWS_PATH . '/layouts/app.php';

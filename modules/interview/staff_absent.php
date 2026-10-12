@@ -451,6 +451,9 @@ ob_start();
 .sa-table-card { flex:1; min-height:300px; display:flex; flex-direction:column; }
 .sa-table-card table { flex:0 0 auto; }
 .sa-table-card .sa-filler { flex:1; border-top:1px solid var(--border); }
+.sa-table-shell { display:flex;flex-direction:column;flex:1;min-height:0; }
+.sa-table-toolbar { display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3);border:1px solid var(--border);border-bottom:0;background:var(--bg-elevated); }
+.sa-table-toolbar .segmented-control { flex-wrap:wrap; }
 </style>
 
 <?php foreach ($errors as $err): ?>
@@ -460,44 +463,19 @@ ob_start();
     <div class="alert alert-success" style="margin-bottom:var(--space-4)"><?= e($s) ?></div>
 <?php endforeach; ?>
 
-<div style="margin-bottom:var(--space-5);display:flex;justify-content:space-between;gap:var(--space-3);flex-wrap:wrap">
-    <a href="<?= url('/staff/interviews') ?>" class="btn btn-ghost btn-sm">← Back</a>
-    <?php if ($canReschedule): ?>
-        <a href="<?= url('/staff/interviews/cancel-slot') ?>" class="btn btn-ghost btn-sm">
-            Cancel a slot (bulk move) →
-        </a>
-    <?php endif; ?>
-</div>
-
-<!-- ============================================================
-     TAB NAVIGATION
-============================================================ -->
-<div style="display:flex;gap:var(--space-1);margin-bottom:var(--space-5);border-bottom:1.5px solid var(--border)">
-    <a href="<?= url('/staff/interviews/absent?tab=absent') ?>"
-       style="padding:var(--space-2) var(--space-4);font-size:var(--text-sm);font-weight:var(--weight-medium);
-              text-decoration:none;border-bottom:2px solid <?= $activeTab === 'absent' ? 'var(--accent)' : 'transparent' ?>;
-              color:<?= $activeTab === 'absent' ? 'var(--accent)' : 'var(--text-secondary)' ?>;
-              margin-bottom:-1.5px">
-        Absent Students
-        <?php if (!empty($absent)): ?>
-            <span style="background:var(--bg-subtle);padding:1px 7px;border-radius:999px;font-size:var(--text-xs);
-                          margin-left:var(--space-1)"><?= count($absent) ?></span>
-        <?php endif; ?>
-    </a>
-    <?php if (!$isDean): ?>
-    <a href="<?= url('/staff/interviews/absent?tab=requests') ?>"
-       style="padding:var(--space-2) var(--space-4);font-size:var(--text-sm);font-weight:var(--weight-medium);
-              text-decoration:none;border-bottom:2px solid <?= $activeTab === 'requests' ? 'var(--accent)' : 'transparent' ?>;
-              color:<?= $activeTab === 'requests' ? 'var(--accent)' : 'var(--text-secondary)' ?>;
-              margin-bottom:-1.5px">
-        Reschedule Requests
-        <?php if (!empty($reschedRequests)): ?>
-            <span style="background:var(--warning-bg);color:var(--warning);padding:1px 7px;border-radius:999px;
-                          font-size:var(--text-xs);margin-left:var(--space-1)"><?= count($reschedRequests) ?></span>
-        <?php endif; ?>
-    </a>
-    <?php endif; ?>
-</div>
+<div class="sa-table-shell">
+    <div class="sa-table-toolbar">
+        <nav class="segmented-control" aria-label="Interview reschedules">
+            <a href="<?= url('/staff/interviews/absent?tab=absent') ?>" class="<?= $activeTab === 'absent' ? 'is-active' : '' ?>" <?= $activeTab === 'absent' ? 'aria-current="page"' : '' ?>>
+                Absent Students <span class="segmented-control-count"><?= count($absent) ?></span>
+            </a>
+            <?php if (!$isDean): ?>
+            <a href="<?= url('/staff/interviews/absent?tab=requests') ?>" class="<?= $activeTab === 'requests' ? 'is-active' : '' ?>" <?= $activeTab === 'requests' ? 'aria-current="page"' : '' ?>>
+                Reschedule Requests <span class="segmented-control-count"><?= count($reschedRequests) ?></span>
+            </a>
+            <?php endif; ?>
+        </nav>
+    </div>
 
 <?php if ($activeTab === 'absent'): ?>
 <!-- ============================================================
@@ -740,10 +718,13 @@ ob_start();
     <?php endif; ?>
 <?php endif; ?>
 <?php endif; /* end activeTab */ ?>
+</div>
 
 <?php
 $content   = ob_get_clean();
 $pageTitle = $activeTab === 'requests' ? 'Reschedule Requests' : 'Absent Students';
+$pageActions = '<a href="' . e(url('/staff/interviews')) . '" class="btn-icon" aria-label="Back to interviews" title="Back to interviews">' . icon('ic_fluent_arrow_left_24_regular', 18) . '</a>'
+    . ($canReschedule ? '<a href="' . e(url('/staff/interviews/cancel-slot')) . '" class="btn btn-ghost btn-sm">Cancel a slot (bulk move) ' . icon('ic_fluent_arrow_right_24_regular', 16) . '</a>' : '');
 $activeNav = $activeTab === 'requests' ? 'reschedule' : 'interviews';
 $pageWide  = true; // table-heavy page — match staff_slots / staff_review / staff_manage
 include VIEWS_PATH . '/layouts/app.php';

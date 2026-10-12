@@ -413,9 +413,6 @@ ob_start();
 ============================================================ -->
 <?php if ($canSeeAll): ?>
     <div style="display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-5);flex-wrap:wrap">
-        <a href="<?= e(url('/staff/interviews/queue')) ?>" class="btn btn-ghost btn-sm">
-            ← Back to colleges
-        </a>
         <span style="font-size:var(--text-sm);color:var(--text-secondary)">
             <?php if ($showAll): ?>
                 <strong>All colleges</strong>
@@ -964,5 +961,8 @@ if ($canSeeAll) {
     $pageTitle = 'Live Queue';
 }
 $activeNav = 'interviews';
+$pageActions = $canSeeAll
+    ? '<a href="' . e(url('/staff/interviews/queue')) . '" class="btn-icon" aria-label="Back to college selection" title="Back to college selection">' . icon('ic_fluent_arrow_left_24_regular', 18) . '</a>'
+    : '';
 $pageWide  = true;
 include VIEWS_PATH . '/layouts/app.php';

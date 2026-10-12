@@ -721,14 +721,6 @@ elseif ($selectedExamId) $view = 'editor';
 ════════════════════════════════════════════════════ */ ?>
 <?php elseif ($view === 'exams'): ?>
 
-<!-- Directory header -->
-<div style="margin-bottom:var(--space-5)">
-    <a href="<?= url('/staff/exam') ?>" class="btn btn-ghost btn-sm" style="display:inline-flex;align-items:center;gap:5px">
-        <?= icon('ic_fluent_arrow_left_24_regular', 15) ?>
-        Back
-    </a>
-</div>
-
 <?php if (empty($exams)): ?>
     <div class="exam-dir-grid" style="max-width:320px;margin:var(--space-10) auto 0">
         <div class="exam-dir-card" onclick="openModal('create-exam-modal')"
@@ -796,14 +788,6 @@ elseif ($selectedExamId) $view = 'editor';
    EXAM EDITOR — full question builder for a selected exam
 ════════════════════════════════════════════════════ */ ?>
 <?php else: ?>
-
-<!-- Back -->
-<div style="margin-bottom:var(--space-5)">
-    <a href="<?= url('/staff/exam') ?>?view=exams" class="btn btn-ghost btn-sm" style="display:inline-flex;align-items:center;gap:5px">
-        <?= icon('ic_fluent_arrow_left_24_regular', 15) ?>
-        Back
-    </a>
-</div>
 
 <?php if ($selectedExam): ?>
 
@@ -2023,8 +2007,8 @@ function togglePassingPanel() {
             <div id="ai-puter-status" class="ai-status-bar disconnected">
                 <div class="ai-status-dot"></div>
                 <div id="ai-puter-status-text" style="flex:1">Checking Puter connection…</div>
-                <a id="ai-puter-link" href="https://puter.com" target="_blank" style="display:none;font-size:var(--text-xs);font-weight:var(--weight-medium);color:var(--accent);text-decoration:none;white-space:nowrap">Create account →</a>
-                <button id="ai-puter-signin-btn" onclick="puterSignIn()" style="display:none;font-size:var(--text-xs);font-weight:var(--weight-medium);color:var(--accent);background:none;border:none;cursor:pointer;padding:0;white-space:nowrap">Sign in →</button>
+                <a id="ai-puter-link" href="https://puter.com" target="_blank" style="display:none;font-size:var(--text-xs);font-weight:var(--weight-medium);color:var(--accent);text-decoration:none;white-space:nowrap">Create account <?= icon('ic_fluent_arrow_right_24_regular', 14) ?></a>
+                <button id="ai-puter-signin-btn" onclick="puterSignIn()" style="display:none;font-size:var(--text-xs);font-weight:var(--weight-medium);color:var(--accent);background:none;border:none;cursor:pointer;padding:0;white-space:nowrap">Sign in <?= icon('ic_fluent_arrow_right_24_regular', 14) ?></button>
                 <button id="ai-puter-signout-btn" onclick="puterSignOut()" style="display:none;font-size:var(--text-xs);color:var(--text-tertiary);background:none;border:none;cursor:pointer;padding:0">Sign out</button>
             </div>
             <div id="ai-step-upload">
@@ -2060,7 +2044,7 @@ function togglePassingPanel() {
             <div id="ai-step-preview" style="display:none;flex-direction:column;gap:var(--space-3)">
                 <div style="display:flex;align-items:center;justify-content:space-between">
                     <div style="font-size:var(--text-sm);font-weight:var(--weight-semibold)" id="ai-preview-count"></div>
-                    <button class="btn btn-ghost btn-sm" onclick="resetAiImport()">← Try again</button>
+                    <button class="btn btn-ghost btn-sm" onclick="resetAiImport()"><?= icon('ic_fluent_arrow_left_24_regular', 16) ?> Try again</button>
                 </div>
                 <div class="ai-warn-strip">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;margin-top:1px"><path stroke="#d97706" stroke-width="2" stroke-linecap="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
@@ -2073,7 +2057,7 @@ function togglePassingPanel() {
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 8v4m0 4h.01"/></svg>
                     <span id="ai-error-msg"></span>
                 </div>
-                <button class="btn btn-ghost btn-sm" style="align-self:flex-start" onclick="resetAiImport()">← Try again</button>
+                <button class="btn btn-ghost btn-sm" style="align-self:flex-start" onclick="resetAiImport()"><?= icon('ic_fluent_arrow_left_24_regular', 16) ?> Try again</button>
             </div>
         </div>
         <div class="modal-footer" id="ai-modal-footer" style="border-top:1px solid var(--border)">
@@ -2709,5 +2693,10 @@ async function saveAiQuestions(){
 <?php
 $content   = ob_get_clean();
 $pageTitle = 'Entrance Exam';
+$pageActions = $view === 'exams'
+    ? '<a href="' . e(url('/staff/exam')) . '" class="btn-icon" aria-label="Back to exam overview" title="Back to exam overview">' . icon('ic_fluent_arrow_left_24_regular', 18) . '</a>'
+    : ($view === 'editor'
+        ? '<a href="' . e(url('/staff/exam') . '?view=exams') . '" class="btn-icon" aria-label="Back to exam list" title="Back to exam list">' . icon('ic_fluent_arrow_left_24_regular', 18) . '</a>'
+        : '');
 $activeNav = 'exam';
 include VIEWS_PATH . '/layouts/app.php';

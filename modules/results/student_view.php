@@ -383,7 +383,7 @@ ob_start();
 
 <!-- Step navigation -->
 <div class="step-nav">
-    <a href="<?= url('/student/interview') ?>" class="btn btn-ghost">← Back</a>
+    <a href="<?= url('/student/interview') ?>" class="btn-icon" aria-label="Back to interview" title="Back to interview"><?= icon('ic_fluent_arrow_left_24_regular', 18) ?></a>
     <span></span>
 </div>
 

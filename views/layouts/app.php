@@ -16,6 +16,7 @@ $activeNav    = $activeNav ?? '';
 $showStepper  = $showStepper ?? false;
 $pageWide     = $pageWide ?? false;
 $isStudent    = ($userRole === 'student');
+$hasPageHeading = !empty($content) && preg_match('/<h1\b|class=["\'][^"\']*\bpage-title\b/i', $content);
 ?>
 <?php
 // CSP header
@@ -199,14 +200,19 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
 
         <!-- Brand -->
         <div class="sidebar-brand">
-            <?php if ($schoolLogo): ?>
-                <img src="<?= str_starts_with($schoolLogo, 'http') ? e($schoolLogo) : e(url('/' . $schoolLogo)) ?>" alt="Logo" class="sidebar-logo">
-            <?php else: ?>
-                <div class="sidebar-logo-placeholder">
-                    <?php include __DIR__ . '/../partials/icons/ic_fluent_building_bank_24_regular.svg'; ?>
-                </div>
-            <?php endif; ?>
-            <span class="sidebar-school-name"><?= e($schoolName) ?></span>
+            <button class="sidebar-brand-toggle" id="sidebar-brand-toggle" type="button"
+                    aria-label="Collapse navigation" aria-controls="sidebar" aria-expanded="true"
+                    title="Collapse navigation">
+                <?php if ($schoolLogo): ?>
+                    <img src="<?= str_starts_with($schoolLogo, 'http') ? e($schoolLogo) : e(url('/' . $schoolLogo)) ?>" alt="" class="sidebar-logo">
+                <?php else: ?>
+                    <span class="sidebar-logo-placeholder">
+                        <?php include __DIR__ . '/../partials/icons/ic_fluent_building_bank_24_regular.svg'; ?>
+                    </span>
+                <?php endif; ?>
+                <span class="sidebar-school-name"><?= e($schoolName) ?></span>
+                <span class="sidebar-brand-chevron" aria-hidden="true"><?= icon('ic_fluent_chevron_left_24_regular', 18) ?></span>
+            </button>
         </div>
 
         <!-- Navigation — rendered per role.
@@ -291,6 +297,15 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
     ==================================================== -->
     <div class="main">
 
+        <?php if (!$isStudent): ?>
+        <button class="btn-icon mobile-menu-toggle" id="sidebar-toggle" type="button"
+                aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false" title="Open navigation">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+        </button>
+        <?php endif; ?>
+
         <!-- Flash messages -->
         <?php if (Session::hasFlash('success') || Session::hasFlash('error') || Session::hasFlash('info')): ?>
             <div style="padding: var(--space-4) var(--space-8) 0;">
@@ -317,6 +332,12 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
 
         <!-- Page content injected here -->
         <main class="page <?= $pageWide ? 'page-wide' : '' ?>" id="main-content">
+            <?php if (!$hasPageHeading): ?>
+            <header class="page-header page-header-generated">
+                <h1 class="page-title"><?= e($pageTitle) ?></h1>
+                <?php if (!empty($pageActions)): ?><div class="page-header-actions"><?= $pageActions ?></div><?php endif; ?>
+            </header>
+            <?php endif; ?>
             <?= $content ?? '' ?>
         </main>
 

@@ -532,7 +532,7 @@ ob_start();
 
 <!-- Step navigation -->
 <div class="step-nav">
-    <a href="<?= url('/student/documents') ?>" class="btn btn-ghost">← Documents</a>
+    <a href="<?= url('/student/documents') ?>" class="btn btn-ghost"><?= icon('ic_fluent_arrow_left_24_regular', 16) ?> Documents</a>
     <?php
         // Only expose a real "My Result" link once the admissions office has
         // actually released a decision. Before that, show the same button in a
@@ -542,7 +542,7 @@ ob_start();
         $interviewDone  = $myEntry && ($myEntry['interview_status'] ?? 'pending') === 'completed';
     ?>
     <?php if ($interviewDone && $resultReleased): ?>
-        <a href="<?= url('/student/result') ?>" class="btn btn-primary">My Result →</a>
+        <a href="<?= url('/student/result') ?>" class="btn btn-primary">My Result <?= icon('ic_fluent_arrow_right_24_regular', 16) ?></a>
     <?php elseif ($interviewDone): ?>
         <button type="button" class="btn btn-primary" disabled
                 title="Result not released yet. You'll be notified."
