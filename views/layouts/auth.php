@@ -55,6 +55,9 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
     <main class="auth-main">
         <?= $content ?? '' ?>
     </main>
+    <?php if (empty($hidePrivacyLink)): ?>
+    <footer class="auth-legal"><a href="<?= url('/privacy') ?>">Privacy Policy</a></footer>
+    <?php endif; ?>
 </div>
 
 

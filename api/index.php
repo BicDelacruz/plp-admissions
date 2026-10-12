@@ -24,6 +24,9 @@ $router->get( '/verify-email',    'auth/verify_email');
 $router->get( '/verify-pending',  'auth/verify_pending');
 $router->post('/verify-pending',  'auth/verify_pending');
 
+// -- Public pages -----------------------------------------------
+$router->get('/privacy', 'legal/privacy');
+
 // -- Student -----------------------------------------------------
 $router->get('/student/documents',  'documents/student_upload');
 $router->post('/student/documents', 'documents/student_upload');
