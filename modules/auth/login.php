@@ -351,6 +351,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                 New applicant?
                 <a href="<?= url('/register') ?>">Create an account</a>
             </p>
+            <p class="lg-signup" style="margin-top:10px"><a href="<?= url('/privacy') ?>">Privacy Policy</a></p>
         </section>
 
     </main>
