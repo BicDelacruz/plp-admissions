@@ -246,7 +246,7 @@ function setSettingsSex(val) {
 <style>
 .sex-toggle-settings { display:flex; gap:var(--space-2); height:40px; }
 .sex-btn-s {
-    flex:1; border:1px solid var(--border); border-radius:var(--radius-md);
+    flex:1; border:1px solid var(--border); border-radius:var(--radius);
     background:var(--bg-elevated); color:var(--text-secondary);
     font-size:var(--text-sm); font-weight:var(--weight-medium); cursor:pointer;
     transition:background 0.15s,color 0.15s,border-color 0.15s;

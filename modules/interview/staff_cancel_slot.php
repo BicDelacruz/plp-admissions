@@ -289,7 +289,7 @@ ob_start();
 ?>
 
 <div style="margin-bottom:var(--space-5);flex-shrink:0">
-    <a href="<?= url('/staff/interviews/setup') ?>" class="btn btn-ghost btn-sm">← Back to Interview Slots</a>
+    <a data-page-action href="<?= url('/staff/interviews/setup') ?>" class="btn btn-ghost btn-sm"><?= icon('arrow-left', 14) ?> Back to Interview Slots</a>
 </div>
 
 <div class="card" style="padding:var(--space-6);margin-bottom:var(--space-5);flex-shrink:0">

@@ -564,11 +564,19 @@ ob_start();
     <div class="alert alert-success" style="margin-bottom:var(--space-4);flex-shrink:0"><?= e($s) ?></div>
 <?php endforeach; ?>
 
-<div style="margin-bottom:var(--space-5);display:flex;justify-content:space-between;align-items:center;gap:var(--space-3);flex-wrap:wrap;flex-shrink:0">
-    <a href="<?= url('/staff/interviews') ?>" class="btn btn-ghost btn-sm">← Back</a>
+<?php
+// Page tabs — shown as a segmented control inside each table toolbar.
+$segTabs = ['absent' => ['label' => 'Absent Students', 'href' => url('/staff/interviews/absent?tab=absent'), 'count' => $absentTotal]];
+if (!$isDean) {
+    $segTabs['requests'] = ['label' => 'Reschedule Requests', 'href' => url('/staff/interviews/absent?tab=requests'), 'count' => $reschedTotal, 'tone' => 'warning'];
+}
+?>
+<div data-page-actions style="margin-bottom:var(--space-5);display:flex;justify-content:space-between;align-items:center;gap:var(--space-3);flex-wrap:wrap;flex-shrink:0">
+    <a href="<?= url('/staff/interviews') ?>" class="btn btn-ghost btn-sm">
+        <?= icon('arrow-left', 14) ?> Back</a>
     <?php if ($canReschedule): ?>
         <a href="<?= url('/staff/interviews/cancel-slot') ?>" class="btn btn-ghost btn-sm">
-            Cancel a slot (bulk move) →
+            Cancel a slot (bulk move) <?= icon('arrow-right', 14) ?>
         </a>
     <?php else: ?>
         <span style="font-size:var(--text-xs);color:var(--text-tertiary)">
@@ -576,36 +584,6 @@ ob_start();
                 ? 'Only SSO and Admin can approve or deny reschedule requests.'
                 : 'Only SSO and Admin can reschedule students.' ?>
         </span>
-    <?php endif; ?>
-</div>
-
-<!-- ============================================================
-     TAB NAVIGATION
-============================================================ -->
-<div style="display:flex;gap:var(--space-1);margin-bottom:var(--space-5);border-bottom:1.5px solid var(--border);flex-shrink:0">
-    <a href="<?= url('/staff/interviews/absent?tab=absent') ?>"
-       style="padding:var(--space-2) var(--space-4);font-size:var(--text-sm);font-weight:var(--weight-medium);
-              text-decoration:none;border-bottom:2px solid <?= $activeTab === 'absent' ? 'var(--accent)' : 'transparent' ?>;
-              color:<?= $activeTab === 'absent' ? 'var(--accent)' : 'var(--text-secondary)' ?>;
-              margin-bottom:-1.5px">
-        Absent Students
-        <?php if ($absentTotal > 0): ?>
-            <span style="background:var(--bg-subtle);padding:1px 7px;border-radius:999px;font-size:var(--text-xs);
-                          margin-left:var(--space-1)"><?= $absentTotal ?></span>
-        <?php endif; ?>
-    </a>
-    <?php if (!$isDean): ?>
-    <a href="<?= url('/staff/interviews/absent?tab=requests') ?>"
-       style="padding:var(--space-2) var(--space-4);font-size:var(--text-sm);font-weight:var(--weight-medium);
-              text-decoration:none;border-bottom:2px solid <?= $activeTab === 'requests' ? 'var(--accent)' : 'transparent' ?>;
-              color:<?= $activeTab === 'requests' ? 'var(--accent)' : 'var(--text-secondary)' ?>;
-              margin-bottom:-1.5px">
-        Reschedule Requests
-        <?php if ($reschedTotal > 0): ?>
-            <span style="background:var(--warning-bg);color:var(--warning);padding:1px 7px;border-radius:999px;
-                          font-size:var(--text-xs);margin-left:var(--space-1)"><?= $reschedTotal ?></span>
-        <?php endif; ?>
-    </a>
     <?php endif; ?>
 </div>
 
@@ -635,6 +613,8 @@ ob_start();
     <form method="GET" action="<?= url('/staff/interviews/absent') ?>" class="auto-table-toolbar">
         <input type="hidden" name="tab"      value="absent">
         <input type="hidden" name="per_page" value="<?= (int)$perPage ?>">
+
+        <?= segmented_tabs($segTabs, 'absent', 'Interview reschedules') ?>
 
         <div class="auto-table-search">
             <?= icon('ic_fluent_search_24_filled', 14) ?>
@@ -793,6 +773,8 @@ ob_start();
     <form method="GET" action="<?= url('/staff/interviews/absent') ?>" class="auto-table-toolbar">
         <input type="hidden" name="tab"      value="requests">
         <input type="hidden" name="per_page" value="<?= (int)$perPage ?>">
+
+        <?= segmented_tabs($segTabs, 'requests', 'Interview reschedules') ?>
 
         <div class="auto-table-search">
             <?= icon('ic_fluent_search_24_filled', 14) ?>

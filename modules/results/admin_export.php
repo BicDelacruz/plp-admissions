@@ -79,7 +79,7 @@ $years = $db->query(
 ob_start();
 ?>
 
-<div style="display:flex;justify-content:flex-end;margin-bottom:var(--space-6)">
+<div data-page-actions>
     <a href="?export=csv&sy=<?= urlencode($schoolYear) ?>" class="btn btn-primary">
         <?= icon('ic_fluent_arrow_download_24_regular', 16, 'margin-right:6px') ?>
         Export CSV
@@ -130,8 +130,8 @@ ob_start();
                 <span style="font-size:var(--text-sm);font-weight:var(--weight-medium)"><?= $label ?></span>
                 <span style="font-size:var(--text-sm);color:var(--text-tertiary)"><?= $cnt ?> (<?= $pct ?>%)</span>
             </div>
-            <div style="height:10px;background:var(--bg-subtle);border-radius:var(--radius-full);overflow:hidden">
-                <div style="height:100%;width:<?= $pct ?>%;background:<?= $color ?>;border-radius:var(--radius-full)"></div>
+            <div style="height:10px;background:var(--bg-subtle);border-radius:var(--radius);overflow:hidden">
+                <div style="height:100%;width:<?= $pct ?>%;background:<?= $color ?>;border-radius:var(--radius)"></div>
             </div>
         </div>
     <?php endforeach; ?>

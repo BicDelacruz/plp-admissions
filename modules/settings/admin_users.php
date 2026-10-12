@@ -202,7 +202,7 @@ ob_start();
 
         <span class="toolbar-spacer"></span>
 
-        <button type="button" class="btn btn-primary btn-sm"
+        <button type="button" class="btn btn-primary btn-sm" data-page-action
                 onclick="document.getElementById('create-user-modal').style.display='flex'">
             <?= icon('ic_fluent_add_24_regular', 15) ?>
             New User

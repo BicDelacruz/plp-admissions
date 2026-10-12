@@ -10,7 +10,8 @@ $_isSSO_picker = (Auth::role() === ROLE_SSO);
 
 <?php if (!$_isSSO_picker): ?>
 <div style="margin-bottom:var(--space-3)">
-    <a href="<?= url('/staff/interviews') ?>" class="btn btn-ghost btn-sm">← Back</a>
+    <a href="<?= url('/staff/interviews') ?>" class="btn btn-ghost btn-sm">
+        <?= icon('arrow-left', 14) ?> Back</a>
 </div>
 <?php endif; ?>
 
@@ -30,14 +31,14 @@ $_isSSO_picker = (Auth::role() === ROLE_SSO);
         display:flex;flex-direction:column;align-items:center;text-align:center;
         gap:var(--space-3);padding:var(--space-8) var(--space-5);
         background:var(--bg-elevated);border:1.5px solid var(--border);
-        border-radius:var(--radius-lg);text-decoration:none;color:var(--text-primary);
+        border-radius:var(--radius);text-decoration:none;color:var(--text-primary);
         transition:border-color .18s,box-shadow .18s,transform .15s;cursor:pointer;
     }
     .college-card:hover {
         border-color:var(--accent);box-shadow:0 6px 20px rgba(0,0,0,.07);transform:translateY(-3px);
     }
     .college-card-icon {
-        width:50px;height:50px;border-radius:var(--radius-lg);
+        width:50px;height:50px;border-radius:var(--radius);
         background:var(--accent-muted);color:var(--accent);
         display:flex;align-items:center;justify-content:center;
     }

@@ -829,7 +829,7 @@ function _notify_applicant_marked_absent(int $applicantId, string $slotDate, str
             $body   = '<p>' . htmlspecialchars($msg, ENT_QUOTES, 'UTF-8') . '</p>'
                     . '<p style="margin-top:16px"><a href="' . htmlspecialchars($link, ENT_QUOTES, 'UTF-8') . '" '
                     . 'style="display:inline-block;padding:10px 24px;background:' . htmlspecialchars($accent, ENT_QUOTES, 'UTF-8') . ';color:#fff;'
-                    . 'text-decoration:none;border-radius:6px;font-weight:bold">Request a reschedule</a></p>';
+                    . 'text-decoration:none;border-radius:8px;font-weight:bold">Request a reschedule</a></p>';
             send_email(
                 (string)$user['email'],
                 $title . ' — ' . $school,

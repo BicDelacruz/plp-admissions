@@ -51,7 +51,7 @@ ob_start();
     <div class="alert alert-success" style="margin-bottom:var(--space-3)"><?= e($s) ?></div>
 <?php endforeach; ?>
 
-<div style="display:flex;justify-content:flex-start;margin-bottom:var(--space-4);max-width:560px;margin-left:auto;margin-right:auto">
+<div data-page-actions>
     <a href="javascript:history.back()" class="btn btn-ghost btn-sm" style="display:flex;align-items:center;gap:5px">
         <?= icon('ic_fluent_arrow_left_24_regular', 16) ?>
         Back

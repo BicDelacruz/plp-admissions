@@ -17,6 +17,17 @@ $showStepper  = $showStepper ?? false;
 $pageWide     = $pageWide ?? false;
 $isStudent    = ($userRole === 'student');
 
+// Page heading (staff / admin pages). Title only, no subtitle.
+//   $pageHeading = 'Text'  -> override the heading text (defaults to $pageTitle)
+//   $pageHeading = false   -> no heading for this page
+//   $pageActions = '<html>' -> buttons shown at the top right of the heading row
+// Pages that already draw their own .page-header are left alone.
+$pageHeading  = $pageHeading ?? $pageTitle;
+$pageActions  = $pageActions ?? '';
+$showPageHead = !$isStudent
+    && $pageHeading !== false
+    && !str_contains((string)($content ?? ''), 'class="page-header"');
+
 // Sidebar (staff / admin / SSO / dean / proctor), ported from lakbay-pasig's
 // SidebarProvider. Lakbay keeps the desktop open/closed state in a cookie so
 // the server can render the right state on first paint; same here. The cookie
@@ -173,7 +184,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                         Dark Mode
                     </span>
                     <div class="theme-pill" data-theme="light" style="
-                        position:relative;width:32px;height:18px;border-radius:999px;
+                        position:relative;width:32px;height:18px;border-radius:var(--radius);
                         background:var(--border);transition:background .2s;flex-shrink:0;pointer-events:none;">
                         <div style="
                             position:absolute;top:3px;left:3px;width:12px;height:12px;
@@ -290,7 +301,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                                 Dark Mode
                             </span>
                             <div class="theme-pill" data-theme="light" style="
-                                position:relative;width:32px;height:18px;border-radius:999px;
+                                position:relative;width:32px;height:18px;border-radius:var(--radius);
                                 background:var(--border);transition:background .2s;flex-shrink:0;pointer-events:none;">
                                 <div style="
                                     position:absolute;top:3px;left:3px;width:12px;height:12px;
@@ -367,8 +378,32 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
 
         <!-- Page content injected here -->
         <main class="page <?= $pageWide ? 'page-wide' : '' ?>" id="main-content">
+            <?php if ($showPageHead): ?>
+            <div class="page-head">
+                <h1 class="page-heading"><?= e($pageHeading) ?></h1>
+                <div class="page-head-actions" id="page-head-actions"><?= $pageActions ?></div>
+            </div>
+            <?php endif; ?>
             <?= $content ?? '' ?>
         </main>
+        <?php if ($showPageHead): ?>
+        <script>
+        // Move any element marked data-page-action (the element itself) or
+        // data-page-actions (its children) into the heading row, top right.
+        (function () {
+            var slot = document.getElementById('page-head-actions');
+            if (!slot) return;
+            document.querySelectorAll('#main-content [data-page-action]').forEach(function (el) {
+                el.removeAttribute('data-page-action');
+                slot.appendChild(el);
+            });
+            document.querySelectorAll('#main-content [data-page-actions]').forEach(function (wrap) {
+                while (wrap.firstElementChild) slot.appendChild(wrap.firstElementChild);
+                wrap.remove();
+            });
+        })();
+        </script>
+        <?php endif; ?>
 
     </div><!-- /.main -->
 
@@ -502,7 +537,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
             <?= csrf_field() ?>
             <input type="hidden" name="action" value="withdraw">
             <div class="modal-body" style="display:flex;flex-direction:column;gap:var(--space-4)">
-                <div style="background:#fff7ed;border:1px solid #f97316;border-radius:var(--radius-md);padding:var(--space-4)">
+                <div style="background:#fff7ed;border:1px solid #f97316;border-radius:var(--radius);padding:var(--space-4)">
                     <div style="display:flex;gap:var(--space-3);align-items:flex-start">
                         <?= icon('warning-circle:fill', 18, 'margin-top:1px;color:#f97316') ?>
                         <div>

@@ -759,7 +759,7 @@ function email_template(string $title, string $body): string
 <body style="margin:0;padding:0;background:#f4f4f5;font-family:Arial,Helvetica,sans-serif">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:32px 0">
 <tr><td align="center">
-<table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1)">
+<table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:var(--radius);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1)">
     <tr><td style="background:' . e($accentColor) . ';padding:24px 32px">
         <h1 style="margin:0;color:#ffffff;font-size:20px">' . e($schoolName) . '</h1>
     </td></tr>
@@ -1107,6 +1107,33 @@ function exam_late_cutoff_minutes(): int
 {
     $v = (int) school_setting('exam_late_cutoff_minutes', '15');
     return max(0, $v);
+}
+
+
+/**
+ * Segmented control used for page tabs. Renders as links so every tab is a
+ * normal page load / bookmarkable URL. Put it as the FIRST item of a table
+ * toolbar (left of the search box).
+ *
+ * $tabs = [ key => ['label' => 'Absent', 'href' => '?tab=absent',
+ *                   'count' => 3 (optional), 'tone' => 'warning' (optional)] ]
+ */
+function segmented_tabs(array $tabs, string $active, string $ariaLabel = 'Views'): string
+{
+    $html = '<div class="seg-control" role="tablist" aria-label="' . htmlspecialchars($ariaLabel) . '">';
+    foreach ($tabs as $key => $t) {
+        $isActive = ((string)$key === $active);
+        $count = $t['count'] ?? null;
+        $html .= '<a href="' . htmlspecialchars($t['href']) . '" role="tab" aria-selected="' . ($isActive ? 'true' : 'false') . '"'
+               . ' class="seg-control-item' . ($isActive ? ' active' : '') . '">'
+               . htmlspecialchars($t['label']);
+        if ($count !== null && (int)$count > 0) {
+            $tone = !empty($t['tone']) ? ' seg-control-count--' . htmlspecialchars($t['tone']) : '';
+            $html .= '<span class="seg-control-count' . $tone . '">' . (int)$count . '</span>';
+        }
+        $html .= '</a>';
+    }
+    return $html . '</div>';
 }
 
 /**

@@ -243,8 +243,8 @@ $pageUrl  = fn(int $p): string => url('/staff/exam/cancel-slot') . '?' . http_bu
 ob_start();
 ?>
 
-<div style="margin-bottom:var(--space-5);flex-shrink:0">
-    <a href="<?= url('/staff/exam/slots') ?>" class="btn btn-ghost btn-sm">← Back to Exam Slots</a>
+<div data-page-actions style="margin-bottom:var(--space-5);flex-shrink:0">
+    <a href="<?= url('/staff/exam/slots') ?>" class="btn btn-ghost btn-sm"><?= icon('arrow-left', 14) ?> Back to Exam Slots</a>
 </div>
 
 <div class="card" style="padding:var(--space-6);margin-bottom:var(--space-5);flex-shrink:0">

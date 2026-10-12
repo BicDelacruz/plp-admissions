@@ -436,11 +436,11 @@ $hasFilters = ($search !== '' || $filterDept !== '' || $filterDate !== '');
 ob_start();
 ?>
 
-<div style="margin-bottom:var(--space-5);display:flex;justify-content:space-between;align-items:center;gap:var(--space-3);flex-wrap:wrap;flex-shrink:0">
-    <a href="<?= url('/staff/exam/slots') ?>" class="btn btn-ghost btn-sm">← Back to Exam Slots</a>
+<div data-page-actions style="margin-bottom:var(--space-5);display:flex;justify-content:space-between;align-items:center;gap:var(--space-3);flex-wrap:wrap;flex-shrink:0">
+    <a href="<?= url('/staff/exam/slots') ?>" class="btn btn-ghost btn-sm"><?= icon('arrow-left', 14) ?> Back to Exam Slots</a>
     <?php if ($canReschedule): ?>
         <a href="<?= url('/staff/exam/cancel-slot') ?>" class="btn btn-ghost btn-sm">
-            Cancel a slot (bulk move) →
+            Cancel a slot (bulk move) <?= icon('arrow-right', 14) ?>
         </a>
     <?php else: ?>
         <span style="font-size:var(--text-xs);color:var(--text-tertiary)">

@@ -101,7 +101,7 @@ function notify_stage_transition(int $applicantId, string $newStatus, string $ex
             $emailBody = '<p>' . e($message) . '</p>'
                 . '<p style="margin-top:16px"><a href="' . e($fullLink) . '" '
                 . 'style="display:inline-block;padding:10px 24px;background:' . e(school_setting('accent_color', '#2d6a4f')) . ';color:#fff;'
-                . 'text-decoration:none;border-radius:6px;font-weight:bold">View Details</a></p>';
+                . 'text-decoration:none;border-radius:8px;font-weight:bold">View Details</a></p>';
             send_email(
                 $user['email'],
                 $title . ' — ' . school_setting('school_name', 'PLP Admissions'),
@@ -123,7 +123,7 @@ function send_registration_email(string $email, string $name): void
         . '<p>Your account has been created successfully. Please log in and upload your required documents to continue with your application.</p>'
         . '<p style="margin-top:16px"><a href="' . e(rtrim(BASE_URL, '/')) . '/student/documents" '
         . 'style="display:inline-block;padding:10px 24px;background:' . e(school_setting('accent_color', '#2d6a4f')) . ';color:#fff;'
-        . 'text-decoration:none;border-radius:6px;font-weight:bold">Upload Documents</a></p>';
+        . 'text-decoration:none;border-radius:8px;font-weight:bold">Upload Documents</a></p>';
     send_email(
         $email,
         'Welcome to ' . school_setting('school_name', 'PLP Admissions'),
@@ -857,7 +857,7 @@ function send_verification_email(string $email, string $name, string $token, ?st
 
     $body .= '<p style="margin-top:16px"><a href="' . e($verifyUrl) . '" '
         . 'style="display:inline-block;padding:12px 32px;background:' . $accent . ';color:#fff;'
-        . 'text-decoration:none;border-radius:6px;font-weight:bold;font-size:16px">Verify Email</a></p>'
+        . 'text-decoration:none;border-radius:8px;font-weight:bold;font-size:16px">Verify Email</a></p>'
         . '<p style="margin-top:16px;color:#6b7280;font-size:13px">If the button doesn\'t work, copy this link:<br>'
         . '<a href="' . e($verifyUrl) . '" style="color:' . $accent . '">' . e($verifyUrl) . '</a></p>';
 
@@ -999,7 +999,7 @@ function notify_reschedule_decision(
             $emailBody = '<p>' . e($msg) . '</p>'
                        . '<p style="margin-top:16px"><a href="' . e($fullLink) . '" '
                        . 'style="display:inline-block;padding:10px 24px;background:' . e(school_setting('accent_color', '#2d6a4f')) . ';color:#fff;'
-                       . 'text-decoration:none;border-radius:6px;font-weight:bold">View Details</a></p>';
+                       . 'text-decoration:none;border-radius:8px;font-weight:bold">View Details</a></p>';
             send_email(
                 (string)$user['email'],
                 $title . ' — ' . school_setting('school_name', 'PLP Admissions'),

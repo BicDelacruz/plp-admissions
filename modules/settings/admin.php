@@ -86,7 +86,7 @@ ob_start();
     <div class="alert alert-success" style="margin-bottom:var(--space-3)"><?= e($s) ?></div>
 <?php endforeach; ?>
 
-<div style="display:flex;justify-content:flex-start;margin-bottom:var(--space-4);max-width:560px;margin-left:auto;margin-right:auto">
+<div data-page-actions>
     <a href="javascript:history.back()" class="btn btn-ghost btn-sm" style="display:flex;align-items:center;gap:5px">
         <?= icon('ic_fluent_arrow_left_24_regular', 16) ?>
         Back
@@ -112,7 +112,7 @@ ob_start();
                     <div>
                         <label class="form-label">Current Logo</label>
                         <img src="<?= str_starts_with($schoolLogo, 'http') ? e($schoolLogo) : e(url('/'. $schoolLogo)) ?>" alt="Logo"
-                             style="height:48px;border-radius:var(--radius-sm);display:block">
+                             style="height:48px;border-radius:var(--radius);display:block">
                     </div>
                 <?php endif; ?>
                 <div>
@@ -128,7 +128,7 @@ ob_start();
                     <label class="form-label">Accent Color</label>
                     <div style="display:flex;align-items:center;gap:var(--space-3)">
                         <input type="color" name="accent_color" value="<?= e($accentColor) ?>"
-                               style="width:44px;height:36px;padding:2px;border:1px solid var(--border);border-radius:var(--radius-md);cursor:pointer;background:none"
+                               style="width:44px;height:36px;padding:2px;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;background:none"
                                id="color-picker">
                         <input type="text" class="form-control" style="max-width:120px"
                                value="<?= e($accentColor) ?>" id="hex-input"

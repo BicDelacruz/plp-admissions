@@ -39,7 +39,7 @@ ob_start();
 ?>
 
 <div style="margin-bottom:var(--space-5)">
-    <a href="<?= url('/staff/interviews') ?>" class="btn btn-ghost btn-sm">&larr; Back</a>
+    <a href="<?= url('/staff/interviews') ?>" class="btn btn-ghost btn-sm"><?= icon('arrow-left', 14) ?> Back</a>
 </div>
 
 <style>
@@ -58,7 +58,7 @@ ob_start();
     display: flex; flex-direction: column; align-items: center; text-align: center;
     gap: var(--space-3); padding: var(--space-8) var(--space-5);
     background: var(--bg-elevated); border: 1.5px solid var(--border);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius);
     text-decoration: none; color: var(--text-primary);
     transition: border-color .18s, box-shadow .18s, transform .15s;
     cursor: pointer;
@@ -70,7 +70,7 @@ ob_start();
 }
 .q-college-card.is-live { border-color: var(--accent); }
 .q-college-card-icon {
-    width: 50px; height: 50px; border-radius: var(--radius-lg);
+    width: 50px; height: 50px; border-radius: var(--radius);
     background: var(--accent-muted); color: var(--accent);
     display: flex; align-items: center; justify-content: center;
 }
@@ -84,7 +84,7 @@ ob_start();
 }
 .q-college-card-live {
     display: inline-flex; align-items: center; gap: 4px;
-    padding: 2px 8px; border-radius: 999px;
+    padding: 2px 8px; border-radius: var(--radius);
     background: var(--accent-muted); color: var(--accent);
     font-size: 10px; font-weight: var(--weight-semibold);
     text-transform: uppercase; letter-spacing: .05em;

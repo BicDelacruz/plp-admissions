@@ -110,7 +110,7 @@ ob_start();
     <?php endif; ?>
 
     <div class="auth-footer">
-        <a href="<?= url('/login') ?>">← Back to sign in</a>
+        <a href="<?= url('/login') ?>"><?= icon('arrow-left', 14) ?> Back to sign in</a>
     </div>
 
 </div>

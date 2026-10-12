@@ -247,14 +247,14 @@ if ($format === 'print') {
   .toolbar .right { margin-left:auto; display:flex; gap:8px; }
   .btn {
     display:inline-flex; align-items:center; gap:6px;
-    padding:8px 16px; border:1px solid var(--line); border-radius:6px;
+    padding:8px 16px; border:1px solid var(--line); border-radius:var(--radius);
     background:#fff; color:var(--ink); cursor:pointer;
     font-size: 11pt; font-family: inherit; text-decoration: none;
   }
   .btn-primary { background: var(--accent); color:#fff; border-color: var(--accent); }
   .btn:hover { filter: brightness(.96); }
   select, input[type=date] {
-    padding:7px 10px; border:1px solid var(--line); border-radius:6px;
+    padding:7px 10px; border:1px solid var(--line); border-radius:var(--radius);
     background:#fff; font-size:11pt; font-family: inherit; color: var(--ink);
   }
   /* Pagewrap sized to render close to actual A4 width (210mm ≈ 794px @ 96dpi).
@@ -263,7 +263,7 @@ if ($format === 'print') {
   .empty { padding: 64px 24px; text-align:center; color: var(--muted); }
   .room-sheet {
     background:#fff; padding: 32px 40px 40px;
-    margin-bottom: 24px; border:1px solid var(--line); border-radius:8px;
+    margin-bottom: 24px; border:1px solid var(--line); border-radius:var(--radius);
   }
   .sheet-header {
     display:flex; align-items:center; gap:20px;
@@ -281,7 +281,7 @@ if ($format === 'print') {
     grid-template-columns: minmax(0, 1.7fr) minmax(0, 1.1fr) minmax(0, 0.9fr) minmax(0, 1.3fr);
     gap: 12px;
     margin-bottom: 20px; padding: 14px 16px;
-    background: #f3f4f6; border-radius: 6px;
+    background: #f3f4f6; border-radius: var(--radius);
   }
   .room-info .label { font-size: 8.5pt; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
   .room-info .value { font-size: 12pt; font-weight: 600; margin-top: 2px; line-height: 1.25; }
@@ -318,7 +318,7 @@ if ($format === 'print') {
 <!-- ── Toolbar (hidden when printing) ──────────────────────── -->
 <div class="toolbar no-print">
     <div class="left">
-        <a href="<?= e($backUrl) ?>" class="btn">← Back to Roster</a>
+        <a href="<?= e($backUrl) ?>" class="btn"><?= icon('arrow-left', 14) ?> Back to Roster</a>
     </div>
     <div class="right">
         <a class="btn" href="<?= e($csvUrl) ?>"
@@ -523,7 +523,7 @@ ob_start();
 ?>
 
 <div style="margin-bottom:var(--space-5);flex-shrink:0">
-    <a href="<?= url('/staff/exam/slots') ?>" class="btn btn-ghost btn-sm">← Back to Exam Slots</a>
+    <a href="<?= url('/staff/exam/slots') ?>" class="btn btn-ghost btn-sm"><?= icon('arrow-left', 14) ?> Back to Exam Slots</a>
 </div>
 
 <?php

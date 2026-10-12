@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 . '<p>Or click the button below:</p>'
                 . '<p style="margin-top:16px"><a href="' . e($resetUrl) . '" '
                 . 'style="display:inline-block;padding:10px 24px;background:' . e(school_setting('accent_color', '#2d6a4f')) . ';color:#fff;'
-                . 'text-decoration:none;border-radius:6px;font-weight:bold">Reset Password</a></p>'
+                . 'text-decoration:none;border-radius:8px;font-weight:bold">Reset Password</a></p>'
                 . '<p style="margin-top:16px;color:#6b7280;font-size:13px">This link expires in 1 hour. If you did not request this, ignore this email.</p>';
             send_email($email, 'Password Reset — ' . school_setting('school_name', 'PLP Admissions'), email_template('Password Reset', $body));
         }
@@ -124,7 +124,7 @@ $schoolLogo = school_setting('school_logo', '');
     <?php endif; ?>
 
     <div class="auth-footer">
-        <a href="<?= url('/login') ?>">← Back to sign in</a>
+        <a href="<?= url('/login') ?>"><?= icon('arrow-left', 14) ?> Back to sign in</a>
     </div>
 
 </div>

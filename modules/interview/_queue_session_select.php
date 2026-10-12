@@ -31,7 +31,7 @@ ob_start();
 ?>
 
 <div style="margin-bottom:var(--space-5)">
-    <a href="<?= url('/staff/interviews/queue') ?>" class="btn btn-ghost btn-sm">&larr; Back</a>
+    <a href="<?= url('/staff/interviews/queue') ?>" class="btn btn-ghost btn-sm"><?= icon('arrow-left', 14) ?> Back</a>
 </div>
 
 <style>
@@ -48,7 +48,7 @@ ob_start();
     display: flex; flex-direction: column;
     gap: var(--space-3); padding: var(--space-5);
     background: var(--bg-elevated); border: 1.5px solid var(--border);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius);
     text-decoration: none; color: var(--text-primary);
     transition: border-color .15s, box-shadow .15s;
     position: relative; cursor: pointer; min-height: 220px;
@@ -83,7 +83,7 @@ ob_start();
 .q-sess-live-badge {
     position: absolute; top: var(--space-4); right: var(--space-4);
     display: inline-flex; align-items: center; gap: 4px;
-    padding: 2px 8px; border-radius: 999px;
+    padding: 2px 8px; border-radius: var(--radius);
     background: var(--accent); color: #fff;
     font-size: 10px; font-weight: var(--weight-semibold);
     text-transform: uppercase; letter-spacing: .05em;
@@ -97,7 +97,7 @@ ob_start();
 
 <?php if (empty($sessions)): ?>
     <div style="padding:var(--space-8) var(--space-4);background:var(--bg-subtle);
-                 border-radius:var(--radius-md);text-align:center;color:var(--text-tertiary)">
+                 border-radius:var(--radius);text-align:center;color:var(--text-tertiary)">
         <?= icon('ic_fluent_calendar_24_regular', 32, 'color:var(--text-tertiary)') ?>
         <div style="margin-top:var(--space-3);font-size:var(--text-sm)">
             No sessions scheduled for <?= e($selectedCollege) ?> today.
@@ -105,7 +105,7 @@ ob_start();
         <div style="margin-top:var(--space-2);font-size:var(--text-xs)">
             <a href="<?= url('/staff/interviews/setup') ?>?college=<?= urlencode($selectedCollege) ?>"
                style="color:var(--accent)">
-                Add a session in setup &rarr;
+                Add a session in setup <?= icon('arrow-right', 14) ?>
             </a>
         </div>
     </div>

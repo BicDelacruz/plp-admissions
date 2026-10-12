@@ -316,7 +316,7 @@ $awaitingCount = (int)$countRows['awaiting_count'];
     <a href="<?= url('/staff/interviews/queue') ?>"
        style="
            display:inline-flex;align-items:center;gap:var(--space-2);
-           padding:4px var(--space-3);border-radius:var(--radius-full);
+           padding:4px var(--space-3);border-radius:var(--radius);
            background:var(--bg-secondary);border:1px solid var(--border);
            font-size:var(--text-xs);color:var(--text-tertiary);text-decoration:none;
            transition:background var(--transition-fast),color var(--transition-fast);
@@ -350,7 +350,7 @@ $awaitingCount = (int)$countRows['awaiting_count'];
         display:flex;flex-direction:column;gap:4px;
         padding:var(--space-2) var(--space-3);
         border:1px solid <?= $borderColor ?>;
-        border-radius:var(--radius-md);
+        border-radius:var(--radius);
         background:var(--bg-elevated);
         font-size:var(--text-xs);
         min-width:180px;flex-shrink:0;
@@ -364,8 +364,8 @@ $awaitingCount = (int)$countRows['awaiting_count'];
             </span>
         </div>
         <!-- Progress bar -->
-        <div style="height:4px;background:var(--border);border-radius:var(--radius-full);overflow:hidden">
-            <div style="height:100%;width:<?= $pct ?>%;background:<?= $barColor ?>;border-radius:var(--radius-full);transition:width .3s"></div>
+        <div style="height:4px;background:var(--border);border-radius:var(--radius);overflow:hidden">
+            <div style="height:100%;width:<?= $pct ?>%;background:<?= $barColor ?>;border-radius:var(--radius);transition:width .3s"></div>
         </div>
         <div style="color:var(--text-tertiary)">
             <?= $accepted ?> accepted<?= $pending > 0 ? ' · <strong style="color:' . $barColor . '">' . $pending . ' pending</strong>' : '' ?>
@@ -397,6 +397,14 @@ $sortParams = ['q' => $search, 'result' => $filterRes, 'per_page' => $perPage, '
         <input type="hidden" name="sort_dir" value="<?= e($sortDir) ?>">
         <input type="hidden" name="per_page" value="<?= (int)$perPage ?>">
 
+        <?php
+        $segTabs = [];
+        foreach (array_merge($primaryTabs, $secondaryTabs) as $val => $tab) {
+            $segTabs[$val] = ['label' => $tab['label'], 'href' => filterUrl(['result' => $val]), 'count' => $tab['count']];
+        }
+        echo segmented_tabs($segTabs, (string)$filterRes, 'Result buckets');
+        ?>
+
         <div class="auto-table-search" style="max-width:320px">
             <?= icon('ic_fluent_search_24_filled', 14) ?>
             <input type="text" name="q" class="form-input" placeholder="Search name, email, course…" value="<?= e($search) ?>">
@@ -410,7 +418,7 @@ $sortParams = ['q' => $search, 'result' => $filterRes, 'per_page' => $perPage, '
         <?php if ($canCloseCycle): ?>
             <!-- Close Admissions (SSO / Admin) — bulk-rejects every
                  unreleased applicant so leftover rows don't sit forever. -->
-            <button type="button" class="btn btn-ghost btn-sm"
+            <button type="button" class="btn btn-ghost btn-sm" data-page-action
                     onclick="openCloseAdmissionsModal()"
                     style="display:inline-flex;align-items:center;gap:6px;font-size:var(--text-xs);color:var(--error);border:1px solid var(--error)">
                 <?= icon('ic_fluent_lock_closed_24_regular', 13) ?>
@@ -420,18 +428,6 @@ $sortParams = ['q' => $search, 'result' => $filterRes, 'per_page' => $perPage, '
 
         <span class="toolbar-spacer"></span>
 
-        <!-- Bucket tabs (primary + de-emphasized Withdrawn) -->
-        <?php foreach (array_merge($primaryTabs, $secondaryTabs) as $val => $tab):
-            $active = ($filterRes === $val);
-            $muted  = isset($secondaryTabs[$val]);
-        ?>
-            <a href="<?= e(filterUrl(['result' => $val])) ?>"
-               class="btn btn-sm <?= $active ? 'btn-secondary' : 'btn-ghost' ?>"
-               style="white-space:nowrap;<?= $active ? 'color:var(--accent);font-weight:var(--weight-semibold)' : ($muted ? 'color:var(--text-tertiary)' : 'color:var(--text-secondary)') ?>">
-                <?= $tab['label'] ?>
-                <span style="margin-left:4px;font-size:var(--text-xs);color:var(--text-tertiary)"><?= $tab['count'] ?></span>
-            </a>
-        <?php endforeach; ?>
     </form>
 
     <!-- Table body — sized so the rows AutoPageSize picks fit exactly; it
@@ -704,7 +700,7 @@ $sortParams = ['q' => $search, 'result' => $filterRes, 'per_page' => $perPage, '
             <input type="hidden" name="action" value="override">
             <div class="modal-body" style="display:flex;flex-direction:column;gap:var(--space-4)">
                 <div style="background:var(--warning-bg,rgba(245,158,11,.08));border:1px solid var(--warning);
-                            border-radius:var(--radius-md);padding:var(--space-3) var(--space-4);
+                            border-radius:var(--radius);padding:var(--space-3) var(--space-4);
                             font-size:var(--text-xs);color:var(--text-secondary)">
                     <strong style="color:var(--warning)">Admin override.</strong>
                     Changing a released result is audited. Use only when correcting a clerical error or
@@ -756,7 +752,7 @@ $sortParams = ['q' => $search, 'result' => $filterRes, 'per_page' => $perPage, '
                 <div id="release-override-warning" style="
                     background:var(--warning-bg,rgba(245,158,11,.08));
                     border:1px solid var(--warning);
-                    border-radius:var(--radius-md);padding:var(--space-3) var(--space-4);
+                    border-radius:var(--radius);padding:var(--space-3) var(--space-4);
                     font-size:var(--text-xs);color:var(--text-secondary)">
                     <strong style="color:var(--warning)">Heads up.</strong>
                     The Professor interviewed this applicant face-to-face. Overriding their
@@ -804,7 +800,7 @@ $sortParams = ['q' => $search, 'result' => $filterRes, 'per_page' => $perPage, '
             <div class="modal-body" style="display:flex;flex-direction:column;gap:var(--space-4)">
                 <div style="background:var(--error-bg,rgba(220,38,38,.08));
                             border:1px solid var(--error);
-                            border-radius:var(--radius-md);padding:var(--space-3) var(--space-4);
+                            border-radius:var(--radius);padding:var(--space-3) var(--space-4);
                             font-size:var(--text-xs);color:var(--text-secondary)">
                     <strong style="color:var(--error)">Irreversible.</strong>
                     All unreleased applicants will be marked <strong>Declined</strong>
@@ -844,7 +840,7 @@ $sortParams = ['q' => $search, 'result' => $filterRes, 'per_page' => $perPage, '
             <?= csrf_field() ?>
             <input type="hidden" name="action" value="suggest_course">
             <div class="modal-body" style="display:flex;flex-direction:column;gap:var(--space-4)">
-                <div style="background:var(--bg-subtle);border-radius:var(--radius-md);padding:var(--space-3) var(--space-4);font-size:var(--text-sm)">
+                <div style="background:var(--bg-subtle);border-radius:var(--radius);padding:var(--space-3) var(--space-4);font-size:var(--text-sm)">
                     Applicant: <strong id="suggest-name"></strong><br>
                     <span style="font-size:var(--text-xs);color:var(--text-tertiary)">
                         Exam rank: <strong id="suggest-rank"></strong>/10 — did not pass applied course threshold.
@@ -894,7 +890,7 @@ function openSuggestModal(appId, name, alts, rank) {
     list.innerHTML = '';
     alts.forEach(function(course) {
         const li = document.createElement('label');
-        li.style.cssText = 'display:flex;align-items:center;gap:var(--space-2);padding:var(--space-3) var(--space-4);border:1px solid var(--border);border-radius:var(--radius-md);cursor:pointer;font-size:var(--text-sm)';
+        li.style.cssText = 'display:flex;align-items:center;gap:var(--space-2);padding:var(--space-3) var(--space-4);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;font-size:var(--text-sm)';
         li.innerHTML = '<input type="radio" name="suggest_course" value="' + escHtml(course) + '" style="accent-color:var(--accent)"> ' + escHtml(course);
         list.appendChild(li);
     });
@@ -920,7 +916,7 @@ document.getElementById('suggest-modal').addEventListener('click', function(e){
     display:none;
     position:fixed;bottom:var(--space-6);left:50%;transform:translateX(-50%);z-index:500;
     background:var(--bg-elevated);border:1px solid var(--border);
-    border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);
+    border-radius:var(--radius);box-shadow:var(--shadow-lg);
     padding:var(--space-3) var(--space-5);
     align-items:center;gap:var(--space-4);
     animation:resToolbarSlideUp .2s ease-out;
@@ -929,7 +925,7 @@ document.getElementById('suggest-modal').addEventListener('click', function(e){
         <span id="res-bulk-count" style="
             display:inline-flex;align-items:center;justify-content:center;
             min-width:24px;height:24px;padding:0 var(--space-2);
-            border-radius:var(--radius-full);
+            border-radius:var(--radius);
             background:var(--accent);color:var(--accent-text);
             font-size:var(--text-xs);font-weight:var(--weight-semibold);
         ">0</span>
@@ -991,7 +987,7 @@ function showResUndoToast(msg, onCommit) {
     toast.style.cssText = [
         'position:fixed;bottom:calc(var(--space-6) + 56px);left:50%;transform:translateX(-50%);',
         'z-index:600;background:var(--bg-elevated);border:1px solid var(--border);',
-        'border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);',
+        'border-radius:var(--radius);box-shadow:var(--shadow-lg);',
         'padding:12px 20px;display:flex;align-items:center;gap:12px;',
         'font-size:var(--text-sm);min-width:320px;',
         'animation:resUndoSlideUp .25s ease'
@@ -999,10 +995,10 @@ function showResUndoToast(msg, onCommit) {
 
     // Progress bar
     var bar = document.createElement('div');
-    bar.style.cssText = 'position:absolute;bottom:0;left:0;height:3px;background:var(--accent);border-radius:0 0 var(--radius-lg) var(--radius-lg);width:100%;transition:width ' + DELAY + 'ms linear';
+    bar.style.cssText = 'position:absolute;bottom:0;left:0;height:3px;background:var(--accent);border-radius:0 0 var(--radius) var(--radius);width:100%;transition:width ' + DELAY + 'ms linear';
 
     toast.innerHTML = '<span style="flex:1">' + msg + '</span>'
-        + '<button id="res-undo-btn" style="background:none;border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 14px;cursor:pointer;font-size:var(--text-sm);color:var(--text-primary);font-weight:500;white-space:nowrap">Undo</button>'
+        + '<button id="res-undo-btn" style="background:none;border:1px solid var(--border);border-radius:var(--radius);padding:4px 14px;cursor:pointer;font-size:var(--text-sm);color:var(--text-primary);font-weight:500;white-space:nowrap">Undo</button>'
         + '<button onclick="dismissResUndoToast()" style="background:none;border:none;cursor:pointer;color:var(--text-tertiary);font-size:16px;padding:0 4px">&times;</button>';
     toast.appendChild(bar);
     document.body.appendChild(toast);
