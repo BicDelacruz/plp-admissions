@@ -139,6 +139,7 @@ CREATE TABLE users (
     email_verify_code_expires_at timestamp(0) DEFAULT NULL,
     email_verify_attempts        smallint     NOT NULL DEFAULT 0,
     email_verify_last_sent_at    timestamp(0) DEFAULT NULL,
+    google_sub                   varchar(64)  DEFAULT NULL,
     desk_label                   varchar(120) NOT NULL DEFAULT '',
     desk_notes                   text         DEFAULT NULL,
     created_at                   timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -146,6 +147,7 @@ CREATE TABLE users (
     CONSTRAINT uq_email UNIQUE (email)
 );
 CREATE INDEX idx_users_department ON users (department);
+CREATE UNIQUE INDEX idx_users_google_sub ON users (google_sub);
 CREATE TRIGGER trg_users_updated_at BEFORE UPDATE ON users
     FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
