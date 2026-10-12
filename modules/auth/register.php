@@ -42,14 +42,30 @@ if (!admissions_is_open()) {
     exit;
 }
 
+// Google mode: the applicant came back from Google and still has to finish the profile.
+$googlePending = null;
+if (!empty($_GET['google'])) {
+    $gp = GOOGLE_ENABLED ? Session::get('google_pending') : null;
+    if (!is_array($gp) || empty($gp['sub']) || empty($gp['email'])) {
+        redirect('/register');
+    }
+    $googlePending = $gp;
+}
+$googleMode = $googlePending !== null;
+
 $errors = [];
 $old    = [];
+if ($googleMode) {
+    // Names from Google are only a hint; the applicant confirms the legal name.
+    $old = ['first_name' => $googlePending['first_name'], 'last_name' => $googlePending['last_name'],
+            'email' => $googlePending['email']];
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
 
-    // Turnstile verification
-    if (!captcha_verify()) {
+    // Turnstile verification (skipped in Google mode: Google is the gate)
+    if (!$googleMode && !captcha_verify()) {
         $errors['captcha'] = 'Please complete the check.';
     }
 
@@ -63,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'street_address' => trim($_POST['street_address'] ?? ''),
         'barangay'       => trim($_POST['barangay']       ?? ''),
         'phone'          => trim($_POST['phone']          ?? ''),
-        'email'          => trim($_POST['email']          ?? ''),
+        'email'          => $googleMode ? $googlePending['email'] : trim($_POST['email'] ?? ''),
         'applicant_type' => trim($_POST['applicant_type'] ?? ''),
         'course_applied' => trim($_POST['course_applied'] ?? ''),
         'shs_strand'     => trim($_POST['shs_strand']     ?? ''),
@@ -127,9 +143,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         } catch (\Throwable $e) { /* ignore — table may not exist yet */ }
     }
-    if (strlen($password) < 8)
+    if (!$googleMode && strlen($password) < 8)
         $errors['password']   = 'Password must be at least 8 characters.';
-    if ($password !== $passwordConfirm)
+    if (!$googleMode && $password !== $passwordConfirm)
         $errors['password_confirm'] = 'Passwords do not match.';
 
     // Strand validation for freshmen
@@ -197,8 +213,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $pdo->prepare(
                 'INSERT INTO users
                     (name, first_name, middle_name, last_name, suffix,
-                     birthdate, sex, address, phone, email, password_hash, role, department)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                     birthdate, sex, address, phone, email, password_hash, role, department,
+                     google_sub, email_verified)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                  RETURNING id'
             );
             $stmt->execute([
@@ -212,9 +229,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $fullAddress,
                 $old['phone'],
                 $old['email'],
-                password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]),
+                // ponytail: Google users get a random unusable hash because the column is NOT NULL. Upgrade: make it nullable.
+                $googleMode ? '!' . bin2hex(random_bytes(32)) : password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]),
                 ROLE_STUDENT,
                 $department,
+                $googleMode ? $googlePending['sub'] : null,
+                $googleMode ? 1 : 0,
             ]);
             $userId = (int) $stmt->fetchColumn();
 
@@ -254,6 +274,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'user',
                     $userId
                 );
+            }
+
+            // Google mode: the email is already verified, so skip the code and sign in.
+            if ($googleMode) {
+                $remember = !empty($googlePending['remember']);
+                Session::remove('google_pending');
+                $newUser = $pdo->prepare('SELECT * FROM users WHERE id = ?');
+                $newUser->execute([$userId]);
+                Auth::login($newUser->fetch(), $remember);
+                audit_log('login_google', "Google sign up: {$old['email']}", 'user', $userId);
+                header('Location: ' . Auth::homeUrl());
+                exit;
             }
 
             // Send verification email — both magic link and 6-digit code
@@ -332,7 +364,20 @@ ob_start();
         </div>
     <?php endif; ?>
 
-    <form method="POST" action="<?= url('/register') ?>" data-once novalidate>
+    <?php if ($googleMode): ?>
+        <div class="alert alert-info" style="margin-bottom:var(--space-5)">
+            Signed in with Google as <strong><?= e($googlePending['email']) ?></strong>.
+            Finish your details to create your account. <a href="<?= url('/register') ?>">Use a different account</a>
+        </div>
+    <?php elseif (GOOGLE_ENABLED): ?>
+        <a class="reg-google" href="<?= url('/auth/google') ?>">
+            <?= google_logo_svg() ?>
+            Sign up with Google
+        </a>
+        <div class="auth-divider"><span>or fill in the form</span></div>
+    <?php endif; ?>
+
+    <form method="POST" action="<?= url('/register' . ($googleMode ? '?google=1' : '')) ?>" data-once novalidate>
         <?= csrf_field() ?>
 
         <!-- Applicant Type -->
@@ -567,6 +612,7 @@ ob_start();
                     class="form-input <?= isset($errors['email']) ? 'error' : '' ?>"
                     value="<?= e($old['email'] ?? '') ?>"
                     placeholder=""
+                    <?= $googleMode ? 'readonly' : '' ?>
                     autocomplete="email" required>
                 <?php if (!empty($errors['email'])): ?>
                     <span class="form-error"><?= e($errors['email']) ?></span>
@@ -589,6 +635,7 @@ ob_start();
             </div>
         </div>
 
+        <?php if (!$googleMode): ?>
         <div class="reg-row">
             <div class="form-group" style="margin-bottom:0">
                 <label class="form-label" for="password">Password <span>*</span></label>
@@ -624,14 +671,16 @@ ob_start();
             </div>
         </div>
 
-        <?php if (!empty($errors['captcha'])): ?>
+        <?php endif; ?>
+
+        <?php if (!$googleMode && !empty($errors['captcha'])): ?>
             <div class="alert alert-error" style="margin-bottom:var(--space-4)">
                 <?= icon('ic_fluent_info_24_regular', 16) ?>
                 <?= e($errors['captcha']) ?>
             </div>
         <?php endif; ?>
 
-        <?php if (CAPTCHA_ENABLED): ?>
+        <?php if (!$googleMode && CAPTCHA_ENABLED): ?>
             <div class="cf-turnstile" data-sitekey="<?= e(TURNSTILE_SITE_KEY) ?>" data-theme="auto" style="margin-bottom:var(--space-4)"></div>
         <?php endif; ?>
 
@@ -784,6 +833,14 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 
 <style>
+.reg-google {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    height: 44px; border: 1px solid var(--border); border-radius: var(--radius-md);
+    background: var(--bg-elevated); color: var(--text-primary);
+    font-size: var(--text-sm); font-weight: var(--weight-medium); text-decoration: none;
+}
+.reg-google:hover { background: var(--bg-subtle); }
+
 /* Name row: first / middle / last / suffix */
 .reg-row-names {
     display: grid;

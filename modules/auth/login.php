@@ -19,6 +19,7 @@ if (Auth::check()) {
 $errors     = [];
 $didTimeout = Session::getFlash('timeout');
 $resetDone  = Session::getFlash('reset_done');
+$googleErr  = Session::getFlash('google_error');
 
 $email  = '';
 
@@ -191,6 +192,11 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
     .lg-go:hover { background: var(--lg-green-800); }
     .lg-go:disabled { opacity: .7; cursor: wait; }
     .lg-go:focus-visible { outline: 3px solid rgba(31,122,63,.4); outline-offset: 2px; }
+    .lg-or { display: flex; align-items: center; gap: 12px; margin: 18px 0; font-size: .8rem; color: var(--lg-muted); }
+    .lg-or::before, .lg-or::after { content: ''; flex: 1; height: 1px; background: #d5dbd7; }
+    .lg-google { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; height: 48px; border: 1px solid #c9d1cc; border-radius: var(--lg-radius); background: #fff; color: var(--lg-ink); font: inherit; font-size: .95rem; font-weight: var(--lg-weight-semibold); text-decoration: none; }
+    .lg-google:hover { background: #f4f7f5; }
+    .lg-google:focus-visible { outline: 3px solid rgba(31,122,63,.4); outline-offset: 2px; }
     .lg-signup { margin: 18px 0 0; text-align: center; font-size: .86rem; color: var(--lg-muted); }
 
     @media (max-width: 880px) {
@@ -283,6 +289,10 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                 <div class="lg-alert lg-alert-info" role="status">Password updated. Sign in with your new password.</div>
             <?php endif; ?>
 
+            <?php if ($googleErr): ?>
+                <div class="lg-alert lg-alert-error" role="alert"><?= e($googleErr) ?></div>
+            <?php endif; ?>
+
             <?php if (!empty($errors['general'])): ?>
                 <div class="lg-alert lg-alert-error" role="alert"><?= e($errors['general']) ?></div>
             <?php endif; ?>
@@ -347,6 +357,14 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                 <button type="submit" class="lg-go">Login</button>
             </form>
 
+            <?php if (GOOGLE_ENABLED): ?>
+                <div class="lg-or"><span>or</span></div>
+                <a class="lg-google" id="lg-google" href="<?= url('/auth/google') ?>">
+                    <?= google_logo_svg() ?>
+                    Continue with Google
+                </a>
+            <?php endif; ?>
+
             <p class="lg-signup">
                 New applicant?
                 <a href="<?= url('/register') ?>">Create an account</a>
@@ -386,6 +404,14 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
             $in.siblings('.lg-err').remove();
             $in.toggleClass('lg-bad', bad);
             if (bad) jQuery('<span class="lg-err">Enter a valid email address.</span>').insertAfter($in);
+        });
+    }
+
+    // Carry the Remember me tick through the Google redirect
+    var g = document.getElementById('lg-google'), rem = document.getElementById('remember');
+    if (g && rem) {
+        g.addEventListener('click', function () {
+            g.href = g.href.split('?')[0] + (rem.checked ? '?remember=1' : '');
         });
     }
 

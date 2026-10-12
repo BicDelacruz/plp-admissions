@@ -23,6 +23,8 @@ $router->post('/reset-password',  'auth/reset_password');
 $router->get( '/verify-email',    'auth/verify_email');
 $router->get( '/verify-pending',  'auth/verify_pending');
 $router->post('/verify-pending',  'auth/verify_pending');
+$router->get( '/auth/google',          'auth/google');
+$router->get( '/auth/google/callback', 'auth/google');
 
 // -- Public pages -----------------------------------------------
 $router->get('/privacy', 'legal/privacy');
