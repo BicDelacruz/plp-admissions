@@ -18,6 +18,7 @@ if (Auth::check()) {
 
 $errors     = [];
 $didTimeout = Session::getFlash('timeout');
+$resetDone  = Session::getFlash('reset_done');
 
 $email  = '';
 
@@ -32,9 +33,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$password) $errors['password'] = 'Password is required.';
 
     if (empty($errors)) {
-        // hCaptcha verification
-        if (!hcaptcha_verify()) {
-            $errors['captcha'] = 'Please complete the CAPTCHA.';
+        // Turnstile verification
+        if (!captcha_verify()) {
+            $errors['captcha'] = 'Please complete the check.';
         }
     }
 
@@ -59,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 redirect('/verify-pending');
             } else {
                 clear_login_attempts($email);
-                Auth::login($user);
+                Auth::login($user, !empty($_POST['remember']));
                 audit_log('login', "Successful login: {$user['email']}", 'user', $user['id']);
                 header("Location: " . Auth::homeUrl()); exit;
             }
@@ -75,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $logoUrl  = asset('img/' . rawurlencode('plp logo.png'));
 $photoUrl = asset('img/' . rawurlencode('schol blg.jpg'));
 
-header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://*.hcaptcha.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob: https:; frame-src https://newassets.hcaptcha.com https://*.hcaptcha.com; connect-src 'self' https://*.hcaptcha.com;");
+header("Content-Security-Policy: " . auth_csp());
 header("X-Content-Type-Options: nosniff");
 header("X-Frame-Options: SAMEORIGIN");
 header("Referrer-Policy: strict-origin-when-cross-origin");
@@ -180,7 +181,11 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
     .lg-eye i { font-size: 20px; line-height: 1; display: block; }
     .lg-eye.on { color: var(--lg-green-700); }
 
-    .lg-forgot { text-align: right; margin: -4px 0 20px; }
+    .lg-opts { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: -4px 0 20px; }
+    .lg-check { display: inline-flex; align-items: center; gap: 8px; font-size: .86rem; font-weight: var(--lg-weight-semibold); cursor: pointer; }
+    .lg-check input { width: 18px; height: 18px; margin: 0; accent-color: var(--lg-green-700); cursor: pointer; }
+    .lg-check input:focus-visible { outline: 2px solid var(--lg-green-600); outline-offset: 2px; }
+    .lg-forgot { text-align: right; }
     .lg-forgot a, .lg-signup a { color: var(--lg-link); font-size: .86rem; font-weight: var(--lg-weight-semibold); text-decoration: underline; text-underline-offset: 3px; }
     .lg-go { width: 100%; height: 50px; border: 0; border-radius: var(--lg-radius); background: var(--lg-green-700); color: #fff; font: inherit; font-size: 1rem; font-weight: var(--lg-weight-semibold); cursor: pointer; transition: background .15s; }
     .lg-go:hover { background: var(--lg-green-800); }
@@ -274,6 +279,10 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                 <div class="lg-alert lg-alert-info" role="status">Your session expired. Please sign in again.</div>
             <?php endif; ?>
 
+            <?php if ($resetDone): ?>
+                <div class="lg-alert lg-alert-info" role="status">Password updated. Sign in with your new password.</div>
+            <?php endif; ?>
+
             <?php if (!empty($errors['general'])): ?>
                 <div class="lg-alert lg-alert-error" role="alert"><?= e($errors['general']) ?></div>
             <?php endif; ?>
@@ -319,14 +328,20 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                     <?php endif; ?>
                 </div>
 
-                <div class="lg-forgot"><a href="<?= url('/forgot-password') ?>">Forgot password?</a></div>
+                <div class="lg-opts">
+                    <label class="lg-check" for="remember">
+                        <input type="checkbox" id="remember" name="remember" value="1">
+                        Remember me
+                    </label>
+                    <span class="lg-forgot"><a href="<?= url('/forgot-password') ?>">Forgot password?</a></span>
+                </div>
 
                 <?php if (!empty($errors['captcha'])): ?>
                     <div class="lg-alert lg-alert-error" role="alert"><?= e($errors['captcha']) ?></div>
                 <?php endif; ?>
 
-                <?php if (HCAPTCHA_ENABLED): ?>
-                    <div class="h-captcha" data-sitekey="<?= e(HCAPTCHA_SITE_KEY) ?>" style="margin-bottom:16px"></div>
+                <?php if (CAPTCHA_ENABLED): ?>
+                    <div class="cf-turnstile" data-sitekey="<?= e(TURNSTILE_SITE_KEY) ?>" data-theme="auto" style="margin-bottom:16px"></div>
                 <?php endif; ?>
 
                 <button type="submit" class="lg-go">Login</button>
@@ -343,8 +358,8 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
 
 <script src="<?= asset('js/jquery.min.js') ?>"></script>
 <script src="<?= asset('js/app.js') ?>"></script>
-<?php if (HCAPTCHA_ENABLED): ?>
-<script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+<?php if (CAPTCHA_ENABLED): ?>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <?php endif; ?>
 <script>
 (function () {

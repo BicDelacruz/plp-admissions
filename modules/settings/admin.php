@@ -67,6 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db->prepare('UPDATE users SET password_hash=? WHERE id=?')
                ->execute([password_hash($new, PASSWORD_BCRYPT, ['cost'=>12]), $userId]);
             audit_log('admin_password_changed', 'Admin changed their own password', 'user', $userId);
+            Auth::rememberRevokeAll((int) $userId);
             $success[] = 'Password changed.';
         }
     }

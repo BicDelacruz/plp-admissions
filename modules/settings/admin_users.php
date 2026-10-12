@@ -96,6 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $hash = password_hash($newPass, PASSWORD_BCRYPT, ['cost' => 12]);
             $db->prepare('UPDATE users SET password_hash=? WHERE id=?')->execute([$hash, $uid]);
             audit_log('user_password_reset', "Reset password for user ID {$uid}", 'user', $uid);
+            Auth::rememberRevokeAll($uid);
             $success[] = 'Password reset successfully.';
             break;
 

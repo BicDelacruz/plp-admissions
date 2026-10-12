@@ -291,11 +291,11 @@ define('COURSE_PASSING_SCORES', [
     'BS Nursing (BSN)'                                                   => ['pass_from' => 4, 'confirmed' => false],
 ]);
 
-// -- hCaptcha ----------------------------------------------------
-define('HCAPTCHA_SITE_KEY',   getenv('HCAPTCHA_SITE_KEY')   ?: '');
-define('HCAPTCHA_SECRET_KEY', getenv('HCAPTCHA_SECRET_KEY') ?: '');
-// Original: !empty(HCAPTCHA_SITE_KEY) && !empty(HCAPTCHA_SECRET_KEY)
-define('HCAPTCHA_ENABLED',    false);
+// -- Cloudflare Turnstile (captcha on login and register) -----------
+define('TURNSTILE_SITE_KEY',   getenv('TURNSTILE_SITE_KEY')   ?: '');
+define('TURNSTILE_SECRET_KEY', getenv('TURNSTILE_SECRET_KEY') ?: '');
+// On only when both keys are set, so forms still work without keys.
+define('CAPTCHA_ENABLED', TURNSTILE_SITE_KEY !== '' && TURNSTILE_SECRET_KEY !== '');
 
 // -- Email (Gmail SMTP via PHPMailer) -----------------------------
 define('SMTP_HOST',       getenv('SMTP_HOST')       ?: 'smtp.gmail.com');
@@ -318,3 +318,13 @@ define('PROGRESS_STEPS', [
     'interview' => 'Interview',
     'result'    => 'Result',
 ]);
+
+// -- Password reset (6-digit code) --------------------------------
+define('RESET_CODE_TTL_SECS',  900);   // code lifetime: 15 min
+define('RESET_RESEND_SECS',     60);   // rest between sends
+define('RESET_MAX_ATTEMPTS',     5);   // wrong tries before the code dies
+define('RESET_OK_TTL_SECS',    600);   // time to set a new password after confirming the code
+
+// -- Remember me -------------------------------------------------
+define('REMEMBER_COOKIE', 'plp_remember');
+define('REMEMBER_DAYS',   30);

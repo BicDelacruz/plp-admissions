@@ -670,35 +670,47 @@ function file_url(string $filePath): string
     return url($filePath); // Local path — prepend BASE_URL.
 }
 
-// -- hCaptcha verification --------------------------------------
-function hcaptcha_verify(): bool
+// -- Captcha (Cloudflare Turnstile) -------------------------------
+function captcha_verify(): bool
 {
-    if (!HCAPTCHA_ENABLED) {
+    if (!CAPTCHA_ENABLED) {
         return true; // Skip if keys are not configured
     }
 
-    $token = $_POST['h-captcha-response'] ?? '';
-    if (!$token) {
+    $token = $_POST['cf-turnstile-response'] ?? '';
+    if (!is_string($token) || $token === '') {
         return false;
     }
 
-    $response = @file_get_contents('https://api.hcaptcha.com/siteverify', false, stream_context_create([
+    $response = @file_get_contents('https://challenges.cloudflare.com/turnstile/v0/siteverify', false, stream_context_create([
         'http' => [
             'method'  => 'POST',
             'header'  => 'Content-Type: application/x-www-form-urlencoded',
+            'timeout' => 5,
             'content' => http_build_query([
-                'secret'   => HCAPTCHA_SECRET_KEY,
+                'secret'   => TURNSTILE_SECRET_KEY,
                 'response' => $token,
             ]),
         ],
     ]));
 
+    // ponytail: fails closed. A Cloudflare outage blocks login and register. Upgrade: fail open with a log.
     if (!$response) {
         return false;
     }
 
     $data = json_decode($response, true);
     return !empty($data['success']);
+}
+
+// -- Content-Security-Policy for the auth pages ------------------
+function auth_csp(): string
+{
+    $cf = 'https://challenges.cloudflare.com';
+    return "default-src 'self'; script-src 'self' 'unsafe-inline' $cf; "
+        . "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; "
+        . "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; "
+        . "img-src 'self' data: blob: https:; frame-src $cf; connect-src 'self' $cf;";
 }
 
 // -- Email (PHPMailer + Gmail SMTP) ------------------------------
