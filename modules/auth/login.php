@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 redirect('/verify-pending');
             } else {
                 clear_login_attempts($email);
-                Auth::login($user);
+                Auth::login($user, !empty($_POST['remember']));
                 audit_log('login', "Successful login: {$user['email']}", 'user', $user['id']);
                 header("Location: " . Auth::homeUrl()); exit;
             }
@@ -181,7 +181,11 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
     .lg-eye i { font-size: 20px; line-height: 1; display: block; }
     .lg-eye.on { color: var(--lg-green-700); }
 
-    .lg-forgot { text-align: right; margin: -4px 0 20px; }
+    .lg-opts { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: -4px 0 20px; }
+    .lg-check { display: inline-flex; align-items: center; gap: 8px; font-size: .86rem; font-weight: var(--lg-weight-semibold); cursor: pointer; }
+    .lg-check input { width: 18px; height: 18px; margin: 0; accent-color: var(--lg-green-700); cursor: pointer; }
+    .lg-check input:focus-visible { outline: 2px solid var(--lg-green-600); outline-offset: 2px; }
+    .lg-forgot { text-align: right; }
     .lg-forgot a, .lg-signup a { color: var(--lg-link); font-size: .86rem; font-weight: var(--lg-weight-semibold); text-decoration: underline; text-underline-offset: 3px; }
     .lg-go { width: 100%; height: 50px; border: 0; border-radius: var(--lg-radius); background: var(--lg-green-700); color: #fff; font: inherit; font-size: 1rem; font-weight: var(--lg-weight-semibold); cursor: pointer; transition: background .15s; }
     .lg-go:hover { background: var(--lg-green-800); }
@@ -324,7 +328,13 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                     <?php endif; ?>
                 </div>
 
-                <div class="lg-forgot"><a href="<?= url('/forgot-password') ?>">Forgot password?</a></div>
+                <div class="lg-opts">
+                    <label class="lg-check" for="remember">
+                        <input type="checkbox" id="remember" name="remember" value="1">
+                        Remember me
+                    </label>
+                    <span class="lg-forgot"><a href="<?= url('/forgot-password') ?>">Forgot password?</a></span>
+                </div>
 
                 <?php if (!empty($errors['captcha'])): ?>
                     <div class="lg-alert lg-alert-error" role="alert"><?= e($errors['captcha']) ?></div>

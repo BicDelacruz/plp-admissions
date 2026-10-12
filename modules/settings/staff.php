@@ -36,6 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $newHash = password_hash($new, PASSWORD_BCRYPT, ['cost' => 12]);
             $db->prepare('UPDATE users SET password_hash=? WHERE id=?')->execute([$newHash, $userId]);
+            Auth::rememberRevokeAll((int) $userId);
             $success[] = 'Password changed.';
         }
     }

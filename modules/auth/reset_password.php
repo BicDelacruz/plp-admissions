@@ -54,6 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
            ->execute([$resetRow['id']]);
 
         clear_login_attempts($resetRow['email']);
+        Auth::rememberRevokeAll((int) $resetRow['user_id']);
         audit_log('password_reset_done', 'Password reset with emailed code', 'user', (int) $resetRow['user_id']);
 
         // ponytail: other open sessions live until idle timeout (no user_id on `sessions`). Upgrade: add the column.
