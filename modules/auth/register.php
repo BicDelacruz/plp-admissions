@@ -681,7 +681,7 @@ ob_start();
         <?php endif; ?>
 
         <?php if (!$googleMode && CAPTCHA_ENABLED): ?>
-            <div class="cf-turnstile" data-sitekey="<?= e(TURNSTILE_SITE_KEY) ?>" data-theme="auto" style="margin-bottom:var(--space-4)"></div>
+            <div class="cf-turnstile" data-sitekey="<?= e(TURNSTILE_SITE_KEY) ?>" data-theme="auto" style="display:flex;justify-content:center;margin-bottom:var(--space-4)"></div>
         <?php endif; ?>
 
         <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top:var(--space-6)">

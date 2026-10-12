@@ -351,7 +351,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                 <?php endif; ?>
 
                 <?php if (CAPTCHA_ENABLED): ?>
-                    <div class="cf-turnstile" data-sitekey="<?= e(TURNSTILE_SITE_KEY) ?>" data-theme="auto" style="margin-bottom:16px"></div>
+                    <div class="cf-turnstile" data-sitekey="<?= e(TURNSTILE_SITE_KEY) ?>" data-theme="auto" style="display:flex;justify-content:center;margin-bottom:16px"></div>
                 <?php endif; ?>
 
                 <button type="submit" class="lg-go">Login</button>
