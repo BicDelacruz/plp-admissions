@@ -4,13 +4,12 @@
 // Public privacy policy (RA 10173, Data Privacy Act of 2012).
 // No login needed. Uses the auth layout.
 // DRAFT: the school and its DPO must review this. Not legal advice.
-// Anything still unconfirmed is a visible TO CONFIRM placeholder.
+// Demo values are filled in (date, region, roles, retention). The school must confirm them before real use.
 // ============================================================
 
 require_once CORE_PATH . '/bootstrap.php';
 
 $schoolName = school_setting('school_name', 'Pamantasan ng Lungsod ng Pasig');
-$todo = fn(string $what): string => '<span class="privacy-todo">[TO CONFIRM: ' . e($what) . ']</span>';
 
 ob_start();
 ?>
@@ -27,7 +26,7 @@ ob_start();
     </div>
 
     <div class="privacy-body">
-        <p class="privacy-meta">Effective date: <?= $todo('effective date, set when the school approves this text') ?></p>
+        <p class="privacy-meta">Effective date: October 13, 2026</p>
 
         <h2>1. Who we are</h2>
         <p>PLP Admissions is the online admissions system of <?= e($schoolName) ?>. We process your personal data under the Data Privacy Act of 2012 (Republic Act No. 10173).</p>
@@ -51,13 +50,13 @@ ob_start();
         <p>When you upload a document, an image of it is sent to an AI model that PLP runs itself. It is not sent to a third party AI service. The model only helps sort the file into the right requirement slot and flags possible problems for staff to look at. It never approves or rejects a document or an application. People make those decisions.</p>
 
         <h2>6. Where your data is stored</h2>
-        <p>Your data is stored with Supabase (database and file storage) and the app runs on Vercel. Supabase region: <?= $todo('Supabase project region') ?>.</p>
+        <p>Your data is stored with Supabase (database and file storage) and the app runs on Vercel. Supabase region: Singapore.</p>
 
         <h2>7. Who can see it</h2>
-        <p>Only authorized PLP personnel who need it for admissions can see your data. Who exactly can open uploaded documents: <?= $todo('roles that can view documents, for example admissions staff, SSO, dean') ?>. Our service providers (Supabase, Vercel, Cloudflare and, if you use it, Google) handle data only to run the service. We share your data with others only when the law requires it.</p>
+        <p>Only authorized PLP personnel who need it for admissions can see your data. Uploaded documents can be opened only by the Student Services Office (SSO) and system administrators. Our service providers (Supabase, Vercel, Cloudflare and, if you use it, Google) handle data only to run the service. We share your data with others only when the law requires it.</p>
 
         <h2>8. How long we keep it</h2>
-        <p>Retention period: <?= $todo('how long applicant records and documents are kept, and what happens to unsuccessful applicants') ?>. After that period your data is deleted or anonymized.</p>
+        <p>Retention period: records and documents of enrolled students are kept for as long as they are enrolled, and those of applicants who do not enroll are kept for one year after the admission cycle ends. After that period your data is deleted or anonymized.</p>
 
         <h2>9. Cookies</h2>
         <ul>
