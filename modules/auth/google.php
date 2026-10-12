@@ -31,6 +31,7 @@ if (!str_ends_with(rtrim($path, '/'), '/callback')) {
     Session::set('google_state', $state);
     Session::set('google_remember', !empty($_GET['remember']));
     header('Location: https://accounts.google.com/o/oauth2/v2/auth?' . http_build_query([
+        'prompt'        => 'select_account',
         'client_id'     => GOOGLE_CLIENT_ID,
         'redirect_uri'  => GOOGLE_REDIRECT_URI,
         'response_type' => 'code',
