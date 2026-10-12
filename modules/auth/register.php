@@ -48,9 +48,9 @@ $old    = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
 
-    // hCaptcha verification
-    if (!hcaptcha_verify()) {
-        $errors['captcha'] = 'Please complete the CAPTCHA.';
+    // Turnstile verification
+    if (!captcha_verify()) {
+        $errors['captcha'] = 'Please complete the check.';
     }
 
     $old = [
@@ -631,8 +631,8 @@ ob_start();
             </div>
         <?php endif; ?>
 
-        <?php if (HCAPTCHA_ENABLED): ?>
-            <div class="h-captcha" data-sitekey="<?= e(HCAPTCHA_SITE_KEY) ?>" style="margin-bottom:var(--space-4)"></div>
+        <?php if (CAPTCHA_ENABLED): ?>
+            <div class="cf-turnstile" data-sitekey="<?= e(TURNSTILE_SITE_KEY) ?>" data-theme="auto" style="margin-bottom:var(--space-4)"></div>
         <?php endif; ?>
 
         <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top:var(--space-6)">

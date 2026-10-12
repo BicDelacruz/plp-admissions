@@ -13,7 +13,7 @@ $authLogoUrl = $authLogo
 $authPhotoUrl = asset('img/' . rawurlencode('schol blg.jpg'));
 ?>
 <?php
-header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://*.hcaptcha.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob: https:; frame-src https://newassets.hcaptcha.com https://*.hcaptcha.com; connect-src 'self' https://*.hcaptcha.com;");
+header("Content-Security-Policy: " . auth_csp());
 header("X-Content-Type-Options: nosniff");
 header("X-Frame-Options: SAMEORIGIN");
 header("Referrer-Policy: strict-origin-when-cross-origin");
@@ -110,8 +110,8 @@ jQuery(function ($) {
     });
 });
 </script>
-<?php if (HCAPTCHA_ENABLED): ?>
-<script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+<?php if (CAPTCHA_ENABLED): ?>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <?php endif; ?>
 
 </body>

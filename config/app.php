@@ -291,11 +291,11 @@ define('COURSE_PASSING_SCORES', [
     'BS Nursing (BSN)'                                                   => ['pass_from' => 4, 'confirmed' => false],
 ]);
 
-// -- hCaptcha ----------------------------------------------------
-define('HCAPTCHA_SITE_KEY',   getenv('HCAPTCHA_SITE_KEY')   ?: '');
-define('HCAPTCHA_SECRET_KEY', getenv('HCAPTCHA_SECRET_KEY') ?: '');
-// Original: !empty(HCAPTCHA_SITE_KEY) && !empty(HCAPTCHA_SECRET_KEY)
-define('HCAPTCHA_ENABLED',    false);
+// -- Cloudflare Turnstile (captcha on login and register) -----------
+define('TURNSTILE_SITE_KEY',   getenv('TURNSTILE_SITE_KEY')   ?: '');
+define('TURNSTILE_SECRET_KEY', getenv('TURNSTILE_SECRET_KEY') ?: '');
+// On only when both keys are set, so forms still work without keys.
+define('CAPTCHA_ENABLED', TURNSTILE_SITE_KEY !== '' && TURNSTILE_SECRET_KEY !== '');
 
 // -- Email (Gmail SMTP via PHPMailer) -----------------------------
 define('SMTP_HOST',       getenv('SMTP_HOST')       ?: 'smtp.gmail.com');

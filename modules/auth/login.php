@@ -33,9 +33,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$password) $errors['password'] = 'Password is required.';
 
     if (empty($errors)) {
-        // hCaptcha verification
-        if (!hcaptcha_verify()) {
-            $errors['captcha'] = 'Please complete the CAPTCHA.';
+        // Turnstile verification
+        if (!captcha_verify()) {
+            $errors['captcha'] = 'Please complete the check.';
         }
     }
 
@@ -76,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $logoUrl  = asset('img/' . rawurlencode('plp logo.png'));
 $photoUrl = asset('img/' . rawurlencode('schol blg.jpg'));
 
-header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://*.hcaptcha.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob: https:; frame-src https://newassets.hcaptcha.com https://*.hcaptcha.com; connect-src 'self' https://*.hcaptcha.com;");
+header("Content-Security-Policy: " . auth_csp());
 header("X-Content-Type-Options: nosniff");
 header("X-Frame-Options: SAMEORIGIN");
 header("Referrer-Policy: strict-origin-when-cross-origin");
@@ -330,8 +330,8 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                     <div class="lg-alert lg-alert-error" role="alert"><?= e($errors['captcha']) ?></div>
                 <?php endif; ?>
 
-                <?php if (HCAPTCHA_ENABLED): ?>
-                    <div class="h-captcha" data-sitekey="<?= e(HCAPTCHA_SITE_KEY) ?>" style="margin-bottom:16px"></div>
+                <?php if (CAPTCHA_ENABLED): ?>
+                    <div class="cf-turnstile" data-sitekey="<?= e(TURNSTILE_SITE_KEY) ?>" data-theme="auto" style="margin-bottom:16px"></div>
                 <?php endif; ?>
 
                 <button type="submit" class="lg-go">Login</button>
@@ -348,8 +348,8 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
 
 <script src="<?= asset('js/jquery.min.js') ?>"></script>
 <script src="<?= asset('js/app.js') ?>"></script>
-<?php if (HCAPTCHA_ENABLED): ?>
-<script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+<?php if (CAPTCHA_ENABLED): ?>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <?php endif; ?>
 <script>
 (function () {
