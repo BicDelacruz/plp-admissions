@@ -92,13 +92,15 @@
     --leading-normal: 1.5;
     --leading-relaxed:1.65;
 
-    /* Border radius — 8px for components, 16px for modals and feature panels.
-       sm and md are 8px, lg and xl are 16px, so older rules land on the two values. */
-    --radius-sm:  8px;
-    --radius-md:  8px;
-    --radius-lg:  16px;
-    --radius-xl:  16px;
-    --radius-full:9999px;
+    /* Border radius — ONE shared token. Every corner in the app is 8px.
+       Change --radius here and everything follows. The size aliases below
+       exist only so older rules keep working; they all resolve to --radius. */
+    --radius:     8px;
+    --radius-sm:  var(--radius);
+    --radius-md:  var(--radius);
+    --radius-lg:  var(--radius);
+    --radius-xl:  var(--radius);
+    --radius-full:var(--radius);
 
     /* Shadows — minimal, functional */
     --shadow-xs:  0 1px 2px rgba(0,0,0,0.06);
@@ -543,7 +545,7 @@ button { cursor: pointer; }
         right: 0;
         width: 8px;
         height: 8px;
-        border-radius: 50%;
+        border-radius: var(--radius);
         background: var(--accent);
         pointer-events: none;
     }
@@ -666,7 +668,7 @@ button { cursor: pointer; }
     width: 6px;
     height: 6px;
     margin-left: auto;
-    border-radius: 50%;
+    border-radius: var(--radius);
 }
 .nav-dot--alert   { background: var(--error); }
 .nav-dot--pending { background: #f59e0b; }
@@ -1418,7 +1420,7 @@ select.form-control {
     height: 14px;
     border: 2px solid currentColor;
     border-top-color: transparent;
-    border-radius: 50%;
+    border-radius: var(--radius);
     animation: spin 0.6s linear infinite;
     color: white;
 }
@@ -1442,7 +1444,7 @@ select.form-control {
     content: '';
     width: 5px;
     height: 5px;
-    border-radius: 50%;
+    border-radius: var(--radius);
     background: currentColor;
     flex-shrink: 0;
 }
@@ -1609,7 +1611,7 @@ tbody tr:hover { background: var(--bg-overlay); }
 .privacy-body li { margin-bottom: var(--space-2); }
 .privacy-body a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
 .privacy-meta { color: var(--text-secondary); }
-.privacy-todo { background: #fff3bf; color: #5c4400; padding: 0 4px; border-radius: 3px; font-weight: var(--weight-semibold); }
+.privacy-todo { background: #fff3bf; color: #5c4400; padding: 0 4px; border-radius: var(--radius); font-weight: var(--weight-semibold); }
 [data-theme="dark"] .privacy-todo { background: #5c4400; color: #fff3bf; }
 /* Footer link under the card on the auth layout */
 .auth-legal { padding: 14px var(--space-4) 20px; text-align: center; font-size: .82rem; background: #0c2a1a; }
@@ -1627,7 +1629,7 @@ tbody tr:hover { background: var(--bg-overlay); }
 .auth-pw .form-input { padding-right: 46px; }
 .auth-pw-eye {
     position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
-    width: 34px; height: 34px; border: 0; background: none; border-radius: 6px;
+    width: 34px; height: 34px; border: 0; background: none; border-radius: var(--radius);
     display: grid; place-items: center; cursor: pointer; color: var(--text-tertiary);
 }
 .auth-pw-eye:hover { background: var(--bg-overlay); }
@@ -1641,7 +1643,7 @@ tbody tr:hover { background: var(--bg-overlay); }
     right: var(--space-8);
     width: 24px;
     height: 24px;
-    border-radius: 50%;
+    border-radius: var(--radius);
     border: none;
     background: transparent;
     display: flex;
@@ -2115,16 +2117,13 @@ textarea:focus-visible {
     z-index: 50;
 }
 
-/* The student top bar is frozen: it keeps the spacing, weight, radius and size
-   values it had before the token cleanup, so nothing in it moves or changes. */
+/* The student top bar is frozen: it keeps the spacing, weight and size
+   values it had before the token cleanup, so nothing in it moves or changes.
+   Radius is no longer overridden here — it follows the shared --radius token. */
 .student-header {
     --space-3:       12px;
     --space-5:       20px;
     --weight-medium: 500;
-    --radius-sm:     6px;
-    --radius-md:     10px;
-    --radius-lg:     14px;
-    --radius-xl:     20px;
     --text-lg:       1.125rem;
     --text-2xl:      1.5rem;
     --text-3xl:      1.875rem;
@@ -2433,7 +2432,7 @@ textarea:focus-visible {
     display: inline-block;
     font-size: var(--text-xs);
     padding: var(--space-1) var(--space-1);
-    border-radius: 99px;
+    border-radius: var(--radius);
     margin-top: var(--space-1);
 }
 
@@ -2501,13 +2500,13 @@ textarea:focus-visible {
     min-width: 0;         /* prevents overflow in narrow containers */
     height: 8px;
     background: var(--bg-subtle);
-    border-radius: 99px;
+    border-radius: var(--radius);
     overflow: hidden;
 }
 
 .bar-fill {
     height: 100%;
-    border-radius: 99px;
+    border-radius: var(--radius);
     transition: width 0.35s ease;
 }
 
@@ -2562,14 +2561,14 @@ textarea:focus-visible {
 .step-bar {
     height: 4px;
     background: var(--bg-subtle);
-    border-radius: 99px;
+    border-radius: var(--radius);
     margin-top: var(--space-2);
     overflow: hidden;
 }
 
 .step-bar-fill {
     height: 100%;
-    border-radius: 99px;
+    border-radius: var(--radius);
 }
 
 /* ── RESULTS: filter bar ────────────────────────────────── */
@@ -2602,7 +2601,7 @@ textarea:focus-visible {
     align-items: center;
     gap: var(--space-1);
     padding: var(--space-1) var(--space-2);
-    border-radius: 99px;
+    border-radius: var(--radius);
     border: 0.5px solid var(--border);
     background: var(--bg-elevated);
     font-size: 0.75rem;
@@ -2618,7 +2617,7 @@ textarea:focus-visible {
     font-size: 0.625rem;
     font-weight: var(--weight-medium);
     padding: 0.0625rem 0.3125rem;
-    border-radius: 99px;
+    border-radius: var(--radius);
     background: var(--bg-subtle);
     color: var(--text-secondary);
 }
@@ -2729,7 +2728,7 @@ textarea:focus-visible {
 .legend-dot {
     width: 8px;
     height: 8px;
-    border-radius: 50%;
+    border-radius: var(--radius);
     flex-shrink: 0;
 }
 
@@ -2846,7 +2845,7 @@ textarea:focus-visible {
 .score-badge {
     display: inline-block;
     padding: var(--space-1) var(--space-2);
-    border-radius: 99px;
+    border-radius: var(--radius);
     font-size: var(--text-xs);
     font-weight: var(--weight-medium);
 }
@@ -2859,7 +2858,7 @@ textarea:focus-visible {
 .result-pill {
     display: inline-block;
     padding: var(--space-1) var(--space-2);
-    border-radius: 99px;
+    border-radius: var(--radius);
     font-size: var(--text-xs);
     font-weight: var(--weight-medium);
 }
@@ -2977,38 +2976,41 @@ textarea:focus-visible {
 }
 
 /* ============================================================
-   SEGMENTED CONTROL — interview/exam tab strip
-   Replaces inline-styled tab bars with a consistent component
+   SEGMENTED CONTROL — the one component for page-level tabs
+   Inside a table card it is the FIRST child of .auto-table-toolbar
+   (left of the search box). Also used for two-way mode toggles in modals.
+   Render page tabs with seg_control() in core/helpers.php.
    ============================================================ */
 
 .seg-control {
     display: inline-flex;
-    gap: 0;
+    align-items: center;
+    gap: 2px;
+    padding: 2px;
+    max-width: 100%;
+    overflow-x: auto;
+    background: var(--bg-subtle);
     border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    overflow: hidden;
-    background: var(--bg-elevated);
+    border-radius: var(--radius);
 }
 
 .seg-control-item {
-    padding: var(--space-2) var(--space-4);
-    font-size: var(--text-sm);
-    text-decoration: none;
-    color: var(--text-secondary);
-    border-right: 1px solid var(--border);
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: var(--space-2);
+    height: 30px;
+    padding: 0 var(--space-3);
+    font: inherit;
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    text-decoration: none;
     white-space: nowrap;
-    transition: background var(--transition-fast), color var(--transition-fast);
     cursor: pointer;
     background: transparent;
-    border-top: none;
-    border-bottom: none;
-    border-left: none;
+    border: 0;
+    border-radius: var(--radius);
+    transition: background var(--transition-fast), color var(--transition-fast);
 }
-
-.seg-control-item:last-child { border-right: none; }
 
 .seg-control-item:hover,
 .seg-control-item:focus-visible {
@@ -3022,10 +3024,36 @@ textarea:focus-visible {
     outline-offset: -2px;
 }
 
-.seg-control-item.active {
-    background: var(--bg-subtle);
+.seg-control-item.active,
+.seg-control-item.active:hover {
+    background: var(--bg-elevated);
     color: var(--text-primary);
-    font-weight: var(--weight-medium);
+    font-weight: var(--weight-semibold);
+    box-shadow: var(--shadow-xs);
+}
+
+.seg-control-count {
+    min-width: 18px;
+    padding: 0 var(--space-1);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-regular);
+    line-height: 18px;
+    text-align: center;
+    color: var(--text-tertiary);
+    background: var(--bg-overlay);
+    border-radius: var(--radius);
+}
+
+.seg-control-count.is-warning {
+    color: var(--warning);
+    background: var(--warning-bg);
+}
+
+/* In a table toolbar the control matches the 36px inputs and buttons next to it. */
+.auto-table-toolbar .seg-control {
+    flex: 0 0 auto;
+    height: 36px;
+    box-sizing: border-box;
 }
 
 /* ============================================================
@@ -3057,7 +3085,7 @@ textarea:focus-visible {
 .session-modal-icon {
     width: 48px;
     height: 48px;
-    border-radius: 50%;
+    border-radius: var(--radius);
     background: var(--warning-bg);
     display: flex;
     align-items: center;
@@ -3083,7 +3111,7 @@ textarea:focus-visible {
 .status-icon-lg {
     width: 72px;
     height: 72px;
-    border-radius: 50%;
+    border-radius: var(--radius);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -3119,7 +3147,7 @@ textarea:focus-visible {
     text-align: center;
     color: #fff;
     background: var(--error);
-    border-radius: 999px;
+    border-radius: var(--radius);
     pointer-events: none;
 }
 
@@ -3247,7 +3275,7 @@ body.ap-drawer-locked { overflow: hidden; }
 }
 .ap-avatar {
     width: 48px; height: 48px;
-    border-radius: 50%;
+    border-radius: var(--radius);
     background: var(--accent-soft, var(--bg-subtle));
     color: var(--accent, var(--text-primary));
     font-weight: var(--weight-semibold);

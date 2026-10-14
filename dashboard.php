@@ -303,7 +303,7 @@ ob_start();
 /* Legend */
 .db-legend      { display:flex; flex-wrap:wrap; gap:var(--space-3); margin-top:var(--space-3); justify-content:center; }
 .db-legend-item { display:flex; align-items:center; gap:var(--space-2); font-size:var(--text-sm); color:var(--text-secondary); }
-.db-legend-dot  { width:8px; height:8px; border-radius:2px; flex-shrink:0; }
+.db-legend-dot  { width:8px; height:8px; border-radius:var(--radius); flex-shrink:0; }
 
 
 /* Dashboard card titles */
@@ -544,6 +544,7 @@ ob_start();
         var border      = v('--border');
         // Single accent color family for all charts — no rainbow
         var barColor    = accentLight || accent;
+        var barRadius   = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--radius'), 10) || 8;
 
         Chart.defaults.font  = { family: v('--font-sans') || 'DM Sans,sans-serif', size: 14 };
         Chart.defaults.color = textSecond;
@@ -566,7 +567,7 @@ ob_start();
             type: 'bar',
             data: {
                 labels: DATA.pipeline.labels,
-                datasets: [{ data: DATA.pipeline.data, borderRadius:5, borderSkipped:false,
+                datasets: [{ data: DATA.pipeline.data, borderRadius:barRadius, borderSkipped:false,
                     backgroundColor: DATA.pipeline.data.map(function(){ return barColor; }) }]
             },
             options: { indexAxis:'y', responsive:true, maintainAspectRatio:false,
@@ -578,7 +579,7 @@ ob_start();
         charts.course = new Chart(document.getElementById('chartCourse'), {
             type: 'bar',
             data: { labels:DATA.course.labels,
-                datasets:[{ data:DATA.course.data, backgroundColor:barColor, borderRadius:4, borderSkipped:false, barThickness:10, maxBarThickness:12 }] },
+                datasets:[{ data:DATA.course.data, backgroundColor:barColor, borderRadius:barRadius, borderSkipped:false, barThickness:10, maxBarThickness:12 }] },
             options: { indexAxis:'y', responsive:true, maintainAspectRatio:false,
                 plugins:{ legend:{display:false}, tooltip:tipFull(DATA.course.full) },
                 scales:{ x:xGrid, y:yWide } }
@@ -588,7 +589,7 @@ ob_start();
         charts.strand = new Chart(document.getElementById('chartStrand'), {
             type: 'bar',
             data: { labels:DATA.strand.labels,
-                datasets:[{ data:DATA.strand.data, backgroundColor:barColor, borderRadius:5, borderSkipped:false }] },
+                datasets:[{ data:DATA.strand.data, backgroundColor:barColor, borderRadius:barRadius, borderSkipped:false }] },
             options: { indexAxis:'y', responsive:true, maintainAspectRatio:false,
                 plugins:{ legend:{display:false}, tooltip:tipFull(DATA.strand.full) },
                 scales:{ x:xGrid, y:yWide } }
