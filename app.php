@@ -367,6 +367,16 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
 
         <!-- Page content injected here -->
         <main class="page <?= $pageWide ? 'page-wide' : '' ?>" id="main-content">
+            <?php if (!empty($pageHeading)): ?>
+            <!-- Page heading (no subtitle) with the page's buttons at the top right.
+                 Pages set $pageHeading and, optionally, $pageActions (HTML). -->
+            <div class="page-header page-header-row">
+                <h1 class="page-title"><?= e($pageHeading) ?></h1>
+                <?php if (!empty($pageActions)): ?>
+                <div class="page-actions"><?= $pageActions ?></div>
+                <?php endif; ?>
+            </div>
+            <?php endif; ?>
             <?= $content ?? '' ?>
         </main>
 

@@ -2,15 +2,15 @@
 // _setup_colleges.php — College card grid for admin
 // Variables: $departments, $collegeCounts
 //
-// The "← Back" target (the two-card /staff/interviews landing) is only
+// The Back target (the two-card /staff/interviews landing) is only
 // reachable for Admin. SSO lands here directly from the sidebar and
 // has nowhere to go back to, so we hide the button for them.
 $_isSSO_picker = (Auth::role() === ROLE_SSO);
 ?>
 
 <?php if (!$_isSSO_picker): ?>
-<div style="margin-bottom:var(--space-3)">
-    <a href="<?= url('/staff/interviews') ?>" class="btn btn-ghost btn-sm">← Back</a>
+<div class="page-actions page-actions-row">
+    <?= back_button(url('/staff/interviews')) ?>
 </div>
 <?php endif; ?>
 

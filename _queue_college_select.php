@@ -38,9 +38,7 @@ try {
 ob_start();
 ?>
 
-<div style="margin-bottom:var(--space-5)">
-    <a href="<?= url('/staff/interviews') ?>" class="btn btn-ghost btn-sm">&larr; Back</a>
-</div>
+<?php $pageActions = back_button(url('/staff/interviews')); ?>
 
 <style>
 @keyframes q-pulse-dot {
@@ -131,4 +129,5 @@ $content   = ob_get_clean();
 $pageTitle = 'Live Queue';
 $activeNav = 'interviews';
 $pageWide  = true;
+$pageHeading = 'Live Queue';
 include VIEWS_PATH . '/layouts/app.php';

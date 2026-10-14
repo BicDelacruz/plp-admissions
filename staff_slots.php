@@ -948,8 +948,8 @@ ob_start();
          MODE 1 — COLLEGE SELECTOR
          (Admins land here. Staff are auto-routed to their college.)
     ============================================================ -->
-    <div style="margin-bottom:var(--space-3)">
-        <a href="<?= e(url('/staff/exam')) ?>" class="btn btn-ghost btn-sm">← Back</a>
+    <div class="page-actions page-actions-row">
+        <?= back_button(url('/staff/exam')) ?>
     </div>
 
     <div class="page-header" style="text-align:center;margin-bottom:var(--space-4)">
@@ -1001,11 +1001,7 @@ ob_start();
     <!-- ============================================================
          MODE 2 — SLOT CARD GRID FOR ONE COLLEGE
     ============================================================ -->
-    <div style="display:flex;align-items:center;margin-bottom:var(--space-3);gap:var(--space-2);flex-wrap:wrap">
-        <?php if ($canManage): ?>
-            <a href="<?= e(url('/staff/exam/slots')) ?>" class="btn btn-ghost btn-sm" style="margin-right:auto">← Back</a>
-        <?php endif; ?>
-
+    <div class="page-actions page-actions-row">
         <?php if ($canManage): ?>
             <a href="<?= e(url('/staff/exam/export-rooms')) ?>"
                class="btn btn-sm" target="_blank" rel="noopener"
@@ -1022,6 +1018,9 @@ ob_start();
             <span class="badge badge-neutral" style="font-size:var(--text-xs)">
                 <?= icon('ic_fluent_eye_24_regular', 12) ?> Read-only
             </span>
+        <?php endif; ?>
+        <?php if ($canManage): ?>
+            <?= back_button(url('/staff/exam/slots')) ?>
         <?php endif; ?>
     </div>
 
@@ -1259,17 +1258,15 @@ ob_start();
     ], JSON_HEX_APOS | JSON_HEX_QUOT);
     ?>
 
-    <div style="display:flex;align-items:center;margin-bottom:var(--space-4);gap:var(--space-2);flex-wrap:wrap;flex-shrink:0">
-        <a href="<?= e(url('/staff/exam/slots') . '?college=' . urlencode($slotDetail['department'])) ?>"
-           class="btn btn-ghost btn-sm" style="margin-right:auto">← Back to <?= e($slotDetail['department']) ?> slots</a>
-
+    <?php ob_start(); ?>
         <?php if ($canManage && !$isPast): ?>
             <button type="button" class="btn btn-sm"
                     onclick='openEditExamSlot(<?= $editPayload ?>)'>
                 <?= icon('ic_fluent_edit_24_regular', 14) ?> Edit slot
             </button>
         <?php endif; ?>
-    </div>
+        <?= back_button(url('/staff/exam/slots') . '?college=' . urlencode($slotDetail['department']), 'Back to ' . $slotDetail['department'] . ' slots') ?>
+    <?php $pageActions = ob_get_clean(); ?>
 
     <!-- Slot summary strip -->
     <div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) var(--space-4);
@@ -2175,4 +2172,5 @@ $content   = ob_get_clean();
 $pageTitle = 'Exam Room Slots';
 $activeNav = 'exam';
 $pageWide  = true; // all three modes use the wide-page container
+if ($mode === 'roster') $pageHeading = 'Exam Room Roster'; // the other two modes carry their own heading
 include VIEWS_PATH . '/layouts/app.php';

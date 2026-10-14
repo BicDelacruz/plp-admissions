@@ -742,11 +742,8 @@ ob_start();
 </div>
 
 <?php if ($manualPage): ?>
-<!-- Manual upload page: same step, one document at a time -->
-<div style="margin-bottom:var(--space-4)">
-    <a href="<?= url('/student/documents') ?>" style="font-size:var(--text-sm);color:var(--accent);text-decoration:underline">&larr; Back to Upload many files</a>
-    <h2 style="font-size:var(--text-xl);font-weight:var(--weight-semibold);margin:var(--space-2) 0 var(--space-1);color:var(--text-primary)">Upload documents manually</h2>
-</div>
+<!-- Manual upload page: same step, one document at a time (heading + back button come from the layout) -->
+<?php $pageActions = back_button(url('/student/documents'), 'Back to Upload many files'); ?>
 <?php endif; ?>
 
 <?php if (!$manualPage && !$isSubmitted && $applicant['overall_status'] === 'documents'): ?>
@@ -1760,11 +1757,11 @@ document.addEventListener('DOMContentLoaded', function () {
 <div class="step-nav">
     <span></span>
     <?php if ($allApproved && $_examResult): ?>
-        <a href="<?= url('/student/interview') ?>" class="btn btn-primary">Interview →</a>
+        <a href="<?= url('/student/interview') ?>" class="btn btn-primary">Interview <?= icon('ic_fluent_arrow_right_24_regular', 15) ?></a>
     <?php elseif ($allApproved && !$_examResult): ?>
-        <a href="<?= url('/student/exam') ?>" class="btn btn-primary">Entrance Exam →</a>
+        <a href="<?= url('/student/exam') ?>" class="btn btn-primary">Entrance Exam <?= icon('ic_fluent_arrow_right_24_regular', 15) ?></a>
     <?php else: ?>
-        <span class="btn btn-primary" style="opacity:.4;cursor:not-allowed" title="All documents must be approved first">Entrance Exam →</span>
+        <span class="btn btn-primary" style="opacity:.4;cursor:not-allowed" title="All documents must be approved first">Entrance Exam <?= icon('ic_fluent_arrow_right_24_regular', 15) ?></span>
     <?php endif; ?>
 </div>
 
@@ -1773,4 +1770,5 @@ $content     = ob_get_clean();
 $pageTitle   = $manualPage ? 'Upload Documents Manually' : 'My Documents';
 $activeNav   = 'documents';
 $showStepper = true;
+$pageHeading = $pageTitle;
 include VIEWS_PATH . '/layouts/app.php';

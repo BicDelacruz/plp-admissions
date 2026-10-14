@@ -109,7 +109,7 @@ if (!$exam) {
 if (!$exam) {
     ob_start();
     echo '<div class="alert alert-warning">No active entrance exam has been set up yet. Please check back later.</div>';
-    $content = ob_get_clean(); $pageTitle='Entrance Exam'; $activeNav='exam'; $showStepper=true;
+    $content = ob_get_clean(); $pageTitle='Entrance Exam'; $activeNav='exam'; $showStepper=true; $pageHeading='Entrance Exam';
     include VIEWS_PATH . '/layouts/app.php';
     return;
 }
@@ -195,7 +195,7 @@ if (!$mySlot) {
         </p>
     </div>
     <?php
-    $content = ob_get_clean(); $pageTitle='Entrance Exam'; $activeNav='exam'; $showStepper=true;
+    $content = ob_get_clean(); $pageTitle='Entrance Exam'; $activeNav='exam'; $showStepper=true; $pageHeading='Entrance Exam';
     include VIEWS_PATH . '/layouts/app.php';
     return;
 }
@@ -330,7 +330,7 @@ if ($isSlotFuture) {
         <?php endif; ?>
     </div>
     <?php
-    $content = ob_get_clean(); $pageTitle='Entrance Exam'; $activeNav='exam'; $showStepper=true;
+    $content = ob_get_clean(); $pageTitle='Entrance Exam'; $activeNav='exam'; $showStepper=true; $pageHeading='Entrance Exam';
     include VIEWS_PATH . '/layouts/app.php';
     return;
 }
@@ -436,7 +436,7 @@ if ($isSlotPast) {
         <?php endif; ?>
     </div>
     <?php
-    $content = ob_get_clean(); $pageTitle='Entrance Exam'; $activeNav='exam'; $showStepper=true;
+    $content = ob_get_clean(); $pageTitle='Entrance Exam'; $activeNav='exam'; $showStepper=true; $pageHeading='Entrance Exam';
     include VIEWS_PATH . '/layouts/app.php';
     return;
 }
@@ -560,6 +560,7 @@ if ($needsPwGate && !$isUnlocked) {
         $pageTitle = 'Entrance Exam';
         $activeNav = 'exam';
         $showStepper = true;
+        $pageHeading = 'Entrance Exam';
         include VIEWS_PATH . '/layouts/app.php';
         return;
     }
@@ -819,7 +820,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div style="font-weight:var(--weight-semibold);font-size:var(--text-sm)">Next: Interview</div>
                 <div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:2px">The admissions office will automatically assign you an interview slot. No action required.</div>
             </div>
-            <a href="<?= url('/student/interview') ?>" class="btn btn-primary btn-sm">Continue →</a>
+            <a href="<?= url('/student/interview') ?>" class="btn btn-primary btn-sm">Continue <?= icon('ic_fluent_arrow_right_24_regular', 14) ?></a>
         </div>
 
         <?php else: ?>
@@ -889,6 +890,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php
     $content     = ob_get_clean();
     $pageTitle   = 'Exam Result';
+    $pageHeading = 'Exam Result';
     $activeNav   = 'exam';
     $showStepper = true;
     include VIEWS_PATH . '/layouts/app.php';
@@ -1518,7 +1520,7 @@ window.addEventListener('beforeunload', e => {
 
 <!-- Step navigation -->
 <div class="step-nav" style="margin-top:var(--space-4)">
-    <a href="<?= url('/student/documents') ?>" class="btn btn-ghost">← Documents</a>
+    <a href="<?= url('/student/documents') ?>" class="btn btn-ghost"><?= icon('ic_fluent_arrow_left_24_regular', 15) ?> Documents</a>
     <span></span>
 </div>
 

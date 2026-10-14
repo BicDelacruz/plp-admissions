@@ -26,18 +26,14 @@ function _session_expired(string $date, ?string $endTime, string $today, string 
 <?php endif; ?>
 
 <!-- Header -->
-<div style="margin-bottom:var(--space-3);display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap">
-    <?php if ($canManage): ?>
-        <a href="<?= url('/staff/interviews/setup') ?>" class="btn btn-ghost btn-sm">← Back</a>
-    <?php else: ?>
-        <a href="<?= url('/staff/interviews') ?>" class="btn btn-ghost btn-sm">← Back</a>
-    <?php endif; ?>
+<div class="page-actions page-actions-row">
     <?php if ($canManage && !empty($byDate)): ?>
         <button type="button" id="sess-select-toggle" class="btn btn-ghost btn-sm"
-                style="margin-left:auto" onclick="toggleSessSelectMode()">
+                onclick="toggleSessSelectMode()">
             Select
         </button>
     <?php endif; ?>
+    <?= back_button($canManage ? url('/staff/interviews/setup') : url('/staff/interviews')) ?>
 </div>
 
 <div class="page-header" style="text-align:center;margin-bottom:var(--space-4)">

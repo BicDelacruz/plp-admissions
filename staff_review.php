@@ -130,12 +130,7 @@ if ($applicantId) {
     ob_start();
 ?>
 <div id="doc-review">
-<div style="display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-6)">
-    <a href="<?= url('/staff/applicants') ?>" class="btn btn-ghost btn-sm">
-        <?= icon('ic_fluent_arrow_left_24_regular', 16) ?>
-        Back
-    </a>
-    <div style="margin-left:auto"></div>
+<?php ob_start(); ?>
     <?php if ($flaggedPending > 0): ?>
         <span style="font-size:var(--text-sm);color:var(--text-tertiary)">
             <?= $flaggedPending ?> AI-flagged document<?= $flaggedPending != 1 ? 's' : '' ?> skipped by Approve All
@@ -148,7 +143,8 @@ if ($applicantId) {
             Approve All (<?= $approvableCount ?>)
         </button>
     <?php endif; ?>
-</div>
+    <?= back_button(url('/staff/applicants')) ?>
+<?php $pageActions = ob_get_clean(); ?>
 
 <?php if ($msg = Session::getFlash('success')): ?>
     <div class="alert alert-success" style="margin-bottom:var(--space-4)"><?= e($msg) ?></div>
@@ -800,6 +796,7 @@ function undoApproveAll() {
     $content   = ob_get_clean();
     $pageTitle = 'Review: ' . format_full_name($applicant);
     $activeNav = 'documents';
+    $pageHeading = 'Document Review';
     include VIEWS_PATH . '/layouts/app.php';
     return;
 }
@@ -1178,4 +1175,5 @@ $content   = ob_get_clean();
 $pageTitle = 'Documents';
 $activeNav = 'documents';
 $pageWide  = true;
+$pageHeading = 'Documents';
 include VIEWS_PATH . '/layouts/app.php';

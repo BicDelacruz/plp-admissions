@@ -581,8 +581,8 @@ ob_start();
             <div id="legacy-puter-status" class="ai-status-bar disconnected">
                 <div class="ai-status-dot"></div>
                 <div id="legacy-puter-status-text" style="flex:1">Checking Puter connection…</div>
-                <a id="legacy-puter-link" href="https://puter.com" target="_blank" style="display:none;font-size:var(--text-xs);font-weight:var(--weight-medium);color:var(--accent);text-decoration:none;white-space:nowrap">Create account →</a>
-                <button id="legacy-puter-signin-btn" onclick="legacyPuterSignIn()" style="display:none;font-size:var(--text-xs);font-weight:var(--weight-medium);color:var(--accent);background:none;border:none;cursor:pointer;padding:0;white-space:nowrap">Sign in →</button>
+                <a id="legacy-puter-link" href="https://puter.com" target="_blank" style="display:none;font-size:var(--text-xs);font-weight:var(--weight-medium);color:var(--accent);text-decoration:none;white-space:nowrap">Create account <?= icon('ic_fluent_arrow_right_24_regular', 11, 'display:inline-block;vertical-align:-2px') ?></a>
+                <button id="legacy-puter-signin-btn" onclick="legacyPuterSignIn()" style="display:none;font-size:var(--text-xs);font-weight:var(--weight-medium);color:var(--accent);background:none;border:none;cursor:pointer;padding:0;white-space:nowrap">Sign in <?= icon('ic_fluent_arrow_right_24_regular', 11, 'display:inline-block;vertical-align:-2px') ?></button>
                 <button id="legacy-puter-signout-btn" onclick="legacyPuterSignOut()" style="display:none;font-size:var(--text-xs);color:var(--text-tertiary);background:none;border:none;cursor:pointer;padding:0">Sign out</button>
             </div>
 
@@ -647,7 +647,7 @@ ob_start();
             <div id="legacy-step-preview" style="display:none;flex-direction:column;gap:var(--space-3)">
                 <div style="display:flex;align-items:center;justify-content:space-between">
                     <div style="font-size:var(--text-sm);font-weight:var(--weight-semibold)" id="legacy-preview-count"></div>
-                    <button class="btn btn-ghost btn-sm" onclick="resetLegacyImport()">← Try again</button>
+                    <button class="btn btn-ghost btn-sm" onclick="resetLegacyImport()"><?= icon('ic_fluent_arrow_left_24_regular', 14, '') ?> Try again</button>
                 </div>
                 <div class="ai-warn-strip">
                     <?= icon('warning:fill', 14, 'margin-top:1px;color:#d97706') ?>
@@ -681,7 +681,7 @@ ob_start();
                     <?= icon('warning-circle:fill', 16, 'margin-top:1px') ?>
                     <span id="legacy-error-msg"></span>
                 </div>
-                <button class="btn btn-ghost btn-sm" style="align-self:flex-start" onclick="resetLegacyImport()">← Try again</button>
+                <button class="btn btn-ghost btn-sm" style="align-self:flex-start" onclick="resetLegacyImport()"><?= icon('ic_fluent_arrow_left_24_regular', 14, '') ?> Try again</button>
             </div>
 
         </div><!-- /modal-body -->
@@ -1420,5 +1420,6 @@ async function saveLegacyRows() {
 $content   = ob_get_clean();
 $pageTitle = 'Admissions';
 $pageWide  = true;
+$pageHeading = 'Admissions';
 $activeNav = 'school-year';
 include VIEWS_PATH . '/layouts/app.php';

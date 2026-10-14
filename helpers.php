@@ -863,7 +863,7 @@ function icon(string $name, int $size = 16, string $style = '', string $extra = 
     // Fluent name => Phosphor name (kept so the ~250 existing call sites don't change)
     static $map = [
         'add' => 'plus', 'arrow_down' => 'arrow-down', 'arrow_up' => 'arrow-up',
-        'arrow_left' => 'arrow-left', 'arrow_download' => 'download-simple',
+        'arrow_left' => 'arrow-left', 'arrow_right' => 'arrow-right', 'arrow_download' => 'download-simple',
         'arrow_upload' => 'upload-simple', 'arrow_sync' => 'arrows-clockwise',
         'arrow_undo' => 'arrow-u-up-left', 'building_bank' => 'bank',
         'calendar' => 'calendar-blank', 'calendar_ltr' => 'calendar-blank',
@@ -1263,4 +1263,14 @@ function seg_control(array $items, string $ariaLabel = 'Views'): string
         $out .= '</a>';
     }
     return $out . '</nav>';
+}
+
+/**
+ * Icon-only back button for the page header's action area (top right).
+ * The label stays as the tooltip and screen-reader name.
+ */
+function back_button(string $href, string $label = 'Back'): string
+{
+    return '<a href="' . e($href) . '" class="btn btn-ghost btn-icon-only" title="' . e($label) . '" aria-label="' . e($label) . '">'
+         . icon('ic_fluent_arrow_left_24_regular', 16) . '</a>';
 }

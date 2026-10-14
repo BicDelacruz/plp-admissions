@@ -576,20 +576,22 @@ ob_start();
     <div class="alert alert-success" style="margin-bottom:var(--space-4);flex-shrink:0"><?= e($s) ?></div>
 <?php endforeach; ?>
 
-<div style="margin-bottom:var(--space-5);display:flex;justify-content:space-between;align-items:center;gap:var(--space-3);flex-wrap:wrap;flex-shrink:0">
-    <a href="<?= url('/staff/interviews') ?>" class="btn btn-ghost btn-sm">← Back</a>
-    <?php if ($canReschedule): ?>
-        <a href="<?= url('/staff/interviews/cancel-slot') ?>" class="btn btn-ghost btn-sm">
-            Cancel a slot (bulk move) →
-        </a>
-    <?php else: ?>
+<?php ob_start(); ?>
+    <?php if (!$canReschedule): ?>
         <span style="font-size:var(--text-xs);color:var(--text-tertiary)">
             <?= $activeTab === 'requests'
                 ? 'Only SSO and Admin can approve or deny reschedule requests.'
                 : 'Only SSO and Admin can reschedule students.' ?>
         </span>
     <?php endif; ?>
-</div>
+    <?php if ($canReschedule): ?>
+        <a href="<?= url('/staff/interviews/cancel-slot') ?>" class="btn btn-ghost btn-sm">
+            Cancel a slot (bulk move)
+            <?= icon('ic_fluent_arrow_right_24_regular', 15) ?>
+        </a>
+    <?php endif; ?>
+    <?= back_button(url('/staff/interviews')) ?>
+<?php $pageActions = ob_get_clean(); ?>
 
 <?php if ($activeTab === 'absent'): ?>
 <!-- ============================================================
@@ -929,4 +931,5 @@ $content   = ob_get_clean();
 $pageTitle = $activeTab === 'requests' ? 'Reschedule Requests' : 'Absent Students';
 $activeNav = $activeTab === 'requests' ? 'reschedule' : 'interviews';
 $pageWide  = true; // table-heavy page — match staff_slots / staff_review / staff_manage
+$pageHeading = 'Interview Reschedules';
 include VIEWS_PATH . '/layouts/app.php';

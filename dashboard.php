@@ -345,7 +345,7 @@ ob_start();
 <div class="dashboard-wrap">
 
     <!-- ── Header ───────────────────────────────────────────────── -->
-    <div class="db-header">
+    <?php ob_start(); /* the controls go to the page heading row, top right */ ?>
         <div class="db-controls">
 
             <?php if (count($allSYs) > 1): ?>
@@ -420,7 +420,7 @@ ob_start();
             </a>
 
         </div>
-    </div>
+    <?php $pageActions = ob_get_clean(); ?>
 
     <!-- ── Main grid ─────────────────────────────────────────────── -->
     <div class="db-grid">
@@ -627,4 +627,5 @@ $content   = ob_get_clean();
 $pageTitle = 'Dashboard';
 $activeNav = 'dashboard';
 $pageWide  = true;
+$pageHeading = 'Dashboard';
 include VIEWS_PATH . '/layouts/app.php';

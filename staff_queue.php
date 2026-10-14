@@ -433,18 +433,7 @@ ob_start();
        (this IS their primary view), so no back button.
 ============================================================ -->
 <?php if ($canSeeAll): ?>
-    <div style="display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-5);flex-wrap:wrap;flex-shrink:0">
-        <a href="<?= e(url('/staff/interviews/queue')) ?>" class="btn btn-ghost btn-sm">
-            ← Back to colleges
-        </a>
-        <span style="font-size:var(--text-sm);color:var(--text-secondary)">
-            <?php if ($showAll): ?>
-                <strong>All colleges</strong>
-            <?php else: ?>
-                <strong><?= e($collegeFilter) ?></strong>
-            <?php endif; ?>
-        </span>
-    </div>
+    <?php $pageActions = back_button(url('/staff/interviews/queue'), 'Back to colleges'); ?>
 <?php endif; ?>
 
 <!-- ============================================================
@@ -952,4 +941,5 @@ if ($canSeeAll) {
 }
 $activeNav = 'interviews';
 $pageWide  = true;
+$pageHeading = $pageTitle; // college context ('Live Queue · <college>') now lives in the heading
 include VIEWS_PATH . '/layouts/app.php';

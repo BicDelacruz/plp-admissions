@@ -30,9 +30,7 @@ $sessions = $stmt->fetchAll();
 ob_start();
 ?>
 
-<div style="margin-bottom:var(--space-5)">
-    <a href="<?= url('/staff/interviews/queue') ?>" class="btn btn-ghost btn-sm">&larr; Back</a>
-</div>
+<?php $pageActions = back_button(url('/staff/interviews/queue')); ?>
 
 <style>
 @keyframes q-pulse-dot {
@@ -105,7 +103,7 @@ ob_start();
         <div style="margin-top:var(--space-2);font-size:var(--text-xs)">
             <a href="<?= url('/staff/interviews/setup') ?>?college=<?= urlencode($selectedCollege) ?>"
                style="color:var(--accent)">
-                Add a session in setup &rarr;
+                Add a session in setup <?= icon('ic_fluent_arrow_right_24_regular', 12, 'display:inline-block;vertical-align:-2px') ?>
             </a>
         </div>
     </div>
@@ -165,4 +163,5 @@ ob_start();
 $content   = ob_get_clean();
 $pageTitle = 'Live Queue · ' . $selectedCollege;
 $activeNav = 'interviews';
+$pageHeading = $pageTitle; // 'Live Queue · <college>'
 include VIEWS_PATH . '/layouts/app.php';

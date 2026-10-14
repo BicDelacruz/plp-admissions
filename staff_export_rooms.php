@@ -319,7 +319,7 @@ if ($format === 'print') {
 <!-- ── Toolbar (hidden when printing) ──────────────────────── -->
 <div class="toolbar no-print">
     <div class="left">
-        <a href="<?= e($backUrl) ?>" class="btn">← Back to Roster</a>
+        <a href="<?= e($backUrl) ?>" class="btn" title="Back to Roster" aria-label="Back to Roster" style="display:inline-flex;align-items:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></a>
     </div>
     <div class="right">
         <a class="btn" href="<?= e($csvUrl) ?>"
@@ -523,9 +523,7 @@ $hasFilters = ($search !== '' || $filterDate !== '' || ($isAdmin && $filterDept 
 ob_start();
 ?>
 
-<div style="margin-bottom:var(--space-5);flex-shrink:0">
-    <a href="<?= url('/staff/exam/slots') ?>" class="btn btn-ghost btn-sm">← Back to Exam Slots</a>
-</div>
+<?php $pageActions = back_button(url('/staff/exam/slots'), 'Back to Exam Slots'); ?>
 
 <?php
 // Same structure as the audit log (and lakbay-pasig's AdminDataTable): one
@@ -659,4 +657,5 @@ $content   = ob_get_clean();
 $pageTitle = 'Exam Room Roster';
 $activeNav = 'exam';
 $pageWide  = true; // table-heavy page — match staff_slots / staff_review / staff_manage
+$pageHeading = 'Exam Room Roster';
 include VIEWS_PATH . '/layouts/app.php';
