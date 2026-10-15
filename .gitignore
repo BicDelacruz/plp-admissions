@@ -1,5 +1,6 @@
 # Environment secrets
 .env
+/env
 
 # Uploads (local dev)
 public/uploads/documents/*
