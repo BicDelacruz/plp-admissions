@@ -129,6 +129,7 @@ if ($applicantId) {
 
     ob_start();
 ?>
+<div id="doc-review">
 <div style="display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-6)">
     <a href="<?= url('/staff/applicants') ?>" class="btn btn-ghost btn-sm">
         <?= icon('ic_fluent_arrow_left_24_regular', 16) ?>
@@ -873,10 +874,10 @@ ob_start();
 ?>
 
 <?php if ($msg = Session::getFlash('success')): ?>
-    <div class="alert alert-success" style="margin-bottom:var(--space-4)"><?= e($msg) ?></div>
+    <div class="alert alert-success" style="margin-bottom:var(--space-4);flex-shrink:0"><?= e($msg) ?></div>
 <?php endif; ?>
 <?php if ($msg = Session::getFlash('error')): ?>
-    <div class="alert alert-error" style="margin-bottom:var(--space-4)"><?= e($msg) ?></div>
+    <div class="alert alert-error" style="margin-bottom:var(--space-4);flex-shrink:0"><?= e($msg) ?></div>
 <?php endif; ?>
 
 <?php
@@ -895,138 +896,38 @@ $docFilterUrl = function (array $merge = []) use ($statusFilter, $typeFilter, $c
     ];
     return '?' . http_build_query(array_merge($base, $merge));
 };
+
+// Pieces the toolbar and the sortable headers below need.
+$typeOptions = [
+    ''           => 'All Types',
+    'freshman'   => 'Freshman',
+    'transferee' => 'Transferee',
+    'foreign'    => 'Foreign Student',
+];
+$hasFilters = ($typeFilter !== '' || $courseFilter !== '' || $search !== '');
+// Carried by every sortable header link: the filters + page size, back to page 1.
+$sortParams = ['status' => $statusFilter, 'type' => $typeFilter, 'course' => $courseFilter, 'q' => $search, 'per_page' => $perPage, 'page' => 1];
 ?>
-<div style="
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:var(--space-4);
-    margin-bottom:var(--space-5);
-    flex-wrap:wrap;
-">
-    <!-- Search + Filter (LEFT) -->
-    <form method="GET" action="<?= url('/staff/applicants') ?>" style="display:flex;align-items:center;gap:var(--space-2);flex-shrink:0">
+<?php
+// Same structure as the audit log and the results page: one .auto-table-wrap
+// that AutoPageSize measures, the card with the toolbar and the fixed-height
+// table fused together, and the pagination bar under the card.
+?>
+<div class="auto-table-wrap" data-auto-page-size="doc-review" data-current-per-page="<?= (int)$perPage ?>">
+
+<div class="auto-table-card">
+
+    <!-- Toolbar: search + filters, one row, inside the card -->
+    <form method="GET" action="<?= url('/staff/applicants') ?>" class="auto-table-toolbar">
         <input type="hidden" name="status"   value="<?= e($statusFilter) ?>">
-        <input type="hidden" name="type"     value="<?= e($typeFilter) ?>">
-        <input type="hidden" name="course"   value="<?= e($courseFilter) ?>">
         <input type="hidden" name="sort_col" value="<?= e($sortCol) ?>">
         <input type="hidden" name="sort_dir" value="<?= e($sortDir) ?>">
+        <input type="hidden" name="per_page" value="<?= (int)$perPage ?>">
 
-        <!-- Search -->
-        <div style="position:relative">
-            <?= icon('ic_fluent_search_24_filled', 14, 'position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-tertiary);pointer-events:none') ?>
-            <input type="text" name="q" value="<?= e($search) ?>" class="form-control"
-                   style="padding:0 var(--space-3) 0 32px;height:32px;min-height:32px;font-size:var(--text-sm);width:220px;border-radius:var(--radius-sm)"
-                   placeholder="Search name, email, course…">
+        <div class="auto-table-search">
+            <?= icon('ic_fluent_search_24_filled', 14) ?>
+            <input type="text" name="q" class="form-input" placeholder="Search name, email, course…" value="<?= e($search) ?>">
         </div>
-
-        <!-- Filter dropdown -->
-        <?php $activeFilterCount = ($typeFilter ? 1 : 0) + ($courseFilter ? 1 : 0) + ($search ? 1 : 0); ?>
-        <div style="position:relative" id="filter-dropdown-wrapper">
-            <button type="button" id="filter-toggle-btn" onclick="toggleFilterDropdown()" style="
-                display:flex;align-items:center;gap:var(--space-2);
-                height:32px;padding:0 var(--space-3);
-                border:1px solid var(--border);border-radius:var(--radius-sm);
-                background:var(--bg-elevated);color:var(--text-secondary);
-                font-size:var(--text-sm);cursor:pointer;white-space:nowrap;
-                transition:border-color var(--transition-fast),color var(--transition-fast);
-            " aria-haspopup="true" aria-expanded="false">
-                <?= icon('ic_fluent_filter_24_filled', 14) ?>
-                Filter
-                <?php if ($activeFilterCount > 0): ?>
-                    <span style="
-                        display:inline-flex;align-items:center;justify-content:center;
-                        width:16px;height:16px;border-radius:50%;
-                        background:var(--accent);color:var(--accent-text);
-                        font-size:var(--text-xs);font-weight:var(--weight-semibold);
-                    "><?= $activeFilterCount ?></span>
-                <?php endif; ?>
-            </button>
-
-            <div id="filter-dropdown" style="
-                display:none;position:absolute;left:0;top:calc(100% + 6px);z-index:200;
-                background:var(--bg-elevated);border:1px solid var(--border);
-                border-radius:var(--radius-md);box-shadow:var(--shadow-md);
-                min-width:260px;max-height:480px;overflow-y:auto;padding:var(--space-3);
-            ">
-                <!-- Applicant Type -->
-                <div style="font-size:var(--text-xs);font-weight:var(--weight-semibold);color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:var(--space-2);padding:0 var(--space-1)">Applicant Type</div>
-                <?php
-                $typeOptions = [
-                    ''           => 'All Types',
-                    'freshman'   => 'Freshman',
-                    'transferee' => 'Transferee',
-                    'foreign'    => 'Foreign Student',
-                ];
-                foreach ($typeOptions as $val => $label):
-                    $isActive = ($typeFilter === $val);
-                ?>
-                <a href="<?= e($docFilterUrl(['type' => $val, 'page' => 1])) ?>" style="
-                    display:flex;align-items:center;justify-content:space-between;
-                    width:100%;padding:var(--space-2) var(--space-3);
-                    border-radius:var(--radius-sm);
-                    background:<?= $isActive ? 'var(--accent-muted)' : 'transparent' ?>;
-                    color:<?= $isActive ? 'var(--accent)' : 'var(--text-secondary)' ?>;
-                    font-size:var(--text-sm);
-                    font-weight:<?= $isActive ? 'var(--weight-semibold)' : 'var(--weight-regular)' ?>;
-                    text-decoration:none;
-                    transition:background var(--transition-fast);
-                " onmouseover="this.style.background='var(--bg-overlay)'"
-                   onmouseout="this.style.background='<?= $isActive ? 'var(--accent-muted)' : 'transparent' ?>'">
-                    <?= e($label) ?>
-                    <?php if ($isActive): ?>
-                        <?= icon('ic_fluent_checkmark_24_regular', 13) ?>
-                    <?php endif; ?>
-                </a>
-                <?php endforeach; ?>
-
-                <!-- Course -->
-                <div style="font-size:var(--text-xs);font-weight:var(--weight-semibold);color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.06em;margin:var(--space-3) 0 var(--space-2);padding:0 var(--space-1)">Course</div>
-                <?php
-                $courseOpts = array_merge([''], $courseList);
-                foreach ($courseOpts as $val):
-                    $isActive = ($courseFilter === $val);
-                    $label    = $val === '' ? 'All Courses' : $val;
-                ?>
-                <a href="<?= e($docFilterUrl(['course' => $val, 'page' => 1])) ?>" style="
-                    display:flex;align-items:center;justify-content:space-between;
-                    width:100%;padding:var(--space-2) var(--space-3);
-                    border-radius:var(--radius-sm);
-                    background:<?= $isActive ? 'var(--accent-muted)' : 'transparent' ?>;
-                    color:<?= $isActive ? 'var(--accent)' : 'var(--text-secondary)' ?>;
-                    font-size:var(--text-sm);
-                    font-weight:<?= $isActive ? 'var(--weight-semibold)' : 'var(--weight-regular)' ?>;
-                    text-decoration:none;
-                    transition:background var(--transition-fast);
-                " onmouseover="this.style.background='var(--bg-overlay)'"
-                   onmouseout="this.style.background='<?= $isActive ? 'var(--accent-muted)' : 'transparent' ?>'">
-                    <?= e($label) ?>
-                    <?php if ($isActive): ?>
-                        <?= icon('ic_fluent_checkmark_24_regular', 13) ?>
-                    <?php endif; ?>
-                </a>
-                <?php endforeach; ?>
-
-                <?php if ($typeFilter || $courseFilter || $search): ?>
-                    <div style="border-top:1px solid var(--border);margin-top:var(--space-2);padding-top:var(--space-2)">
-                        <a href="<?= e($docFilterUrl(['type' => '', 'course' => '', 'q' => '', 'page' => 1])) ?>" style="
-                            display:flex;align-items:center;gap:var(--space-2);
-                            padding:var(--space-2) var(--space-3);font-size:var(--text-sm);
-                            color:var(--text-tertiary);border-radius:var(--radius-sm);text-decoration:none;
-                            transition:background var(--transition-fast);
-                        " onmouseover="this.style.background='var(--bg-overlay)'" onmouseout="this.style.background='transparent'">
-                            <?= icon('ic_fluent_dismiss_24_regular', 13) ?>
-                            Clear filters
-                        </a>
-                    </div>
-                <?php endif; ?>
-            </div>
-        </div>
-
-        <button type="submit" style="position:absolute;width:0;height:0;overflow:hidden;padding:0;border:0;opacity:0" aria-hidden="true"></button>
-    </form>
-
-</div>
 
         <select name="type" class="form-input" style="width:160px" onchange="this.form.submit()" aria-label="Applicant type">
             <?php foreach ($typeOptions as $val => $label): ?>
