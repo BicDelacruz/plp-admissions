@@ -1,0 +1,4102 @@
+/* ============================================================
+   PLP Admission System — Design System
+   Font: DM Sans (display) + DM Mono (monospace accents)
+   Theme: Institutional green, light-first, dark toggle
+   Principles: Neutral-first, clarity over decoration,
+               1 accent color, content over chrome
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap');
+
+/* ============================================================
+   1. CSS VARIABLES — DESIGN TOKENS
+   ============================================================ */
+
+:root {
+    /* Accent — Forest green (configurable via JS from school_settings) */
+    --accent:         #2d6a4f;
+    --accent-light:   #40916c;
+    --accent-muted:   #d8f3dc;
+    --accent-text:    #ffffff;
+
+    /* Neutral palette — light mode */
+    --bg:             #f7f7f5;
+    --bg-elevated:    #ffffff;
+    --bg-subtle:      #f0f0ec;
+    --bg-overlay:     rgba(0, 0, 0, 0.04);
+
+    --border:         #e4e4e0;
+    --border-strong:  #c8c8c2;
+
+    --text-primary:   #1a1a18;
+    --text-secondary: #5a5a54;
+    --text-tertiary:  #9a9a92;
+    --text-placeholder:#b0b0a8;
+
+    /* Semantic */
+    --success:        #2d6a4f;
+    --success-bg:     #d8f3dc;
+    --warning:        #b45309;
+    --warning-bg:     #fef3c7;
+    --error:          #b91c1c;
+    --error-bg:       #fee2e2;
+    --info:           #1d4ed8;
+    --info-bg:        #dbeafe;
+
+    /* Status pills */
+    --status-pending:      #9a9a92;
+    --status-pending-bg:   #f0f0ec;
+    --status-uploaded:     #1d4ed8;
+    --status-uploaded-bg:  #dbeafe;
+    --status-review:       #b45309;
+    --status-review-bg:    #fef3c7;
+    --status-approved:     #2d6a4f;
+    --status-approved-bg:  #d8f3dc;
+    --status-rejected:     #b91c1c;
+    --status-rejected-bg:  #fee2e2;
+
+    /* Spacing scale — 8px grid, 4px only for tight spaces.
+       space-3 and space-5 are aliases so older rules land on the grid. */
+    --space-1:   4px;
+    --space-2:   8px;
+    --space-3:   var(--space-2);
+    --space-4:  16px;
+    --space-5:   var(--space-4);
+    --space-6:  24px;
+    --space-8:  32px;
+    --space-10: 40px;
+    --space-12: 48px;
+    --space-16: 64px;
+
+    /* Typography */
+    --font-sans:  'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono:  'DM Mono', 'Courier New', monospace;
+
+    /* Font sizes — three for text, one for headings (rem; html is 18px).
+       lg, 2xl and 3xl are aliases so older rules land on these four. */
+    --text-xs:   0.75rem;
+    --text-sm:   0.875rem;
+    --text-base: 1rem;
+    --text-xl:   1.25rem;
+    --text-lg:   var(--text-base);
+    --text-2xl:  var(--text-xl);
+    --text-3xl:  var(--text-xl);
+
+    /* Two weights: regular for text, semibold for headings, labels and emphasis.
+       medium is an alias so older rules land on semibold. */
+    --weight-regular: 400;
+    --weight-semibold:600;
+    --weight-medium:  var(--weight-semibold);
+
+    --leading-tight:  1.25;
+    --leading-normal: 1.5;
+    --leading-relaxed:1.65;
+
+    /* Border radius — ONE shared token. Every corner in the app is 8px.
+       Change --radius here and everything follows. The size aliases below
+       exist only so older rules keep working; they all resolve to --radius. */
+    --radius:     8px;
+    --radius-sm:  var(--radius);
+    --radius-md:  var(--radius);
+    --radius-lg:  var(--radius);
+    --radius-xl:  var(--radius);
+    --radius-full:var(--radius);
+
+    /* Shadows — minimal, functional */
+    --shadow-xs:  0 1px 2px rgba(0,0,0,0.06);
+    --shadow-sm:  0 1px 4px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04);
+    --shadow-md:  0 4px 12px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04);
+    --shadow-lg:  0 8px 24px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.04);
+
+    /* Layout */
+    --sidebar-width:    256px;   /* expanded rail */
+    --sidebar-width-icon: 48px;  /* collapsed (icon) rail */
+    --sidebar-width-mobile: 288px; /* phone drawer */
+    --header-height:    60px;
+    --content-max-width:900px;
+
+    /* Auto-paginated data table geometry (audit log, and any future list
+       that opts into JS-computed page sizing). Every row in such a table
+       is forced to exactly this height so the row count that fits a given
+       viewport can be computed from the container height alone, without
+       measuring a live row — see AutoPageSize in app.js.
+       Same values as lakbay-pasig's index.css: 56px row, 40px header.
+       --height-table-footer is the pagination bar (32px buttons) plus the
+       8px gap above it, the same 40px lakbay's use-auto-page-size.ts
+       reserves (PAGINATION_BAR_HEIGHT). It is reserved whether or not the
+       bar is showing, so the row count never depends on it. */
+    --height-table-row:    56px;
+    --height-table-header: 40px;
+    --height-table-footer: 40px;
+
+    /* Transitions */
+    --transition-fast:   150ms ease;
+    --transition-normal: 200ms ease;
+    --transition-slow:   300ms ease;
+
+    /* Chart colors — semantic tokens for bar/pie fills */
+    --chart-blue:   #378ADD;
+    --chart-green:  #1D9E75;
+    --chart-amber:  #BA7517;
+    --chart-purple: #7F77DD;
+    --chart-red:    #E24B4A;
+    --chart-pink:   #D4537E;
+    --chart-lime:   #639922;
+}
+
+/* Dark mode */
+[data-theme="dark"] {
+    --bg:             #111110;
+    --bg-elevated:    #1c1c1a;
+    --bg-subtle:      #242422;
+    --bg-overlay:     rgba(255,255,255,0.04);
+
+    --border:         #2e2e2c;
+    --border-strong:  #444440;
+
+    --text-primary:   #f0f0ec;
+    --text-secondary: #a0a09a;
+    --text-tertiary:  #686862;
+    --text-placeholder:#50504a;
+
+    --accent-muted:   #1b4332;
+
+    --success-bg:     #1b4332;
+    --warning-bg:     #3d2908;
+    --error-bg:       #3d0f0f;
+    --info-bg:        #1e2d5a;
+
+    --status-pending-bg:  #242422;
+    --status-uploaded-bg: #1e2d5a;
+    --status-review-bg:   #3d2908;
+    --status-approved-bg: #1b4332;
+    --status-rejected-bg: #3d0f0f;
+
+    --shadow-xs:  0 1px 2px rgba(0,0,0,0.3);
+    --shadow-sm:  0 1px 4px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04);
+    --shadow-md:  0 4px 12px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04);
+    --shadow-lg:  0 8px 24px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04);
+
+    /* Chart colors — desaturated for dark backgrounds */
+    --chart-blue:   #5499e8;
+    --chart-green:  #2fc99e;
+    --chart-amber:  #d9913a;
+    --chart-purple: #9e99e8;
+    --chart-red:    #f06b6a;
+    --chart-pink:   #e87aa0;
+    --chart-lime:   #7ab824;
+}
+
+/* ============================================================
+   2. RESET & BASE
+   ============================================================ */
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+.hidden { display: none !important; }
+
+html {
+    font-size: 18px;
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    font-weight: var(--weight-regular);
+    line-height: var(--leading-normal);
+    color: var(--text-primary);
+    background-color: var(--bg);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color var(--transition-slow), color var(--transition-slow);
+}
+
+a {
+    color: var(--accent);
+    text-decoration: none;
+    transition: opacity var(--transition-fast);
+}
+
+a:hover { opacity: 0.75; }
+
+img, svg { display: block; max-width: 100%; }
+
+input, button, select, textarea {
+    font-family: inherit;
+    font-size: inherit;
+}
+
+button { cursor: pointer; }
+
+/* ============================================================
+   3. LAYOUT SHELL
+   ============================================================ */
+
+/* Authenticated layout — sidebar + main */
+.layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* ------------------------------------------------------------
+   SIDEBAR — collapse / expand
+   Ported from lakbay-pasig's components/ui/sidebar.tsx. Same moving
+   parts, same names where they carry over:
+
+     .sidebar-wrapper   Lakbay's `group peer` root. Carries the state the
+                        CSS keys off: data-state (expanded | collapsed),
+                        data-collapsible ("icon" while collapsed, else "").
+                        Server-rendered from the sidebar_state cookie, then
+                        kept current by Sidebar in app.js.
+     .sidebar-gap       In-flow spacer. Takes the rail's width in the flex
+                        row so .main sits beside it, and animates width.
+     .sidebar           The rail itself: position:fixed, animates width.
+     .sidebar-inner     Full-height column with the background.
+
+   Desktop (>768px): expanded = --sidebar-width, collapsed = icon rail
+   (--sidebar-width-icon). Both the spacer and the rail transition width
+   200ms linear, so they move together.
+   Phone (<=768px): the rail is an off-canvas drawer (Lakbay's Sheet).
+   data-collapsible is ignored there, the drawer always shows full labels.
+   ------------------------------------------------------------ */
+.sidebar-wrapper {
+    flex-shrink: 0;
+}
+
+.sidebar-gap {
+    position: relative;
+    width: var(--sidebar-width);
+    background: transparent;
+    transition: width 200ms linear;
+}
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 50;
+    display: flex;
+    width: var(--sidebar-width);
+    border-right: 1px solid var(--border);
+    transition: width 200ms linear;
+}
+
+.sidebar-inner {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-elevated);
+}
+
+.sidebar-header,
+.sidebar-footer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-2);
+}
+
+/* Header row (partials/sidebar_logo_row.php). Both variants are 32px tall
+   and the expanded link has 4px of left padding, so the logo sits at the same
+   x/y in both states. Keep them equal or the logo jumps when the rail toggles. */
+.sidebar-logo-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    width: 100%;
+    height: 32px;
+}
+
+.sidebar-brand-link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex: 1;
+    min-width: 0;
+    height: 32px;
+    padding-left: var(--space-1);
+    color: var(--text-primary);
+}
+
+.sidebar-brand-link:hover { opacity: 1; }
+
+/* School names are long ("Pamantasan ng Lungsod ng Pasig"), so the name may
+   wrap to two lines; 2 x 15px still fits inside the 32px row. */
+.sidebar-brand-name {
+    min-width: 0;
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    line-height: 1.15;
+    color: var(--text-primary);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.sidebar-header .sidebar-logo,
+.sidebar-header .sidebar-logo-placeholder {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+}
+.sidebar-header .sidebar-logo-placeholder i { font-size: 14px !important; }
+
+/* 32px icon button: collapse control, phone menu button. */
+.sidebar-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--text-secondary);
+    transition: color var(--transition-fast), background-color var(--transition-fast);
+}
+.sidebar-icon-btn:hover,
+.sidebar-icon-btn:focus-visible {
+    background: var(--bg-overlay);
+    color: var(--text-primary);
+}
+.sidebar-icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+/* The collapse icon is the same glyph as the expand one, mirrored so it
+   points inward (Lakbay: -scale-x-100). */
+.sidebar-icon-flip { transform: scaleX(-1); }
+
+/* Collapsed header: ONE button fills the logo's slot and is the expand
+   control. Hover / keyboard focus swaps the logo for the expand icon. Pure
+   CSS; only the click does anything. Hidden unless the rail is collapsed. */
+.sidebar-logo-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--text-secondary);
+    transition: color var(--transition-fast), background-color var(--transition-fast);
+}
+.sidebar-logo-toggle:hover,
+.sidebar-logo-toggle:focus-visible {
+    background: var(--bg-overlay);
+    color: var(--text-primary);
+}
+.sidebar-logo-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.sidebar-logo-face,
+.sidebar-toggle-face {
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+}
+.sidebar-logo-face   { display: flex; }
+.sidebar-toggle-face { display: none; }
+.sidebar-logo-toggle:hover .sidebar-logo-face,
+.sidebar-logo-toggle:focus-visible .sidebar-logo-face   { display: none; }
+.sidebar-logo-toggle:hover .sidebar-toggle-face,
+.sidebar-logo-toggle:focus-visible .sidebar-toggle-face { display: flex; }
+
+/* Group > menu > item (partials/sidebar_nav_items.php) */
+.sidebar-group {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+    padding: var(--space-2);
+}
+.sidebar-menu {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    width: 100%;
+    min-width: 0;
+    list-style: none;
+}
+.sidebar-menu-item { position: relative; }
+
+/* Floating tooltip for the collapsed rail. One element, appended to <body> by
+   Sidebar in app.js (Lakbay's Radix tooltip renders in a portal for the same
+   reason: the rail clips its own overflow). Never shown while expanded. */
+.sidebar-tooltip {
+    position: fixed;
+    z-index: 300;
+    display: none;
+    padding: 6px var(--space-3);
+    font-size: var(--text-xs);
+    line-height: 1.4;
+    white-space: nowrap;
+    color: var(--text-primary);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    pointer-events: none;
+}
+.sidebar-tooltip.is-visible { display: block; }
+
+/* Phone-only pieces. Hidden on desktop. */
+.sidebar-overlay { display: none; }
+.mobile-bar      { display: none; }
+
+/* Desktop collapsed state: the icon rail. */
+@media (min-width: 769px) {
+    .sidebar-wrapper[data-collapsible="icon"] .sidebar-gap,
+    .sidebar-wrapper[data-collapsible="icon"] .sidebar {
+        width: var(--sidebar-width-icon);
+    }
+
+    .sidebar-wrapper[data-collapsible="icon"] .sidebar-logo-row--expanded { display: none; }
+    .sidebar-wrapper[data-collapsible="icon"] .sidebar-logo-toggle        { display: flex; }
+
+    /* Nothing scrolls while collapsed (Lakbay: overflow-hidden on content). */
+    .sidebar-wrapper[data-collapsible="icon"] .sidebar-nav { overflow: hidden; }
+
+    /* Rows shrink to a 32px square around the icon. The label stays in the
+       DOM, clipped, so the link keeps its accessible name. */
+    .sidebar-wrapper[data-collapsible="icon"] .nav-item {
+        width: 32px;
+        height: 32px;
+        padding: var(--space-2);
+    }
+
+    /* Dot moves from the right of the row to the corner of the icon. */
+    .sidebar-wrapper[data-collapsible="icon"] .nav-dot {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        width: 8px;
+        height: 8px;
+        margin: 0;
+    }
+
+    /* Account row: avatar only. */
+    .sidebar-wrapper[data-collapsible="icon"] .sidebar-user {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        margin-bottom: var(--space-1);
+    }
+    .sidebar-wrapper[data-collapsible="icon"] .user-info,
+    .sidebar-wrapper[data-collapsible="icon"] .sidebar-user-caret { display: none; }
+}
+
+/* Phone: off-canvas drawer + top bar. */
+@media (max-width: 768px) {
+    .sidebar-gap { display: none; }
+
+    .sidebar {
+        width: var(--sidebar-width-mobile);
+        transform: translateX(-100%);
+        visibility: hidden; /* closed drawer must not be tabbable */
+        transition: transform 200ms ease-in-out, visibility 0s linear 200ms;
+    }
+    .sidebar-wrapper[data-mobile-open="true"] .sidebar {
+        transform: translateX(0);
+        visibility: visible;
+        box-shadow: var(--shadow-lg);
+        transition: transform 300ms ease-in-out, visibility 0s;
+    }
+
+    .sidebar-overlay {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 49;
+        background: rgba(0, 0, 0, 0.4);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 200ms ease;
+    }
+    .sidebar-wrapper[data-mobile-open="true"] .sidebar-overlay {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .mobile-bar {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        flex-shrink: 0;
+        height: 56px;
+        padding: 0 var(--space-6);
+        border-bottom: 1px solid var(--border);
+    }
+    .mobile-bar .sidebar-icon-btn { width: 28px; height: 28px; }
+    .mobile-bar-trigger { position: relative; }
+    .mobile-bar-dot {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 8px;
+        height: 8px;
+        border-radius: var(--radius);
+        background: var(--accent);
+        pointer-events: none;
+    }
+
+    body.sidebar-drawer-open { overflow: hidden; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sidebar-gap,
+    .sidebar,
+    .sidebar-overlay,
+    .nav-item { transition: none !important; }
+}
+
+.sidebar-logo {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.sidebar-logo-placeholder {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.sidebar-logo-placeholder svg {
+    width: 18px;
+    height: 18px;
+    color: white;
+}
+
+.sidebar-school-name {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    color: var(--text-primary);
+    line-height: 1.5;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+/* Navigation */
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.nav-section-label {
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: var(--space-5) var(--space-5) var(--space-2);
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    width: 100%;
+    height: 36px;
+    padding: var(--space-2);
+    overflow: hidden;
+    position: relative;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    line-height: 1.4;
+    color: var(--text-secondary);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    transition: width var(--transition-fast), height var(--transition-fast), padding var(--transition-fast),
+                color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.nav-item:hover,
+.nav-item:focus-visible {
+    color: var(--text-primary);
+    background: var(--bg-overlay);
+    opacity: 1;
+}
+
+.nav-item:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+}
+
+.nav-item.active {
+    color: var(--text-primary);
+    background: var(--accent-muted);
+}
+
+.nav-item svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.nav-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Red = needs setup, amber = pending work. Right of the row while expanded,
+   corner of the icon while collapsed (see the collapsed block above). */
+.nav-dot {
+    flex-shrink: 0;
+    width: 6px;
+    height: 6px;
+    margin-left: auto;
+    border-radius: var(--radius);
+}
+.nav-dot--alert   { background: var(--error); }
+.nav-dot--pending { background: #f59e0b; }
+
+/* Sidebar footer — profile menu. Padding + column live with .sidebar-header above. */
+
+/* Nav item row wrapper — enables inline action button */
+.nav-item-wrap {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.nav-item-wrap .nav-item {
+    flex: 1;
+}
+
+/* Inline + action button that appears on hover of the row */
+.nav-item-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    margin-right: var(--space-3);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    border: none;
+    color: var(--text-tertiary);
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast);
+    flex-shrink: 0;
+}
+
+.nav-item-wrap:hover .nav-item-action,
+.nav-item-wrap:focus-within .nav-item-action,
+.nav-item-action:focus,
+.nav-item-action.visible {
+    opacity: 1;
+}
+
+.nav-item-action:hover {
+    background: var(--bg-overlay);
+    color: var(--text-primary);
+}
+
+.sidebar-user {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    height: 40px;
+    padding: 0 var(--space-2) 0 0;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+    text-decoration: none;
+    color: inherit;
+}
+
+.sidebar-user:hover,
+.sidebar-user:focus-visible {
+    background: var(--bg-overlay);
+    opacity: 1;
+}
+
+.sidebar-user:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+}
+
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-full);
+    background: var(--accent-muted);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    flex-shrink: 0;
+}
+
+.user-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.user-name {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-role {
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+    text-transform: capitalize;
+}
+
+/* Main content area */
+.main {
+    flex: 1;
+    min-width: 0; /* the sidebar spacer is a flex sibling now, wide tables must not push past it */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Top header bar */
+.topbar {
+    height: var(--header-height);
+    background: var(--bg-elevated);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 var(--space-8);
+    gap: var(--space-4);
+    position: sticky;
+    top: 0;
+    z-index: 40;
+}
+
+.topbar-title {
+    flex: 1;
+    font-size: var(--text-base);
+    font-weight: var(--weight-semibold);
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+}
+
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+/* Page content */
+.page {
+    flex: 1;
+    padding: var(--space-8);
+    max-width: var(--content-max-width);
+    width: 100%;
+    margin: 0 auto;
+}
+
+/* Full-width page — for tables and data-heavy pages */
+.page-wide {
+    max-width: 100%;
+}
+
+.page-header {
+    margin-bottom: var(--space-8);
+}
+
+.page-title {
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-semibold);
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    line-height: var(--leading-tight);
+}
+
+/* Heading row: title on the left, the page's buttons on the right */
+.page-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    margin-bottom: var(--space-5);
+}
+.page-header-row .page-title { margin: 0; }
+.page-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    margin-left: auto;
+}
+/* Right-aligned button row for pages that keep their own centered heading */
+.page-actions-row {
+    width: 100%;
+    margin: 0 0 var(--space-3);
+}
+
+/* Buttons in the heading row share one 32px height, whatever size class they carry */
+.page-actions .btn {
+    height: 32px;
+    padding-top: 0;
+    padding-bottom: 0;
+    font-size: var(--text-sm);
+}
+/* Square icon-only button (back arrows) */
+.btn-icon-only,
+.page-actions .btn-icon-only {
+    width: 32px;
+    padding: 0;
+}
+
+.page-description {
+    margin-top: var(--space-2);
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    line-height: var(--leading-relaxed);
+}
+
+/* ============================================================
+   4. PROGRESS STEPPER (M7)
+   ============================================================ */
+
+.stepper {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 0;
+    background: transparent;
+    border-bottom: none;
+    overflow-x: auto;
+}
+
+/* Standalone stepper (outside header) keeps its original appearance */
+.main > .stepper {
+    padding: var(--space-4) var(--space-8);
+    background: var(--bg-elevated);
+    border-bottom: 1px solid var(--border);
+}
+
+.step {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-shrink: 0;
+}
+
+.step-connector {
+    width: 32px;
+    height: 1px;
+    background: var(--border-strong);
+    flex-shrink: 0;
+    margin: 0 var(--space-2);
+}
+
+.step-connector.done { background: var(--accent); }
+
+.step-dot {
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radius-full);
+    border: 2px solid var(--border-strong);
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all var(--transition-normal);
+}
+
+.step-dot svg { width: 12px; height: 12px; color: var(--text-tertiary); }
+
+.step.done .step-dot {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+.step.done .step-dot svg { color: white; }
+
+.step.active .step-dot {
+    border-color: var(--accent);
+    background: var(--accent-muted);
+}
+.step.active .step-dot svg { color: var(--accent); }
+
+.step.locked .step-dot { opacity: 0.4; }
+
+/* Clickable done-step dots */
+a.step-dot { text-decoration: none; transition: opacity .15s, transform .15s; }
+a.step-dot:hover { opacity: 0.8; transform: scale(1.12); }
+
+/* Step navigation bar (bottom of student pages) */
+.step-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-6) 0 var(--space-2);
+    margin-top: var(--space-6);
+}
+
+.step-label {
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    color: var(--text-tertiary);
+    white-space: nowrap;
+}
+
+.step.done .step-label { color: var(--accent); }
+.step.active .step-label { color: var(--text-primary); font-weight: var(--weight-semibold); }
+
+/* ============================================================
+   5. CARDS
+   ============================================================ */
+
+.card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-5);
+}
+
+.card-title {
+    font-size: var(--text-base);
+    font-weight: var(--weight-semibold);
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+}
+
+.card-description {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    margin-top: var(--space-1);
+}
+
+/* ============================================================
+   6. FORMS
+   ============================================================ */
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-bottom: var(--space-5);
+}
+
+.form-label {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+}
+
+.form-label span { /* required asterisk */
+    color: var(--error);
+    margin-left: 2px;
+}
+
+/* ── Core input / select / textarea ───────────────────────── */
+.form-input,
+.form-select,
+.form-textarea,
+.form-control {
+    width: 100%;
+    min-height: 42px;
+    padding: 10px var(--space-4);
+    background: var(--bg-elevated);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: var(--text-sm);
+    font-family: var(--font-sans);
+    line-height: var(--leading-normal);
+    transition:
+        border-color var(--transition-fast),
+        box-shadow   var(--transition-fast),
+        background   var(--transition-fast);
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+/* Auto-uppercase text inputs (official forms style).
+   The :not([name*="password"]) guards keep the rule off password fields even
+   after a "show password" toggle flips their type from "password" to "text". */
+.form-input:not([type="email"]):not([type="password"]):not([type="date"]):not([type="number"]):not([type="hidden"]):not([name*="password"]),
+.form-textarea:not([name*="password"]),
+.form-control:not([type="email"]):not([type="password"]):not([type="date"]):not([type="number"]):not([type="hidden"]):not([name*="password"]) {
+    text-transform: uppercase;
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder,
+.form-control::placeholder {
+    color: var(--text-placeholder);
+    font-size: var(--text-sm);
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+/* Belt-and-suspenders: kill uppercase on every placeholder, even on
+   inputs that don't carry .form-control / .form-input (e.g. search
+   filters, ad-hoc <input type="search"> elements). */
+input::placeholder,
+input::-webkit-input-placeholder,
+input::-moz-placeholder,
+input:-ms-input-placeholder,
+textarea::placeholder,
+textarea::-webkit-input-placeholder,
+textarea::-moz-placeholder,
+textarea:-ms-input-placeholder {
+    text-transform: none !important;
+    letter-spacing: normal !important;
+}
+
+/* Hover — subtle fill lift */
+.form-input:hover:not(:focus):not(:disabled),
+.form-select:hover:not(:focus):not(:disabled),
+.form-textarea:hover:not(:focus):not(:disabled),
+.form-control:hover:not(:focus):not(:disabled) {
+    border-color: var(--border-strong);
+}
+
+/* Focus — crisp accent ring */
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus,
+.form-control:focus {
+    border-color: var(--accent);
+    background: var(--bg-elevated);
+    outline: 1px solid var(--accent);
+    outline-offset: 0;
+}
+
+/* Disabled */
+.form-input:disabled,
+.form-select:disabled,
+.form-textarea:disabled,
+.form-control:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    background: var(--bg-subtle);
+}
+
+/* Error state */
+.form-input.error,
+.form-select.error,
+.form-textarea.error,
+.form-control.error {
+    border-color: var(--error);
+    background: var(--error-bg);
+}
+
+.form-input.error:focus,
+.form-select.error:focus,
+.form-textarea.error:focus,
+.form-control.error:focus {
+    border-color: var(--error);
+    outline: 1px solid var(--error);
+    background: var(--bg-elevated);
+}
+
+/* Success state */
+.form-input.success,
+.form-select.success,
+.form-textarea.success,
+.form-control.success {
+    border-color: var(--success);
+}
+
+/* ── Select — custom chevron ───────────────────────────────── */
+.form-select,
+select.form-control {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M6 9l6 6 6-6' stroke='%239a9a92' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right var(--space-3) center;
+    background-size: 16px 16px;
+    padding-right: calc(var(--space-3) + 24px);
+}
+
+/* ── Exam take — short answer & paragraph inputs ────────────── */
+.short-answer-input,
+.paragraph-input {
+    width: 100%;
+    padding: 10px var(--space-4);
+    background: var(--bg-elevated);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: var(--text-sm);
+    font-family: var(--font-sans);
+    line-height: var(--leading-normal);
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    transition:
+        border-color var(--transition-fast),
+        box-shadow   var(--transition-fast);
+}
+
+.short-answer-input { min-height: 42px; }
+
+.paragraph-input {
+    resize: vertical;
+    min-height: 100px;
+    padding-top: 10px;
+    line-height: var(--leading-relaxed);
+}
+
+.short-answer-input::placeholder,
+.paragraph-input::placeholder {
+    color: var(--text-placeholder);
+    font-size: var(--text-sm);
+}
+
+.short-answer-input:focus,
+.paragraph-input:focus {
+    border-color: var(--accent);
+    outline: 1px solid var(--accent);
+    outline-offset: 0;
+}
+
+/* ── Textarea ──────────────────────────────────────────────── */
+.form-textarea {
+    resize: vertical;
+    min-height: 100px;
+    padding-top: 10px;
+    line-height: var(--leading-relaxed);
+}
+
+/* ── Input wrapper — for prefix icons / suffix buttons ─────── */
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-wrapper .form-input,
+.input-wrapper .form-select {
+    flex: 1;
+}
+
+.input-prefix-icon,
+.input-suffix-icon {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-tertiary);
+    pointer-events: none;
+    width: 38px;
+    height: 100%;
+    top: 0;
+}
+
+.input-prefix-icon { left: 0; }
+.input-suffix-icon { right: 0; pointer-events: auto; }
+
+.input-prefix-icon svg,
+.input-suffix-icon svg { width: 16px; height: 16px; }
+
+.input-wrapper.has-prefix .form-input { padding-left: 38px; }
+.input-wrapper.has-suffix .form-input { padding-right: 38px; }
+
+/* Password toggle button */
+.btn-pw-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 100%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-tertiary);
+    transition: color var(--transition-fast);
+    padding: 0;
+}
+
+.btn-pw-toggle:hover { color: var(--text-primary); }
+.btn-pw-toggle svg   { width: 16px; height: 16px; pointer-events: none; }
+
+/* ── Form row — side-by-side fields ───────────────────────── */
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+}
+
+.form-row-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-4);
+}
+
+@media (max-width: 600px) {
+    .form-row,
+    .form-row-3 { grid-template-columns: 1fr; }
+}
+
+/* ── Hint and error text ───────────────────────────────────── */
+.form-hint {
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+    line-height: var(--leading-relaxed);
+}
+
+.form-error {
+    font-size: var(--text-xs);
+    color: var(--error);
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-weight: var(--weight-medium);
+}
+
+/* ── Checkbox and radio ────────────────────────────────────── */
+.form-check {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    cursor: pointer;
+    font-size: var(--text-sm);
+    color: var(--text-primary);
+}
+
+.form-check input[type="checkbox"],
+.form-check input[type="radio"] {
+    width: 16px;
+    height: 16px;
+    margin-top: 2px;
+    accent-color: var(--accent);
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+/* ── Field counter (textarea char count) ───────────────────── */
+.form-group-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.char-count {
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+    margin-left: auto;
+    font-variant-numeric: tabular-nums;
+}
+
+/* File upload */
+.file-drop {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-8);
+    text-align: center;
+    cursor: pointer;
+    transition: border-color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.file-drop:hover,
+.file-drop.drag-over {
+    border-color: var(--accent);
+    background: var(--accent-muted);
+}
+
+.file-drop input[type="file"] {
+    display: none;
+}
+
+/* ============================================================
+   7. BUTTONS
+   ============================================================ */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    line-height: 1;
+    border: 1px solid transparent;
+    transition: all var(--transition-fast);
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+/* Primary */
+.btn-primary {
+    background: var(--accent);
+    color: var(--accent-text);
+    border-color: var(--accent);
+}
+.btn-primary:hover,
+.btn-primary:focus-visible {
+    background: var(--accent-light);
+    border-color: var(--accent-light);
+    opacity: 1;
+}
+
+/* Success */
+.btn-success {
+    background: var(--success-bg);
+    color: var(--success);
+    border-color: var(--success);
+}
+.btn-success:hover,
+.btn-success:focus-visible {
+    background: var(--success);
+    color: var(--accent-text);
+    opacity: 1;
+}
+
+/* Secondary */
+.btn-secondary {
+    background: var(--bg);
+    color: var(--text-primary);
+    border-color: var(--border);
+}
+.btn-secondary:hover,
+.btn-secondary:focus-visible {
+    background: var(--bg-subtle);
+    opacity: 1;
+}
+
+/* Ghost */
+.btn-ghost {
+    background: transparent;
+    color: var(--text-secondary);
+    border-color: transparent;
+}
+.btn-ghost:hover,
+.btn-ghost:focus-visible {
+    background: var(--bg-overlay);
+    color: var(--text-primary);
+    opacity: 1;
+}
+
+/* Danger */
+.btn-danger {
+    background: var(--error-bg);
+    color: var(--error);
+    border-color: transparent;
+}
+.btn-danger:hover,
+.btn-danger:focus-visible {
+    background: var(--error);
+    color: white;
+    opacity: 1;
+}
+
+/* Sizes */
+.btn-sm { padding: var(--space-1) var(--space-3); font-size: var(--text-xs); }
+.btn-lg { padding: var(--space-3) var(--space-6); font-size: var(--text-base); }
+
+/* Focus ring for all buttons */
+.btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+}
+
+/* Full width */
+.btn-block { width: 100%; }
+
+/* Loading state */
+.btn.loading { position: relative; color: transparent; }
+.btn.loading::after {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: var(--radius);
+    animation: spin 0.6s linear infinite;
+    color: white;
+}
+
+/* ============================================================
+   8. STATUS BADGES
+   ============================================================ */
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px var(--space-2);
+    border-radius: var(--radius-full);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    white-space: nowrap;
+}
+
+.badge::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: var(--radius);
+    background: currentColor;
+    flex-shrink: 0;
+}
+
+.badge-pending   { color: var(--status-pending);   background: var(--status-pending-bg);   }
+.badge-uploaded  { color: var(--status-uploaded);  background: var(--status-uploaded-bg);  }
+.badge-review    { color: var(--status-review);    background: var(--status-review-bg);    }
+.badge-approved  { color: var(--status-approved);  background: var(--status-approved-bg);  }
+.badge-rejected  { color: var(--status-rejected);  background: var(--status-rejected-bg);  }
+.badge-accepted  { color: var(--status-approved);  background: var(--status-approved-bg);  }
+.badge-waitlisted{ color: var(--status-review);    background: var(--status-review-bg);    }
+
+/* ============================================================
+   9. ALERTS / FLASH MESSAGES
+   ============================================================ */
+
+.alert {
+    display: flex;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    line-height: var(--leading-relaxed);
+    border: 1px solid transparent;
+}
+
+.alert svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px; }
+
+.alert-success { background: var(--success-bg); color: var(--success); border-color: rgba(45,106,79,0.2); }
+.alert-error   { background: var(--error-bg);   color: var(--error);   border-color: rgba(185,28,28,0.2); }
+.alert-warning { background: var(--warning-bg); color: var(--warning); border-color: rgba(180,83,9,0.2);  }
+.alert-info    { background: var(--info-bg);    color: var(--info);    border-color: rgba(29,78,216,0.2); }
+
+/* ============================================================
+   10. TABLE
+   ============================================================ */
+
+.table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-sm);
+}
+
+thead {
+    background: var(--bg-subtle);
+    border-bottom: 1px solid var(--border);
+}
+
+th {
+    padding: var(--space-3) var(--space-4);
+    text-align: left;
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+
+td {
+    padding: var(--space-3) var(--space-4);
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+}
+
+tr:last-child td { border-bottom: none; }
+
+tbody tr { transition: background-color var(--transition-fast); }
+tbody tr:hover { background: var(--bg-overlay); }
+
+/* Alias — modules that use .data-table get identical styles to .table */
+.data-table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
+.data-table thead { background: var(--bg-subtle); border-bottom: 1px solid var(--border); }
+.data-table th {
+    padding: var(--space-3) var(--space-4);
+    text-align: left;
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+.data-table td {
+    padding: var(--space-3) var(--space-4);
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tbody tr { transition: background-color var(--transition-fast); }
+.data-table tbody tr:hover { background: var(--bg-overlay); }
+
+/* ============================================================
+   11. AUTH PAGES (login / register)
+   ============================================================ */
+
+.auth-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #0c2a1a;
+}
+
+/* Top bar (matches the login page) */
+.auth-bar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px clamp(16px, 8vw, 150px);
+    background: #fff;
+    color: #1a2420;
+}
+.auth-bar-logo { width: 52px; height: 52px; object-fit: contain; flex: none; }
+.auth-bar-title { margin: 0; font-size: 1.5rem; font-weight: var(--weight-semibold); line-height: 1.1; color: var(--accent); }
+.auth-bar-sub { margin: 2px 0 0; font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; color: #5d6b63; }
+
+/* Campus photo under a green wash, card centered on top */
+.auth-main {
+    flex: 1;
+    display: grid;
+    place-items: center;
+    padding: clamp(24px, 5vw, 64px) var(--space-4);
+    background:
+        var(--auth-photo) center / cover no-repeat,
+        #0c2a1a;
+    position: relative;
+    isolation: isolate;
+}
+
+/* One flat green wash over the photo (no gradient) */
+.auth-main::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(10,38,22,.72);
+    z-index: -1;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 440px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 34px 32px 28px;
+    box-shadow: 0 24px 60px rgba(0,0,0,.38);
+    position: relative;
+}
+.auth-card-wide { max-width: 580px; }
+/* Readable long-text card (privacy policy) */
+.auth-card-read { max-width: 760px; }
+.privacy-body { font-size: var(--text-sm); line-height: 1.65; color: var(--text-primary); }
+.privacy-body h2 { margin: var(--space-6) 0 var(--space-2); font-size: 1.02rem; font-weight: var(--weight-semibold); color: var(--accent); }
+.privacy-body p, .privacy-body ul { margin: 0 0 var(--space-3); }
+.privacy-body ul { padding-left: 1.2em; }
+.privacy-body li { margin-bottom: var(--space-2); }
+.privacy-body a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+.privacy-meta { color: var(--text-secondary); }
+.privacy-todo { background: #fff3bf; color: #5c4400; padding: 0 4px; border-radius: var(--radius); font-weight: var(--weight-semibold); }
+[data-theme="dark"] .privacy-todo { background: #5c4400; color: #fff3bf; }
+/* Footer link under the card on the auth layout */
+.auth-legal { padding: 14px var(--space-4) 20px; text-align: center; font-size: .82rem; background: #0c2a1a; }
+.auth-legal a { color: rgba(255,255,255,.8); text-decoration: underline; text-underline-offset: 3px; }
+.auth-legal a:hover { color: #fff; }
+
+/* Card heading: the bar already carries logo and school name */
+.auth-header .auth-logo,
+.auth-header .auth-logo-img { display: none; }
+.auth-header { margin-bottom: var(--space-6); padding-right: 32px; }
+.auth-header .auth-title { color: var(--accent); font-size: 1.3rem; font-weight: var(--weight-semibold); letter-spacing: 0; }
+
+/* Show-password button injected by jQuery */
+.auth-pw { position: relative; }
+.auth-pw .form-input { padding-right: 46px; }
+.auth-pw-eye {
+    position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+    width: 34px; height: 34px; border: 0; background: none; border-radius: var(--radius);
+    display: grid; place-items: center; cursor: pointer; color: var(--text-tertiary);
+}
+.auth-pw-eye:hover { background: var(--bg-overlay); }
+.auth-pw-eye:focus-visible { outline: 2px solid var(--accent); }
+.auth-pw-eye.on { color: var(--accent); }
+
+/* Tiny blurred theme toggle inside the auth card */
+.auth-theme-toggle {
+    position: absolute;
+    top: var(--space-8);
+    right: var(--space-8);
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radius);
+    border: none;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-tertiary);
+    transition: color 0.2s;
+    z-index: 10;
+    padding: 0;
+}
+.auth-theme-toggle:hover {
+    color: var(--text-secondary);
+}
+.auth-theme-toggle svg { width: 14px; height: 14px; }
+
+.auth-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    margin-bottom: var(--space-8);
+    text-align: left;
+}
+
+.auth-logo {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius-lg);
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.auth-logo svg { width: 26px; height: 26px; color: white; }
+
+.auth-logo-img {
+    height: 52px;
+    width: auto;
+    object-fit: contain;
+    flex-shrink: 0;
+    border-radius: var(--radius-sm);
+}
+
+.auth-header-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.auth-title {
+    font-size: var(--text-xl);
+    font-weight: var(--weight-semibold);
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    margin: 0;
+}
+
+.auth-subtitle {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    margin: 0;
+    line-height: 1.3;
+}
+
+.auth-divider {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin: var(--space-6) 0;
+    color: var(--text-tertiary);
+    font-size: var(--text-xs);
+}
+
+.auth-divider::before,
+.auth-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+}
+
+.auth-footer {
+    margin-top: var(--space-5);
+    text-align: center;
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+}
+
+/* ============================================================
+   12. DOCUMENT CHECKLIST
+   ============================================================ */
+
+.doc-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.doc-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-4);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    transition: border-color var(--transition-fast);
+}
+
+.doc-item.approved { border-color: rgba(45,106,79,0.3); }
+.doc-item.rejected { border-color: rgba(185,28,28,0.3); }
+
+.doc-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    background: var(--bg-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.doc-icon svg { width: 18px; height: 18px; color: var(--text-secondary); }
+
+.doc-info { flex: 1; min-width: 0; }
+
+.doc-name {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--text-primary);
+}
+
+.doc-remark {
+    font-size: var(--text-xs);
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.doc-rejected-remark {
+    font-size: var(--text-xs);
+    color: var(--error);
+    margin-top: 2px;
+}
+
+/* ============================================================
+   13. THEME TOGGLE
+   ============================================================ */
+
+.theme-toggle {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-md);
+    background: transparent;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+    color: var(--text-secondary);
+}
+
+.theme-toggle:hover,
+.theme-toggle:focus-visible {
+    background: var(--bg-overlay);
+    color: var(--text-primary);
+}
+
+.theme-toggle:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+}
+
+.theme-toggle svg { width: 16px; height: 16px; }
+
+/* ============================================================
+   14. DROPDOWN MENU
+   ============================================================ */
+
+.dropdown {
+    position: relative;
+}
+
+/* Opens upward and hugs the account row's left edge (Lakbay: side=top align=start),
+   so it never runs off the 48px collapsed rail. */
+.sidebar-footer .dropdown-menu { bottom: calc(100% + var(--space-2)); top: auto; left: 0; right: auto; min-width: 200px; }
+
+.dropdown-menu {
+    position: absolute;
+    top: calc(100% + var(--space-2));
+    right: 0;
+    min-width: 180px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: var(--space-2) 0;
+    z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+    transition: all var(--transition-fast);
+}
+
+.dropdown.open .sidebar-footer .dropdown-menu { bottom: calc(100% + var(--space-2)); top: auto; }
+
+.dropdown.open .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background-color var(--transition-fast), color var(--transition-fast);
+    text-decoration: none;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus-visible {
+    background: var(--bg-overlay);
+    color: var(--text-primary);
+    opacity: 1;
+}
+
+.dropdown-item svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+.dropdown-separator {
+    height: 1px;
+    background: var(--border);
+    margin: var(--space-2) 0;
+}
+
+.dropdown-item.danger { color: var(--error); }
+.dropdown-item.danger:hover { background: var(--error-bg); }
+
+/* ============================================================
+   15. METRICS ROW (staff / admin dashboards)
+   ============================================================ */
+
+.metrics-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: var(--space-4);
+    margin-bottom: var(--space-8);
+}
+
+.metric-card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+}
+
+.metric-label {
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: var(--space-2);
+}
+
+.metric-value {
+    font-size: var(--text-3xl);
+    font-weight: var(--weight-semibold);
+    color: var(--text-primary);
+    letter-spacing: -0.03em;
+    line-height: 1;
+}
+
+.metric-sub {
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+    margin-top: var(--space-1);
+}
+
+/* ============================================================
+   16. UTILITY CLASSES
+   ============================================================ */
+
+/* Metric card semantic variants */
+.metric-card--success .metric-value { color: var(--success); }
+.metric-card--warning .metric-value { color: var(--warning); }
+.metric-card--error   .metric-value { color: var(--error); }
+.metric-card--info    .metric-value { color: var(--info); }
+
+/* Quick actions grid */
+.quick-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+}
+
+.quick-action-card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    border-left-width: 3px;
+}
+
+.quick-action-card--users    { border-left-color: var(--info); }
+.quick-action-card--year     { border-left-color: var(--warning); }
+.quick-action-card--export   { border-left-color: var(--success); }
+.quick-action-card--settings { border-left-color: var(--border-strong); }
+
+/* Pipeline row */
+.pipeline-row {
+    display: flex;
+    gap: 0;
+    margin-bottom: var(--space-8);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.pipeline-stage {
+    flex: 1;
+    padding: var(--space-4) var(--space-4);
+    text-align: center;
+    min-width: 0;
+}
+
+.pipeline-stage-count {
+    font-size: var(--text-xl);
+    font-weight: var(--weight-semibold);
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    line-height: 1;
+}
+
+.pipeline-stage-label {
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: var(--space-1);
+    white-space: nowrap;
+}
+
+/* Admin form stack */
+.admin-form-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Danger card */
+.card-danger {
+    border-color: var(--error);
+    border-width: 1px;
+    background: var(--error-bg);
+}
+
+.flex          { display: flex; }
+.flex-col      { flex-direction: column; }
+.items-center  { align-items: center; }
+.justify-between{ justify-content: space-between; }
+.gap-2         { gap: var(--space-2); }
+.gap-3         { gap: var(--space-3); }
+.gap-4         { gap: var(--space-4); }
+.gap-6         { gap: var(--space-6); }
+
+.mt-4  { margin-top: var(--space-4); }
+.mt-6  { margin-top: var(--space-6); }
+.mt-8  { margin-top: var(--space-8); }
+.mb-4  { margin-bottom: var(--space-4); }
+.mb-6  { margin-bottom: var(--space-6); }
+.mb-8  { margin-bottom: var(--space-8); }
+
+.text-sm       { font-size: var(--text-sm); }
+.text-xs       { font-size: var(--text-xs); }
+.text-secondary{ color: var(--text-secondary); }
+.text-tertiary { color: var(--text-tertiary); }
+.font-medium   { font-weight: var(--weight-medium); }
+.font-semibold { font-weight: var(--weight-semibold); }
+
+.truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.divider {
+    height: 1px;
+    background: var(--border);
+    margin: var(--space-6) 0;
+}
+
+/* ============================================================
+   16b. ACCESSIBILITY — focus-visible defaults
+   ============================================================ */
+
+/* Catch-all: any focusable element without its own focus style */
+a:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* Inputs draw their own focus ring (accent border plus a 1px outline) on :focus */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: none;
+}
+
+/* ============================================================
+   17. ANIMATIONS
+   ============================================================ */
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes fade-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+    animation: fade-in 0.2s ease forwards;
+}
+
+/* ============================================================
+   18. STUDENT LAYOUT — header instead of sidebar
+   ============================================================ */
+
+/* Student layout stacks header above main (no sidebar) */
+.layout-student {
+    flex-direction: column;
+}
+
+.layout-student .main {
+    margin-left: 0;
+    min-height: calc(100vh - var(--header-height));
+}
+
+.layout-student .page {
+    margin: 0 auto;
+}
+
+/* Sticky top header for students */
+.student-header {
+    height: var(--header-height);
+    background: var(--bg-elevated);
+    border-bottom: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: 0 var(--space-8);
+    gap: var(--space-4);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+/* The student top bar is frozen: it keeps the spacing, weight and size
+   values it had before the token cleanup, so nothing in it moves or changes.
+   Radius is no longer overridden here — it follows the shared --radius token. */
+.student-header {
+    --space-3:       12px;
+    --space-5:       20px;
+    --weight-medium: 500;
+    --text-lg:       1.125rem;
+    --text-2xl:      1.5rem;
+    --text-3xl:      1.875rem;
+}
+
+.student-header-stepper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.student-header-brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-width: 0;
+}
+
+/* Center page title */
+.student-header-title {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    color: var(--text-primary);
+    white-space: nowrap;
+    text-align: center;
+}
+
+/* Right slot — avatar button */
+.student-header-profile {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.student-header-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    padding: var(--space-1);
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+}
+
+.student-header-avatar:hover,
+.student-header-avatar:focus-visible {
+    background: var(--bg-overlay);
+}
+
+.student-header-avatar:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+}
+
+/* Name/role info inside the dropdown */
+.student-header-dropdown-info {
+    padding: var(--space-3) var(--space-4) var(--space-2);
+}
+
+.student-header-dropdown-info .user-name {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--text-primary);
+}
+
+.student-header-dropdown-info .user-role {
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+    margin-top: 2px;
+}
+
+/* Student header dropdown opens downward from right */
+.student-header-dropdown {
+    top: calc(100% + var(--space-2));
+    bottom: auto;
+    right: 0;
+    left: auto;
+    opacity: 0;
+    visibility: hidden;
+}
+
+.dropdown.open .student-header-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* ============================================================
+   19. RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 768px) {
+    .page {
+        padding: var(--space-5);
+    }
+
+    .metrics-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .stepper {
+        padding: var(--space-4);
+    }
+
+    .step-label { display: none; }
+}
+
+@media (max-width: 480px) {
+    .auth-card {
+        padding: var(--space-6) var(--space-5);
+        border-radius: var(--radius-lg);
+    }
+    .auth-bar-title { font-size: 1.2rem; }
+
+    .metrics-row {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(3px);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-4);
+}
+
+.modal {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    width: 100%;
+    max-width: 460px;
+    animation: modal-in 0.18s ease;
+}
+
+@keyframes modal-in {
+    from { opacity: 0; transform: translateY(10px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-5) var(--space-6);
+    border-bottom: 1px solid var(--border);
+}
+
+.modal-title {
+    font-size: var(--text-base);
+    font-weight: var(--weight-semibold);
+    color: var(--text-primary);
+}
+
+.modal-body {
+    padding: var(--space-5) var(--space-6);
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-6);
+    border-top: 1px solid var(--border);
+}
+
+.file-drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-8) var(--space-4);
+    text-align: center;
+    cursor: pointer;
+    transition: border-color var(--transition-fast), background var(--transition-fast);
+    position: relative;
+}
+
+.file-drop-zone:hover {
+    border-color: var(--accent);
+    background: var(--bg-subtle);
+}
+
+.file-drop-zone.drag-over {
+    border-color: var(--accent);
+    background: var(--bg-subtle);
+}
+
+.file-input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* JS click handler on the zone triggers it */
+}
+
+.btn-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-md);
+    border: none;
+    background: transparent;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.btn-icon:hover,
+.btn-icon:focus-visible {
+    background: var(--bg-overlay);
+    color: var(--text-primary);
+}
+
+.btn-icon:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+}/* ============================================================
+   public/assets/css/app.css  — additions / overrides
+   Paste this block at the END of your existing app.css
+   (or @import it as a separate patch file)
+   ============================================================ */
+
+/* ── DESIGN TOKENS ────────────────────────────────────────── */
+:root {
+    --color-high:        #639922;
+    --color-high-bg:     #EAF3DE;
+    --color-high-text:   #3B6D11;
+
+    --color-avg:         #BA7517;
+    --color-avg-bg:      #FAEEDA;
+    --color-avg-text:    #854F0B;
+
+    --color-low:         #E24B4A;
+    --color-low-bg:      #FCEBEB;
+    --color-low-text:    #A32D2D;
+
+    --color-accepted-bg:   #EAF3DE;
+    --color-accepted-text: #3B6D11;
+
+    --color-waitlisted-bg:   #FAEEDA;
+    --color-waitlisted-text: #854F0B;
+
+    --color-rejected-bg:   #FCEBEB;
+    --color-rejected-text: #A32D2D;
+
+    --color-pending-bg:   #E6F1FB;
+    --color-pending-text: #185FA5;
+}
+
+/* ── SHARED: page subtitle ──────────────────────────────── */
+.page-subtitle {
+    font-size: var(--text-xs);
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* (Exam header read/edit-state CSS now lives inline in modules/exam/staff_manage.php
+    so it isn't blocked by an aggressive browser cache on app.css.) */
+
+/* ── DASHBOARD: stat cards ──────────────────────────────── */
+.stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+}
+
+@media (max-width: 900px) {
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.stat-card {
+    background: var(--bg-elevated);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4) var(--space-4);
+}
+
+.stat-label {
+    font-size: var(--text-xs);
+    color: var(--text-secondary);
+    margin-bottom: var(--space-1);
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: var(--weight-medium);
+    line-height: 1.2;
+}
+
+.stat-badge {
+    display: inline-block;
+    font-size: var(--text-xs);
+    padding: var(--space-1) var(--space-1);
+    border-radius: var(--radius);
+    margin-top: var(--space-1);
+}
+
+.badge-green   { background: var(--color-high-bg);    color: var(--color-high-text); }
+.badge-amber   { background: var(--color-avg-bg);     color: var(--color-avg-text);  }
+.badge-blue    { background: #E6F1FB;                  color: #185FA5;                }
+
+/* ── DASHBOARD: pipeline bar chart ─────────────────────── */
+/*
+   FIX #1 — narrower bar so the left-side label is never clipped.
+   Key changes:
+     • .bar-label  has a fixed width (120px) and does NOT shrink
+     • .bar-track  takes the remaining space (flex:1) with min-width:0
+       so it never forces the row wider than its container
+     • .bar-count and .bar-pct have fixed widths on the right
+*/
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+}
+
+@media (max-width: 768px) {
+    .dashboard-grid { grid-template-columns: 1fr; }
+}
+
+.chart-card {
+    background: var(--bg-elevated);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4) var(--space-4);
+}
+
+.chart-title {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    margin-bottom: var(--space-3);
+}
+
+/* The row that holds label + bar + numbers */
+.bar-list  { display: flex; flex-direction: column; gap: var(--space-2); }
+
+.bar-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);          /* spacing between all four columns */
+    min-width: 0;         /* let flex children shrink past content size */
+}
+
+/* LEFT LABEL — fixed width, never wraps, never shrinks */
+.bar-label {
+    width: 120px;         /* ← the main fix: was 'flex:1' before */
+    flex-shrink: 0;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* BAR TRACK — takes all remaining horizontal space */
+.bar-track {
+    flex: 1;
+    min-width: 0;         /* prevents overflow in narrow containers */
+    height: 8px;
+    background: var(--bg-subtle);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.bar-fill {
+    height: 100%;
+    border-radius: var(--radius);
+    transition: width 0.35s ease;
+}
+
+/* RIGHT NUMBERS */
+.bar-count {
+    width: 32px;
+    flex-shrink: 0;
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    text-align: right;
+}
+
+.bar-pct {
+    width: 36px;
+    flex-shrink: 0;
+    font-size: var(--text-xs);
+    color: var(--text-secondary);
+    text-align: right;
+}
+
+/* ── DASHBOARD: step strip ──────────────────────────────── */
+.step-strip {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: var(--space-2);
+}
+
+@media (max-width: 640px) {
+    .step-strip { grid-template-columns: repeat(3, 1fr); }
+}
+
+.step-card {
+    background: var(--bg-elevated);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    text-align: center;
+}
+
+.step-count {
+    font-size: 1.125rem;
+    font-weight: var(--weight-medium);
+    line-height: 1.2;
+}
+
+.step-label {
+    font-size: var(--text-xs);
+    color: var(--text-secondary);
+    margin-top: var(--space-1);
+}
+
+.step-bar {
+    height: 4px;
+    background: var(--bg-subtle);
+    border-radius: var(--radius);
+    margin-top: var(--space-2);
+    overflow: hidden;
+}
+
+.step-bar-fill {
+    height: 100%;
+    border-radius: var(--radius);
+}
+
+/* ── RESULTS: filter bar ────────────────────────────────── */
+.filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.375rem;
+    margin-bottom: var(--space-3);
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    flex-wrap: wrap;
+}
+
+.filter-sep {
+    width: 1px;
+    height: 20px;
+    background: var(--border);
+    flex-shrink: 0;
+    margin: 0 0.125rem;
+}
+
+/* Base pill */
+.filter-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius);
+    border: 0.5px solid var(--border);
+    background: var(--bg-elevated);
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.filter-pill:hover { background: var(--bg-subtle); color: var(--text-primary); }
+
+.pill-count {
+    font-size: 0.625rem;
+    font-weight: var(--weight-medium);
+    padding: 0.0625rem 0.3125rem;
+    border-radius: var(--radius);
+    background: var(--bg-subtle);
+    color: var(--text-secondary);
+}
+
+/* Score-tier active states */
+.filter-pill.pill-tier-high.active {
+    background: var(--color-high-bg);
+    border-color: var(--color-high);
+    color: var(--color-high-text);
+    font-weight: var(--weight-medium);
+}
+.filter-pill.pill-tier-high.active .pill-count {
+    background: var(--color-high);
+    color: #fff;
+}
+
+.filter-pill.pill-tier-avg.active {
+    background: var(--color-avg-bg);
+    border-color: var(--color-avg);
+    color: var(--color-avg-text);
+    font-weight: var(--weight-medium);
+}
+.filter-pill.pill-tier-avg.active .pill-count {
+    background: var(--color-avg);
+    color: #fff;
+}
+
+.filter-pill.pill-tier-low.active {
+    background: var(--color-low-bg);
+    border-color: var(--color-low);
+    color: var(--color-low-text);
+    font-weight: var(--weight-medium);
+}
+.filter-pill.pill-tier-low.active .pill-count {
+    background: var(--color-low);
+    color: #fff;
+}
+
+/* Status active states */
+.filter-pill.pill-status-pending.active,
+.filter-pill.active {
+    background: #E6F1FB;
+    border-color: #185FA5;
+    color: #185FA5;
+    font-weight: var(--weight-medium);
+}
+
+.filter-pill.pill-status-accepted.active {
+    background: var(--color-accepted-bg);
+    border-color: var(--color-high);
+    color: var(--color-accepted-text);
+    font-weight: var(--weight-medium);
+}
+
+.filter-pill.pill-status-waitlisted.active {
+    background: var(--color-waitlisted-bg);
+    border-color: var(--color-avg);
+    color: var(--color-waitlisted-text);
+    font-weight: var(--weight-medium);
+}
+
+.filter-pill.pill-status-rejected.active {
+    background: var(--color-rejected-bg);
+    border-color: var(--color-low);
+    color: var(--color-rejected-text);
+    font-weight: var(--weight-medium);
+}
+
+/* Search input in filter bar */
+.filter-search {
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    border: 0.5px solid var(--border);
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    font-size: 0.75rem;
+    width: 180px;
+}
+
+.filter-search:focus {
+    outline: 1px solid var(--accent);
+    outline-offset: 0;
+    border-color: var(--accent);
+}
+
+.sort-btn {
+    font-size: 0.75rem;
+    padding: var(--space-1) var(--space-2);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.sort-btn svg { width: 14px; height: 14px; }
+
+/* ── RESULTS: score legend ──────────────────────────────── */
+.score-legend {
+    display: flex;
+    gap: var(--space-4);
+    align-items: center;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-3);
+}
+
+.legend-item { display: flex; align-items: center; gap: var(--space-1); }
+
+.legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius);
+    flex-shrink: 0;
+}
+
+.dot-high { background: var(--color-high); }
+.dot-avg  { background: var(--color-avg);  }
+.dot-low  { background: var(--color-low);  }
+
+/* ── RESULTS: auto waitlist button ─────────────────────── */
+.btn-outline-warning {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: var(--text-sm);
+}
+
+.btn-outline-warning svg { width: 15px; height: 15px; }
+
+/* ── RESULTS: bulk action bar ───────────────────────────── */
+.bulk-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    background: var(--info-bg);
+    border: 0.5px solid var(--info);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-2);
+    font-size: var(--text-xs);
+    color: var(--info);
+    flex-wrap: wrap;
+}
+
+.bulk-btn-accept {
+    border: 0.5px solid var(--color-high);
+    background: var(--color-high-bg);
+    color: var(--color-high-text);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    cursor: pointer;
+    font-weight: var(--weight-medium);
+}
+
+.bulk-btn-waitlist {
+    border: 0.5px solid var(--color-avg);
+    background: var(--color-avg-bg);
+    color: var(--color-avg-text);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    cursor: pointer;
+    font-weight: var(--weight-medium);
+}
+
+.bulk-btn-reject {
+    border: 0.5px solid var(--color-low);
+    background: var(--color-low-bg);
+    color: var(--color-low-text);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    cursor: pointer;
+    font-weight: var(--weight-medium);
+}
+
+/* ── RESULTS: table ─────────────────────────────────────── */
+.table-card {
+    background: var(--bg-elevated);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.results-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.results-table th,
+.results-table td {
+    padding: var(--space-2) var(--space-2);
+    font-size: 0.75rem;
+    text-align: left;
+    border-bottom: 0.5px solid var(--border);
+    vertical-align: middle;
+}
+
+.results-table thead th {
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    color: var(--text-secondary);
+    background: var(--bg-subtle);
+}
+
+.results-table tbody tr:last-child td { border-bottom: none; }
+
+.results-table tbody tr:hover td { background: var(--bg-subtle); }
+
+/* Column widths */
+.col-cb     { width: 32px; }
+.col-app    { width: 100px; }
+.col-name   { width: auto; }
+.col-type   { width: 90px; }
+.col-score  { width: 70px; }
+.col-rank   { width: 48px; }
+.col-status { width: 90px; }
+.col-action { width: 90px; }
+
+.text-muted { color: var(--text-secondary) !important; }
+.mono       { font-family: var(--font-mono); font-size: var(--text-xs); }
+
+/* Score badges */
+.score-badge {
+    display: inline-block;
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+}
+
+.badge-high { background: var(--color-high-bg); color: var(--color-high-text); }
+.badge-avg  { background: var(--color-avg-bg);  color: var(--color-avg-text);  }
+.badge-low  { background: var(--color-low-bg);  color: var(--color-low-text);  }
+
+/* Result pills */
+.result-pill {
+    display: inline-block;
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+}
+
+.pill-accepted   { background: var(--color-accepted-bg);   color: var(--color-accepted-text);   }
+.pill-waitlisted { background: var(--color-waitlisted-bg); color: var(--color-waitlisted-text); }
+.pill-rejected   { background: var(--color-rejected-bg);   color: var(--color-rejected-text);   }
+.pill-pending    { background: var(--color-pending-bg);    color: var(--color-pending-text);    }
+
+/* Per-row status dropdown */
+.status-select {
+    font-size: var(--text-xs);
+    padding: var(--space-1) var(--space-1);
+    border-radius: var(--radius-sm);
+    border: 0.5px solid var(--border);
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    width: 100%;
+    cursor: pointer;
+}
+
+.status-select:focus {
+    outline: 1px solid var(--accent);
+    outline-offset: 0;
+    border-color: var(--accent);
+}
+
+/* Empty state */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-10) var(--space-4);
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.empty-state svg { width: 32px; height: 32px; opacity: 0.4; }
+
+/* ============================================================
+   MISSING BADGE ALIASES
+   Map generic semantic names to the existing status tokens
+   ============================================================ */
+
+/* These aliases allow modules to use badge-info, badge-warning etc.
+   without creating new token definitions */
+.badge-info      { color: var(--status-uploaded);  background: var(--status-uploaded-bg);  }
+.badge-warning   { color: var(--status-review);    background: var(--status-review-bg);    }
+.badge-success   { color: var(--status-approved);  background: var(--status-approved-bg);  }
+.badge-error     { color: var(--status-rejected);  background: var(--status-rejected-bg);  }
+.badge-neutral   { color: var(--status-pending);   background: var(--status-pending-bg);   }
+
+/* ============================================================
+   TAB STRIP — reusable filter tabs
+   Used in: staff_review, results/staff_manage, staff_queue
+   ============================================================ */
+
+.tab-strip {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    flex-wrap: wrap;
+}
+
+.tab-strip-item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    border: 1px solid transparent;
+    background: transparent;
+    font-size: var(--text-xs);
+    font-weight: var(--weight-regular);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.tab-strip-item:hover,
+.tab-strip-item:focus-visible {
+    background: var(--bg-overlay);
+    color: var(--text-primary);
+    opacity: 1;
+}
+
+.tab-strip-item:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+}
+
+.tab-strip-item.active {
+    background: var(--bg-subtle);
+    border-color: var(--border);
+    color: var(--text-primary);
+    font-weight: var(--weight-semibold);
+}
+
+.tab-strip-count {
+    font-size: var(--text-xs);
+    padding: 1px var(--space-1);
+    border-radius: var(--radius-full);
+    background: var(--bg-overlay);
+    color: var(--text-tertiary);
+    min-width: 18px;
+    text-align: center;
+}
+
+.tab-strip-item.active .tab-strip-count {
+    background: var(--border);
+    color: var(--text-secondary);
+}
+
+/* ============================================================
+   SEGMENTED CONTROL — the one component for page-level tabs
+   Inside a table card it is the FIRST child of .auto-table-toolbar
+   (left of the search box). Also used for two-way mode toggles in modals.
+   Render page tabs with seg_control() in core/helpers.php.
+   ============================================================ */
+
+.seg-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px;
+    max-width: 100%;
+    overflow-x: auto;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.seg-control-item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    height: 30px;
+    padding: 0 var(--space-3);
+    font: inherit;
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+    border-radius: var(--radius);
+    transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.seg-control-item:hover,
+.seg-control-item:focus-visible {
+    color: var(--text-primary);
+    background: var(--bg-overlay);
+    opacity: 1;
+}
+
+.seg-control-item:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+}
+
+.seg-control-item.active,
+.seg-control-item.active:hover {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    font-weight: var(--weight-semibold);
+    box-shadow: var(--shadow-xs);
+}
+
+.seg-control-count {
+    min-width: 18px;
+    padding: 0 var(--space-1);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-regular);
+    line-height: 18px;
+    text-align: center;
+    color: var(--text-tertiary);
+    background: var(--bg-overlay);
+    border-radius: var(--radius);
+}
+
+.seg-control-count.is-warning {
+    color: var(--warning);
+    background: var(--warning-bg);
+}
+
+/* In a table toolbar the control matches the 36px inputs and buttons next to it. */
+.auto-table-toolbar .seg-control {
+    flex: 0 0 auto;
+    height: 36px;
+    box-sizing: border-box;
+}
+
+/* ============================================================
+   DROPDOWN (select replacement) — same look as the dashboard's
+   date picker: bordered button with a caret, popover menu below.
+   Built by SelectMenu in app.js; the real <select> stays hidden
+   inside the form so submits and onchange keep working.
+   ============================================================ */
+
+.dd {
+    position: relative;
+    display: inline-block;
+    vertical-align: middle;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.dd-native {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    background-image: none !important;
+}
+
+.dd-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    width: 100%;
+    height: 32px;
+    padding: 0 var(--space-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    text-align: left;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.dd-trigger:hover { border-color: var(--border-strong); color: var(--text-primary); }
+
+.dd-trigger:focus-visible,
+.dd.is-open .dd-trigger {
+    border-color: var(--accent);
+    color: var(--text-primary);
+    outline: none;
+}
+
+.dd-trigger:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.dd-label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dd-caret {
+    font-size: 10px !important;
+    color: var(--text-tertiary);
+    transition: transform var(--transition-fast);
+}
+
+.dd.is-open .dd-caret { transform: rotate(180deg); }
+
+/* Selects that were form fields (.form-control / .form-select) keep field height */
+.dd--field .dd-trigger {
+    height: auto;
+    min-height: 42px;
+    padding: 10px var(--space-4);
+    border-width: 1.5px;
+    color: var(--text-primary);
+    line-height: var(--leading-normal);
+}
+.dd--upper .dd-label { text-transform: uppercase; }
+.dd--error .dd-trigger { border-color: var(--error); }
+
+/* In a table toolbar the dropdown matches the 36px inputs and buttons */
+.auto-table-toolbar .dd { flex: 0 0 auto; }
+.auto-table-toolbar .dd-trigger { height: 36px; }
+
+.dd-menu {
+    position: fixed;
+    z-index: 1200;
+    min-width: 176px;
+    max-width: min(420px, calc(100vw - 16px));
+    max-height: 320px;
+    overflow-y: auto;
+    padding: var(--space-1) 0;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+}
+.dd-menu--upper .dd-item { text-transform: uppercase; }
+
+.dd-item {
+    display: block;
+    width: 100%;
+    padding: var(--space-2) var(--space-4);
+    border: none;
+    background: none;
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    line-height: 1.35;
+    text-align: left;
+    cursor: pointer;
+}
+.dd-item:hover,
+.dd-item.hl { background: var(--bg-subtle); color: var(--text-primary); }
+.dd-item.active { color: var(--accent); font-weight: var(--weight-medium); }
+.dd-item:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.dd-group {
+    padding: var(--space-2) var(--space-4) var(--space-1);
+    color: var(--text-tertiary);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+}
+
+/* ============================================================
+   LIVE STATUS PULSE DOT
+   Extracted from staff_queue inline <style>
+   ============================================================ */
+
+@keyframes pulse-dot {
+    0%, 100% { transform: scale(1);   opacity: 1; }
+    50%       { transform: scale(1.3); opacity: 0.6; }
+}
+
+/* ============================================================
+   SESSION TIMEOUT MODAL COMPONENTS
+   Named classes to replace inline styles in views/layouts/app.php
+   ============================================================ */
+
+.session-modal {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: var(--space-8);
+    max-width: 360px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 24px 48px rgba(0,0,0,.3);
+}
+
+.session-modal-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius);
+    background: var(--warning-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--space-4);
+    color: var(--warning);
+}
+
+.session-modal-icon svg { width: 24px; height: 24px; }
+
+/* ============================================================
+   WITHDRAWN CARD COMPONENTS
+   Named classes to replace inline styles in student_view.php
+   ============================================================ */
+
+.withdrawn-card {
+    padding: var(--space-8);
+    text-align: center;
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+.status-icon-lg {
+    width: 72px;
+    height: 72px;
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--space-6);
+}
+
+.result-info-grid {
+    background: var(--bg-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--space-5);
+    text-align: left;
+    margin-bottom: var(--space-6);
+}
+
+/* step-card-label: used in dashboard step strip (renamed from .step-label to avoid collision) */
+.step-card-label {
+    font-size: var(--text-xs);
+    color: var(--text-secondary);
+    margin-top: var(--space-1);
+}
+
+/* ── Notification badge ─────────────────────────────────────── */
+.notif-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    font-size: 10px;
+    font-weight: var(--weight-semibold);
+    line-height: 16px;
+    text-align: center;
+    color: #fff;
+    background: var(--error);
+    border-radius: var(--radius);
+    pointer-events: none;
+}
+
+/* ── Idle applicant alert cards ─────────────────────────────── */
+.idle-alert {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: var(--warning-bg);
+    border: 1px solid var(--warning);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+}
+.idle-alert-count {
+    font-weight: var(--weight-semibold);
+    font-size: var(--text-lg);
+    color: var(--warning);
+    min-width: 32px;
+    text-align: center;
+}
+
+/* ============================================================
+   Applicant detail drawer (slide-in panel)
+   See views/partials/applicant_drawer.php and applicant_panel.php
+============================================================ */
+
+/* Backdrop */
+.ap-drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.32);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .18s ease;
+    z-index: 1100;
+}
+.ap-drawer-backdrop.is-open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Drawer shell */
+.ap-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    width: min(540px, 100vw);
+    background: var(--surface, #fff);
+    box-shadow: -8px 0 24px rgba(0, 0, 0, .12);
+    transform: translateX(100%);
+    transition: transform .22s cubic-bezier(.2,.7,.3,1);
+    z-index: 1101;
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid var(--border);
+}
+.ap-drawer.is-open { transform: translateX(0); }
+body.ap-drawer-locked { overflow: hidden; }
+
+.ap-drawer-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--border);
+    flex: 0 0 auto;
+}
+.ap-drawer-title {
+    font-weight: var(--weight-semibold);
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    letter-spacing: .02em;
+    text-transform: uppercase;
+}
+.ap-drawer-close {
+    background: transparent;
+    border: 0;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: var(--radius-sm);
+    line-height: 0;
+}
+.ap-drawer-close:hover {
+    background: var(--bg-subtle);
+    color: var(--text-primary);
+}
+.ap-drawer-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: var(--space-4) var(--space-5);
+}
+.ap-drawer-loading,
+.ap-drawer-error {
+    text-align: center;
+    color: var(--text-tertiary);
+    padding: var(--space-10) var(--space-4);
+    font-size: var(--text-sm);
+}
+.ap-drawer-error {
+    color: var(--error);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    align-items: center;
+}
+
+/* Panel content (rendered inside .ap-drawer-body or anywhere) */
+.applicant-panel { display: flex; flex-direction: column; gap: var(--space-5); }
+.applicant-panel-empty {
+    text-align: center;
+    color: var(--text-tertiary);
+    padding: var(--space-8);
+}
+
+.ap-header {
+    display: grid;
+    grid-template-columns: 48px 1fr auto;
+    align-items: center;
+    gap: var(--space-3);
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--border);
+}
+.ap-avatar {
+    width: 48px; height: 48px;
+    border-radius: var(--radius);
+    background: var(--accent-soft, var(--bg-subtle));
+    color: var(--accent, var(--text-primary));
+    font-weight: var(--weight-semibold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--text-lg);
+}
+.ap-header-meta { min-width: 0; }
+.ap-name {
+    font-weight: var(--weight-semibold);
+    font-size: var(--text-base);
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.ap-sub, .ap-contact {
+    font-size: var(--text-xs);
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+.ap-contact a { color: var(--accent); text-decoration: none; }
+.ap-contact a:hover { text-decoration: underline; }
+.ap-dot { color: var(--text-tertiary); margin: 0 4px; }
+.ap-status-badge { white-space: nowrap; }
+
+/* Sections */
+.ap-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+.ap-section-title {
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    color: var(--text-secondary);
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+.ap-section-link {
+    margin-top: var(--space-1);
+    font-size: var(--text-xs);
+    color: var(--accent);
+    text-decoration: none;
+    align-self: flex-start;
+}
+.ap-section-link:hover { text-decoration: underline; }
+
+/* Key/value list */
+.ap-kv { display: flex; flex-direction: column; gap: 4px; }
+.ap-kv > div {
+    font-size: var(--text-sm);
+    color: var(--text-primary);
+    line-height: 1.5;
+}
+.ap-k {
+    display: inline-block;
+    min-width: 90px;
+    color: var(--text-tertiary);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    margin-right: var(--space-2);
+}
+.ap-muted { color: var(--text-tertiary); font-size: var(--text-sm); }
+
+/* Documents */
+.ap-doc-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: var(--bg-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+}
+.ap-doc-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--text-sm);
+}
+.ap-doc-label {
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.ap-doc-link {
+    width: 26px; height: 26px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    text-decoration: none;
+}
+.ap-doc-link:hover {
+    background: var(--surface, #fff);
+    color: var(--accent);
+}
+
+/* Inline evaluation editor */
+.ap-eval-form {
+    margin-top: var(--space-3);
+    padding: var(--space-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg-subtle);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+.ap-eval-label {
+    font-size: var(--text-xs);
+    color: var(--text-secondary);
+    font-weight: var(--weight-medium);
+}
+.ap-eval-notes {
+    width: 100%;
+    resize: vertical;
+    min-height: 86px;
+    font: inherit;
+}
+.ap-eval-actions {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+.ap-eval-hint {
+    flex: 1 1 auto;
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+}
+.btn-pass   { background: var(--success-bg, #d1fae5); color: var(--success, #15803d); border-color: var(--success, #15803d); }
+.btn-reject { background: var(--error-bg, #fee2e2);   color: var(--error, #b91c1c);   border-color: var(--error, #b91c1c); }
+
+/* Audit list */
+.ap-audit {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+.ap-audit li {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: var(--space-2);
+    font-size: var(--text-sm);
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid var(--border);
+}
+.ap-audit li:last-child { border-bottom: 0; }
+.ap-audit-when {
+    color: var(--text-tertiary);
+    font-size: var(--text-xs);
+}
+.ap-audit-text strong {
+    font-weight: var(--weight-medium);
+    color: var(--text-primary);
+}
+.ap-audit-by {
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+    margin-top: 2px;
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+    .ap-drawer { width: 100vw; }
+    .ap-drawer-body { padding: var(--space-3); }
+    .ap-header { grid-template-columns: 40px 1fr auto; }
+    .ap-avatar { width: 40px; height: 40px; font-size: var(--text-base); }
+}
+
+/* ============================================================
+   Interview queue: clickable name cell + action layout
+============================================================ */
+.iq-name-cell-clickable {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    text-align: left;
+    padding: 4px 6px;
+    margin: -4px -6px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    color: inherit;
+    font: inherit;
+    width: 100%;
+    transition: background .12s ease;
+}
+.iq-name-cell-clickable:hover {
+    background: var(--bg-subtle);
+}
+.iq-name-cell-clickable:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+.iq-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: nowrap;
+}
+.iq-view-btn {
+    padding: 4px 6px;
+    line-height: 0;
+    color: var(--text-secondary);
+}
+.iq-view-btn:hover { color: var(--accent); }
+
+/* ============================================================
+   Auto-paginated data table (ported from lakbay-pasig's
+   AdminDataTable + AdminFilterBar + useAutoPageSize)
+   ------------------------------------------------------------
+   Same structure as AdminDataTable's own markup:
+
+     .auto-table-wrap          outer container, flex column, 8px gap.
+                               This is the region AutoPageSize (app.js)
+                               measures, same as lakbay's containerRef.
+       .auto-table-card        bordered card holding toolbar + table,
+                               fills whatever height is left
+         .auto-table-toolbar   search + filters, 8px padding, border-bottom
+         .auto-table-body      scrolls, holds the table
+       .auto-table-pagination  "Showing X–Y of Z" + prev / next, below
+                               the card (only when there is >1 page)
+
+   Every row is --height-table-row (56px) and the header
+   --height-table-header (40px). A cell's content clips instead of
+   growing the row, so rows per page = (wrap height - toolbar - header
+   - pagination bar - card border) / row height, never measured from a
+   live row. See the comment on those vars in section 1.
+   ============================================================ */
+
+/* The wrap takes all the height the page has left, so it is a real,
+   bounded region to measure (the pin rules at the end of this file
+   fix the page itself to the viewport). */
+.auto-table-wrap {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.auto-table-card {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+/* Toolbar strip — search input + filter selects, one row (wraps on
+   narrow screens), living inside the card itself. */
+.auto-table-toolbar {
+    flex-shrink: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-elevated);
+    z-index: 3;
+}
+
+.auto-table-search {
+    position: relative;
+    flex: 1 1 220px;
+    min-width: 180px;
+}
+
+.auto-table-search svg {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-tertiary);
+    pointer-events: none;
+}
+
+.auto-table-search input {
+    padding-left: 32px;
+    width: 100%;
+}
+
+.auto-table-toolbar select,
+.auto-table-toolbar input[type="date"] {
+    flex: 0 0 auto;
+}
+
+/* Scrollable body region. A column flex container so the empty state
+   can centre itself in the space under the header. */
+.auto-table-body {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Separate borders (not collapsed) so every row is exactly its set
+   height: with collapsed borders half of each 1px rule lands in the
+   neighbouring row and the sums drift, which is what pushes the last
+   row into a scrollbar. Also keeps the sticky header's rule attached. */
+.auto-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: fixed;
+    font-size: var(--text-sm);
+    flex-shrink: 0;
+}
+
+.auto-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--bg-elevated);
+}
+
+/* Header cell — lakbay's TableHead: text-xs, semibold, muted, normal case. */
+.auto-table th {
+    height: var(--height-table-header);
+    padding: 0 var(--space-3);
+    text-align: left;
+    vertical-align: middle;
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    color: var(--text-tertiary);
+    white-space: nowrap;
+    background: var(--bg-elevated);
+    border-bottom: 1px solid var(--border);
+}
+
+.auto-table th a {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: inherit;
+}
+
+/* Fixed row height — every row is exactly this tall, and a cell's
+   content clips rather than wrapping (see .auto-table-clip). */
+.auto-table td {
+    height: var(--height-table-row);
+    padding: 0 var(--space-3);
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+    overflow: hidden;
+}
+
+.auto-table tbody tr:last-child td { border-bottom: none; }
+.auto-table tbody tr:hover td { background: var(--bg-overlay); }
+
+.auto-table-clip {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.auto-table-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    flex: 1;
+    padding: var(--space-12);
+    text-align: center;
+    color: var(--text-tertiary);
+}
+
+/* Pagination bar — below the card, "Showing X–Y of Z" left, Prev /
+   Page N of M / Next right. 32px tall (the buttons) plus the wrap's 8px
+   gap = the 40px AutoPageSize reserves (--height-table-footer). */
+.auto-table-pagination {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    height: 32px;
+    padding: 0 var(--space-1);
+}
+
+.auto-table-pagination-info {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--text-sm);
+    color: var(--text-tertiary);
+}
+
+.auto-table-pagination-info strong {
+    color: var(--text-primary);
+    font-weight: var(--weight-semibold);
+}
+
+.auto-table-pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.auto-table-page-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    background: transparent;
+    border: 1px solid transparent;
+    transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.auto-table-page-btn:hover:not([aria-disabled="true"]) {
+    background: var(--bg-overlay);
+    color: var(--text-primary);
+}
+
+.auto-table-page-btn[aria-disabled="true"] {
+    color: var(--text-placeholder);
+    cursor: default;
+    pointer-events: none;
+}
+
+.auto-table-page-btn svg { width: 16px; height: 16px; }
+/* Table helpers shared by every auto-table page */
+.auto-table th.col-check, .auto-table td.col-check { width: 44px; padding-left: var(--space-3); padding-right: 0; }
+.auto-table td .btn-sm { white-space: nowrap; }
+.auto-table tbody tr.bulk-selected td { background: var(--accent-muted); }
+.auto-table-toolbar .toolbar-spacer { flex: 1 1 auto; }
+/* Toolbar controls are 36px, lakbay's h-9 Input / SelectTrigger. The
+   Filter / Clear buttons match so the row lines up. */
+.auto-table-toolbar .form-input {
+    height: 36px;
+    min-height: 36px;
+    padding-top: 0;
+    padding-bottom: 0;
+    line-height: 1.2;
+}
+.auto-table-toolbar .btn { height: 36px; }
+.auto-table-toolbar .auto-table-search .form-input { padding-left: 32px; }
+
+/* Font size presets (Settings > Appearance) */
+/* Table row / header heights scale with the text; medium (the default)
+   is lakbay-pasig's 56px row / 40px header. The pagination bar is a fixed
+   32px of buttons, so --height-table-footer stays 40px in every preset. */
+html[data-font-size="small"]  { font-size: 16px; --height-table-row: 52px; --height-table-header: 36px; }
+html[data-font-size="medium"] { font-size: 18px; --height-table-row: 56px; --height-table-header: 40px; }
+html[data-font-size="large"]  { font-size: 20px; --height-table-row: 62px; --height-table-header: 44px; }
+html[data-font-size="xlarge"] { font-size: 22px; --height-table-row: 68px; --height-table-header: 48px; }
+
+.font-size-slider-wrap {
+    margin-top: var(--space-3);
+    max-width: 420px;
+}
+
+.font-size-current {
+    margin-bottom: var(--space-2);
+    text-align: center;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--text-secondary);
+}
+
+.font-size-slider-row {
+    display: grid;
+    grid-template-columns: 32px 1fr 40px;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.font-size-a {
+    line-height: 1;
+    font-weight: var(--weight-medium);
+    color: var(--text-secondary);
+}
+
+.font-size-a-sm { font-size: 22px; }
+.font-size-a-lg { font-size: 34px; text-align: right; }
+
+.font-size-slider-track-wrap {
+    position: relative;
+    min-width: 0;
+}
+
+.font-size-slider {
+    --font-slider-progress: 33.333%;
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    height: 28px;
+    background: transparent;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+.font-size-slider:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+    border-radius: var(--radius-full);
+}
+
+.font-size-slider::-webkit-slider-runnable-track {
+    height: 8px;
+    border-radius: var(--radius-full);
+    background: linear-gradient(
+        to right,
+        var(--accent) 0,
+        var(--accent) var(--font-slider-progress),
+        var(--bg-subtle) var(--font-slider-progress),
+        var(--bg-subtle) 100%
+    );
+}
+
+.font-size-slider::-webkit-slider-thumb {
+    width: 24px;
+    height: 24px;
+    margin-top: -8px;
+    border: 2px solid var(--bg-elevated);
+    border-radius: var(--radius-full);
+    background: var(--accent);
+    box-shadow: var(--shadow-sm);
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+.font-size-slider::-moz-range-track {
+    height: 8px;
+    border-radius: var(--radius-full);
+    background: var(--bg-subtle);
+}
+
+.font-size-slider::-moz-range-progress {
+    height: 8px;
+    border-radius: var(--radius-full);
+    background: var(--accent);
+}
+
+.font-size-slider::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--bg-elevated);
+    border-radius: var(--radius-full);
+    background: var(--accent);
+    box-shadow: var(--shadow-sm);
+}
+
+.font-size-ticks {
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    top: 10px;
+    z-index: 1;
+    display: flex;
+    justify-content: space-between;
+    pointer-events: none;
+}
+
+.font-size-ticks span {
+    width: 4px;
+    height: 4px;
+    border-radius: var(--radius-full);
+    background: color-mix(in srgb, var(--text-tertiary) 45%, transparent);
+    box-shadow: 0 0 0 2px var(--bg-elevated);
+}
+/* Pin auto-table pages to the viewport so .auto-table-wrap has a fixed
+   height (AutoPageSize needs a bounded region to count rows against).
+   Bottom padding is 24px, lakbay's p-6, instead of the page's usual 32px,
+   so the table reaches closer to the bottom edge. */
+.main:has(.auto-table-wrap) { height: 100vh; overflow: hidden; }
+.page:has(.auto-table-wrap) {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: var(--space-6);
+}
+
+/* Keep every row one line tall: clip instead of wrapping */
+.auto-table td { white-space: nowrap; text-overflow: ellipsis; }
+
+/* ── Phosphor icons (CDN) ─────────────────────────────────────
+   <i class="ph-bold|ph-fill ph-*"> replaces the old inline <svg>.
+   Block-level + non-shrinking like svg was; the !important sizes
+   mirror the old `X svg { width/height }` rules so nothing shifts. */
+.ph-bold, .ph-fill { display: block; flex-shrink: 0; }
+.nav-item i { font-size: 16px !important; }
+.sidebar-logo-placeholder i { font-size: 18px !important; }
+.btn i, .dropdown-item i, .btn-outline-warning i { font-size: 15px !important; }
+.alert i, .input-prefix-icon i, .input-suffix-icon i, .btn-pw-toggle i,
+.theme-toggle i, .auto-table-page-btn i { font-size: 16px !important; }
+.alert i { margin-top: 1px; }
+.auth-theme-toggle i, .sort-btn i { font-size: 14px !important; }
+.doc-icon i { font-size: 18px !important; color: var(--text-secondary); }
+.auth-logo i { font-size: 26px !important; color: white; }
+.session-modal-icon i { font-size: 24px !important; }
+.empty-state i { font-size: 32px !important; opacity: 0.4; }
+.sidebar-logo-placeholder i { color: white; }
+.btn-pw-toggle i { pointer-events: none; }
+.step-dot i { font-size: 12px !important; color: var(--text-tertiary); }
+.step.done .step-dot i { color: white; }
+.step.active .step-dot i { color: var(--accent); }
+.auto-table-search i {
+    position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+    color: var(--text-tertiary); pointer-events: none;
+}
+
+/* ── School Year: one card, fits the viewport ─────────────────
+   Same pinning trick as .auto-table-card. Two columns of sections
+   split by one centered vertical divider; each column scrolls inside itself. */
+.main:has(.sy-card) { height: 100vh; overflow: hidden; }
+.page:has(.sy-card) { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+.sy-card {
+    flex: 1; min-height: 0;
+    display: grid; grid-template-columns: 1fr 1fr;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+.sy-col { display: flex; flex-direction: column; min-height: 0; min-width: 0; overflow-y: auto; }
+.sy-col + .sy-col { border-left: 1px solid var(--border); }
+.sy-sec { padding: var(--space-5) var(--space-6); flex-shrink: 0; }
+.sy-sec.sy-grow { flex: 1 1 0; min-height: 0; overflow-y: auto; }
+.sy-sec.sy-danger { margin-top: auto; }
+.sy-sec.sy-danger .card-title { color: var(--error); }
+@media (max-width: 960px) {
+    .main:has(.sy-card) { height: auto; overflow: visible; }
+    .page:has(.sy-card) { overflow: visible; }
+    .sy-card { grid-template-columns: 1fr; overflow: visible; }
+    .sy-col { overflow: visible; }
+    .sy-col + .sy-col { border-left: 0; border-top: 1px solid var(--border); }
+    .sy-sec.sy-grow { overflow: visible; }
+}
