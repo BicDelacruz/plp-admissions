@@ -288,7 +288,7 @@ $pageUrl  = fn(int $p): string => url('/staff/interviews/cancel-slot') . '?' . h
 ob_start();
 ?>
 
-<div style="margin-bottom:var(--space-5);flex-shrink:0">
+<div style="margin-bottom:var(--space-5)">
     <a href="<?= url('/staff/interviews/setup') ?>" class="btn btn-ghost btn-sm">← Back to Interview Slots</a>
 </div>
 
@@ -442,6 +442,7 @@ ob_start();
 <?php
 $content   = ob_get_clean();
 $pageTitle = 'Cancel Interview Slot (Bulk)';
+$pageActions = '<a href="' . e(url('/staff/interviews/setup')) . '" class="btn-icon" aria-label="Back to interview slots" title="Back to interview slots">' . icon('ic_fluent_arrow_left_24_regular', 18) . '</a>';
 $activeNav = 'interview';
 $pageWide  = true; // table-heavy page — match staff_slots / staff_review / staff_manage
 include VIEWS_PATH . '/layouts/app.php';

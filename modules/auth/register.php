@@ -33,7 +33,7 @@ if (!admissions_is_open()) {
             </div>
         </div>
         <div class="alert alert-error" style="margin-bottom:var(--space-5)"><?= e($closedMsg) ?></div>
-        <a href="<?= url('/login') ?>" class="btn btn-ghost btn-block">Back to Login</a>
+        <a href="<?= url('/login') ?>" class="btn btn-ghost btn-block" aria-label="Back to login" title="Back to login"><?= icon('ic_fluent_arrow_left_24_regular', 18) ?></a>
     </div>
     <?php
     $content   = ob_get_clean();

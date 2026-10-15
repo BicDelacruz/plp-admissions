@@ -307,6 +307,94 @@ $secondaryTabs = [
 ];
 $awaitingCount = (int)$countRows['awaiting_count'];
 ?>
+<div style="
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:var(--space-4);
+    margin-bottom:var(--space-3);
+    border-bottom:1px solid var(--border);
+    flex-wrap:wrap;
+">
+    <!-- LEFT: Search + Auto-Release -->
+    <div style="display:flex;align-items:center;gap:var(--space-2);padding-bottom:var(--space-1);flex-shrink:0">
+        <form method="GET" style="display:flex;align-items:center;gap:var(--space-2);margin:0">
+            <input type="hidden" name="result"   value="<?= e($filterRes) ?>">
+            <input type="hidden" name="sort_col" value="<?= e($sortCol) ?>">
+            <input type="hidden" name="sort_dir" value="<?= e($sortDir) ?>">
+
+            <!-- Search input -->
+            <div style="position:relative">
+                <?= icon('ic_fluent_search_24_filled', 14, 'position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-tertiary);pointer-events:none') ?>
+                <input type="text" name="q" value="<?= e($search) ?>" class="form-control"
+                       style="padding:0 var(--space-3) 0 32px;height:32px;min-height:32px;font-size:var(--text-sm);width:220px;border-radius:var(--radius-sm)"
+                       placeholder="Search name, email, course…">
+            </div>
+
+            <button type="submit" style="display:none" aria-hidden="true"></button>
+        </form>
+
+        <?php if ($canCloseCycle): ?>
+            <!-- Close Admissions (SSO / Admin) — bulk-rejects every
+                 unreleased applicant so leftover rows don't sit forever. -->
+            <button type="button" class="btn btn-ghost btn-sm"
+                    onclick="openCloseAdmissionsModal()"
+                    style="display:inline-flex;align-items:center;gap:6px;font-size:var(--text-xs);color:var(--error);border:1px solid var(--error)">
+                <?= icon('ic_fluent_lock_closed_24_regular', 13) ?>
+                Close Admissions
+            </button>
+        <?php endif; ?>
+    </div>
+
+    <!-- RIGHT: Bucket tabs (primary + de-emphasized Withdrawn) -->
+    <div style="display:flex;gap:var(--space-1);flex-wrap:wrap;align-items:flex-end">
+        <?php foreach ($primaryTabs as $val => $tab):
+            $active = ($filterRes === $val);
+        ?>
+            <a href="<?= filterUrl(['result' => $val]) ?>"
+               style="
+                   padding:var(--space-2) var(--space-4);
+                   border-bottom:2px solid <?= $active ? 'var(--accent)' : 'transparent' ?>;
+                   color:<?= $active ? 'var(--accent)' : 'var(--text-secondary)' ?>;
+                   font-size:var(--text-sm);
+                   font-weight:<?= $active ? 'var(--weight-semibold)' : 'var(--weight-regular)' ?>;
+                   white-space:nowrap;text-decoration:none;margin-bottom:-1px;
+                   transition:color var(--transition-fast);
+               ">
+                <?= $tab['label'] ?>
+                <span style="margin-left:4px;font-size:var(--text-xs);color:var(--text-tertiary)"><?= $tab['count'] ?></span>
+            </a>
+        <?php endforeach; ?>
+
+        <?php // Subtle separator before the de-emphasized archive tab. ?>
+        <span aria-hidden="true" style="
+            align-self:center;width:1px;height:14px;background:var(--border);
+            margin:0 var(--space-2) calc(var(--space-1) + 2px)">
+        </span>
+
+        <?php foreach ($secondaryTabs as $val => $tab):
+            $active = ($filterRes === $val);
+        ?>
+            <a href="<?= filterUrl(['result' => $val]) ?>"
+               style="
+                   padding:var(--space-2) var(--space-3);
+                   border-bottom:2px solid <?= $active ? 'var(--text-tertiary)' : 'transparent' ?>;
+                   color:<?= $active ? 'var(--text-secondary)' : 'var(--text-tertiary)' ?>;
+                   font-size:var(--text-xs);
+                   font-weight:<?= $active ? 'var(--weight-medium)' : 'var(--weight-regular)' ?>;
+                   white-space:nowrap;text-decoration:none;margin-bottom:-1px;
+                   opacity:<?= $active ? '1' : '.75' ?>;
+                   transition:color var(--transition-fast),opacity var(--transition-fast);
+               "
+               onmouseover="this.style.opacity='1'"
+               onmouseout="this.style.opacity='<?= $active ? '1' : '.75' ?>'">
+                <?= $tab['label'] ?>
+                <span style="margin-left:4px;font-size:var(--text-xs);color:var(--text-tertiary)"><?= $tab['count'] ?></span>
+            </a>
+        <?php endforeach; ?>
+    </div>
+</div>
+
 <?php if ($awaitingCount > 0): ?>
 <!-- Awaiting-interview nudge — replaces the old "Awaiting interview" tab.
      SSO can't release these here (Professor hasn't evaluated yet), so
@@ -380,83 +468,35 @@ $awaitingCount = (int)$countRows['awaiting_count'];
 </div>
 <?php endif; ?>
 
-<?php
-// Same structure as the audit log (and lakbay-pasig's AdminDataTable): one
-// .auto-table-wrap that AutoPageSize measures, the card with the toolbar and
-// the fixed-height table fused together, and the pagination bar under the card.
-$sortParams = ['q' => $search, 'result' => $filterRes, 'per_page' => $perPage, 'page' => 1];
-?>
-<div class="auto-table-wrap" data-auto-page-size="results-manage" data-current-per-page="<?= (int)$perPage ?>">
+<style>
+/* Make the table card stretch to fill the .page area so the gap below the
+   card matches the .page horizontal padding (var(--space-8) = 32px). */
+.page:has(.results-table-card) { display:flex; flex-direction:column; }
+.results-table-card { flex:1; min-height:300px; }
+</style>
 
-<div class="auto-table-card">
-
-    <!-- Toolbar: search + Close Admissions (left), bucket tabs (right), one row -->
-    <form method="GET" class="auto-table-toolbar">
-        <input type="hidden" name="result"   value="<?= e($filterRes) ?>">
-        <input type="hidden" name="sort_col" value="<?= e($sortCol) ?>">
-        <input type="hidden" name="sort_dir" value="<?= e($sortDir) ?>">
-        <input type="hidden" name="per_page" value="<?= (int)$perPage ?>">
-
-        <div class="auto-table-search" style="max-width:320px">
-            <?= icon('ic_fluent_search_24_filled', 14) ?>
-            <input type="text" name="q" class="form-input" placeholder="Search name, email, course…" value="<?= e($search) ?>">
-        </div>
-
-        <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
-        <?php if ($search !== ''): ?>
-            <a href="<?= e(filterUrl(['q' => ''])) ?>" class="btn btn-ghost btn-sm">Clear</a>
-        <?php endif; ?>
-
-        <?php if ($canCloseCycle): ?>
-            <!-- Close Admissions (SSO / Admin) — bulk-rejects every
-                 unreleased applicant so leftover rows don't sit forever. -->
-            <button type="button" class="btn btn-ghost btn-sm"
-                    onclick="openCloseAdmissionsModal()"
-                    style="display:inline-flex;align-items:center;gap:6px;font-size:var(--text-xs);color:var(--error);border:1px solid var(--error)">
-                <?= icon('ic_fluent_lock_closed_24_regular', 13) ?>
-                Close Admissions
-            </button>
-        <?php endif; ?>
-
-        <span class="toolbar-spacer"></span>
-
-        <!-- Bucket tabs (primary + de-emphasized Withdrawn) -->
-        <?php foreach (array_merge($primaryTabs, $secondaryTabs) as $val => $tab):
-            $active = ($filterRes === $val);
-            $muted  = isset($secondaryTabs[$val]);
-        ?>
-            <a href="<?= e(filterUrl(['result' => $val])) ?>"
-               class="btn btn-sm <?= $active ? 'btn-secondary' : 'btn-ghost' ?>"
-               style="white-space:nowrap;<?= $active ? 'color:var(--accent);font-weight:var(--weight-semibold)' : ($muted ? 'color:var(--text-tertiary)' : 'color:var(--text-secondary)') ?>">
-                <?= $tab['label'] ?>
-                <span style="margin-left:4px;font-size:var(--text-xs);color:var(--text-tertiary)"><?= $tab['count'] ?></span>
-            </a>
-        <?php endforeach; ?>
-    </form>
-
-    <!-- Table body — sized so the rows AutoPageSize picks fit exactly; it
-         only scrolls as a safety net (e.g. a very narrow window) -->
-    <div class="auto-table-body">
-        <table class="auto-table" id="results-table">
-            <thead>
-                <tr>
-                    <?php if ($canRelease): ?>
-                    <th class="col-check">
-                        <input type="checkbox" id="res-select-all" onchange="resToggleAll(this)"
-                               style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent)">
-                    </th>
-                    <?php endif; ?>
-                    <?= sortable_th('applicant', 'Applicant', $sortCol, $sortDir, $sortParams) ?>
-                    <?= sortable_th('course',    'Course',    $sortCol, $sortDir, $sortParams) ?>
-                    <th style="width:100px">Exam Score</th>
-                    <th style="width:120px">Interview</th>
-                    <?= sortable_th('result',    'Result',    $sortCol, $sortDir, $sortParams, 'width:200px') ?>
-                    <?= sortable_th('released',  'Released',  $sortCol, $sortDir, $sortParams, 'width:120px') ?>
-                    <th style="width:240px">Actions</th>
-                </tr>
-            </thead>
-            <?php if (!empty($result['data'])): ?>
-            <tbody>
+<!-- ── Results table ──────────────────────────────────────── -->
+<div class="card results-table-card" style="padding:0;overflow:hidden;display:flex;flex-direction:column">
+    <table class="table" id="results-table">
+        <thead>
+            <tr>
+                <?php if ($canRelease): ?>
+                <th style="width:40px;padding-left:var(--space-3)">
+                    <input type="checkbox" id="res-select-all" onchange="resToggleAll(this)"
+                           style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent)">
+                </th>
+                <?php endif; ?>
+                <?= sortable_th('applicant', 'Applicant',   $sortCol, $sortDir, ['q' => $search, 'result' => $filterRes, 'page' => 1]) ?>
+                <?= sortable_th('course',    'Course',      $sortCol, $sortDir, ['q' => $search, 'result' => $filterRes, 'page' => 1]) ?>
+                <th>Exam Score</th>
+                <th>Interview</th>
+                <?= sortable_th('result',    'Result',      $sortCol, $sortDir, ['q' => $search, 'result' => $filterRes, 'page' => 1]) ?>
+                <?= sortable_th('released',  'Released',    $sortCol, $sortDir, ['q' => $search, 'result' => $filterRes, 'page' => 1]) ?>
+                <th style="width:160px">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        <?php if (!empty($result['data'])): ?>
             <?php foreach ($result['data'] as $row):
                 $bucket     = $row['bucket'] ?? 'awaiting';
                 $isReady    = ($bucket === 'ready_accept' || $bucket === 'ready_reject');
@@ -1195,6 +1235,9 @@ include VIEWS_PATH . '/partials/applicant_drawer.php';
 
 $content   = ob_get_clean();
 $pageTitle = 'Results';
+$pageActions = $canCloseCycle
+    ? '<button type="button" class="btn btn-ghost btn-sm results-close-cycle" onclick="openCloseAdmissionsModal()">' . icon('ic_fluent_lock_closed_24_regular', 14) . ' Close Admissions</button>'
+    : '';
 $activeNav = 'results';
 $pageWide  = true;
 include VIEWS_PATH . '/layouts/app.php';

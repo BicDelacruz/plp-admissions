@@ -38,10 +38,6 @@ try {
 ob_start();
 ?>
 
-<div style="margin-bottom:var(--space-5)">
-    <a href="<?= url('/staff/interviews') ?>" class="btn btn-ghost btn-sm">&larr; Back</a>
-</div>
-
 <style>
 @keyframes q-pulse-dot {
     0%,100% { opacity: 1; transform: scale(1); }
@@ -129,6 +125,7 @@ ob_start();
 <?php
 $content   = ob_get_clean();
 $pageTitle = 'Live Queue';
+$pageActions = '<a href="' . e(url('/staff/interviews')) . '" class="btn-icon" aria-label="Back to interviews" title="Back to interviews">' . icon('ic_fluent_arrow_left_24_regular', 18) . '</a>';
 $activeNav = 'interviews';
 $pageWide  = true;
 include VIEWS_PATH . '/layouts/app.php';

@@ -182,7 +182,17 @@ $items = [
 ];
 
 $visible = array_values(array_filter($items, fn($i) => in_array($navRole, $i['roles'], true)));
-
-// Rendered by the shared sidebar partial (collapse / expand markup lives there).
-$sidebarItems = $visible;
-include __DIR__ . '/sidebar_nav_items.php';
+?>
+<?php foreach ($visible as $item): ?>
+    <a href="<?= url($item['href']) ?>"
+       class="nav-item <?= $nav === $item['key'] ? 'active' : '' ?>"
+       aria-current="<?= $nav === $item['key'] ? 'page' : 'false' ?>">
+        <?php include __DIR__ . '/icons/' . $item['icon'] . '.svg'; ?>
+        <?= e($item['label']) ?>
+        <?php if (!empty($item['alert'])): ?>
+            <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--error);margin-left:auto;flex-shrink:0" title="Needs setup"></span>
+        <?php elseif (!empty($item['pending'])): ?>
+            <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#f59e0b;margin-left:auto;flex-shrink:0" title="Has pending work"></span>
+        <?php endif; ?>
+    </a>
+<?php endforeach; ?>

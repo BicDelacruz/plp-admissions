@@ -79,13 +79,6 @@ $years = $db->query(
 ob_start();
 ?>
 
-<div style="display:flex;justify-content:flex-end;margin-bottom:var(--space-6)">
-    <a href="?export=csv&sy=<?= urlencode($schoolYear) ?>" class="btn btn-primary">
-        <?= icon('ic_fluent_arrow_download_24_regular', 16, 'margin-right:6px') ?>
-        Export CSV
-    </a>
-</div>
-
 <!-- Year filter -->
 <div style="display:flex;gap:var(--space-2);margin-bottom:var(--space-6);flex-wrap:wrap">
     <?php foreach ($years as $yr): ?>
@@ -145,6 +138,7 @@ ob_start();
 <?php
 $content   = ob_get_clean();
 $pageTitle = 'Results Export';
+$pageActions = '<a href="?export=csv&amp;sy=' . urlencode($schoolYear) . '" class="btn btn-primary">' . icon('ic_fluent_arrow_download_24_regular', 16) . ' Export CSV</a>';
 $activeNav = 'results-export';
 $pageWide  = true;
 include VIEWS_PATH . '/layouts/app.php';

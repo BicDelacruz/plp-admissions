@@ -92,12 +92,11 @@
     --leading-normal: 1.5;
     --leading-relaxed:1.65;
 
-    /* Border radius — 8px for components, 16px for modals and feature panels.
-       sm and md are 8px, lg and xl are 16px, so older rules land on the two values. */
-    --radius-sm:  8px;
-    --radius-md:  8px;
-    --radius-lg:  16px;
-    --radius-xl:  16px;
+    /* Border radius */
+    --radius-sm:  6px;
+    --radius-md:  10px;
+    --radius-lg:  14px;
+    --radius-xl:  20px;
     --radius-full:9999px;
 
     /* Shadows — minimal, functional */
@@ -107,9 +106,7 @@
     --shadow-lg:  0 8px 24px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.04);
 
     /* Layout */
-    --sidebar-width:    256px;   /* expanded rail */
-    --sidebar-width-icon: 48px;  /* collapsed (icon) rail */
-    --sidebar-width-mobile: 288px; /* phone drawer */
+    --sidebar-width:    272px;
     --header-height:    60px;
     --content-max-width:900px;
 
@@ -433,130 +430,45 @@ button { cursor: pointer; }
    reason: the rail clips its own overflow). Never shown while expanded. */
 .sidebar-tooltip {
     position: fixed;
-    z-index: 300;
-    display: none;
-    padding: 6px var(--space-3);
-    font-size: var(--text-xs);
-    line-height: 1.4;
-    white-space: nowrap;
-    color: var(--text-primary);
-    background: var(--bg-elevated);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-md);
-    pointer-events: none;
-}
-.sidebar-tooltip.is-visible { display: block; }
-
-/* Phone-only pieces. Hidden on desktop. */
-.sidebar-overlay { display: none; }
-.mobile-bar      { display: none; }
-
-/* Desktop collapsed state: the icon rail. */
-@media (min-width: 769px) {
-    .sidebar-wrapper[data-collapsible="icon"] .sidebar-gap,
-    .sidebar-wrapper[data-collapsible="icon"] .sidebar {
-        width: var(--sidebar-width-icon);
-    }
-
-    .sidebar-wrapper[data-collapsible="icon"] .sidebar-logo-row--expanded { display: none; }
-    .sidebar-wrapper[data-collapsible="icon"] .sidebar-logo-toggle        { display: flex; }
-
-    /* Nothing scrolls while collapsed (Lakbay: overflow-hidden on content). */
-    .sidebar-wrapper[data-collapsible="icon"] .sidebar-nav { overflow: hidden; }
-
-    /* Rows shrink to a 32px square around the icon. The label stays in the
-       DOM, clipped, so the link keeps its accessible name. */
-    .sidebar-wrapper[data-collapsible="icon"] .nav-item {
-        width: 32px;
-        height: 32px;
-        padding: var(--space-2);
-    }
-
-    /* Dot moves from the right of the row to the corner of the icon. */
-    .sidebar-wrapper[data-collapsible="icon"] .nav-dot {
-        position: absolute;
-        top: 4px;
-        right: 4px;
-        width: 8px;
-        height: 8px;
-        margin: 0;
-    }
-
-    /* Account row: avatar only. */
-    .sidebar-wrapper[data-collapsible="icon"] .sidebar-user {
-        width: 32px;
-        height: 32px;
-        padding: 0;
-        margin-bottom: var(--space-1);
-    }
-    .sidebar-wrapper[data-collapsible="icon"] .user-info,
-    .sidebar-wrapper[data-collapsible="icon"] .sidebar-user-caret { display: none; }
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 50;
+    transition: transform var(--transition-normal);
 }
 
-/* Phone: off-canvas drawer + top bar. */
-@media (max-width: 768px) {
-    .sidebar-gap { display: none; }
-
-    .sidebar {
-        width: var(--sidebar-width-mobile);
-        transform: translateX(-100%);
-        visibility: hidden; /* closed drawer must not be tabbable */
-        transition: transform 200ms ease-in-out, visibility 0s linear 200ms;
-    }
-    .sidebar-wrapper[data-mobile-open="true"] .sidebar {
-        transform: translateX(0);
-        visibility: visible;
-        box-shadow: var(--shadow-lg);
-        transition: transform 300ms ease-in-out, visibility 0s;
-    }
-
-    .sidebar-overlay {
-        display: block;
-        position: fixed;
-        inset: 0;
-        z-index: 49;
-        background: rgba(0, 0, 0, 0.4);
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 200ms ease;
-    }
-    .sidebar-wrapper[data-mobile-open="true"] .sidebar-overlay {
-        opacity: 1;
-        pointer-events: auto;
-    }
-
-    .mobile-bar {
-        display: flex;
-        align-items: center;
-        gap: var(--space-2);
-        flex-shrink: 0;
-        height: 56px;
-        padding: 0 var(--space-6);
-        border-bottom: 1px solid var(--border);
-    }
-    .mobile-bar .sidebar-icon-btn { width: 28px; height: 28px; }
-    .mobile-bar-trigger { position: relative; }
-    .mobile-bar-dot {
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: var(--accent);
-        pointer-events: none;
-    }
-
-    body.sidebar-drawer-open { overflow: hidden; }
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    /* Extra right padding (var(--space-12) = 48px) constrains the school-name
+       width so long names wrap nicely (e.g. "Pamantasan ng" / "Lungsod ng Pasig"). */
+    padding: var(--space-5) var(--space-12) var(--space-5) var(--space-5);
+    border-bottom: 1px solid var(--border);
+    min-height: var(--header-height);
 }
 
-@media (prefers-reduced-motion: reduce) {
-    .sidebar-gap,
-    .sidebar,
-    .sidebar-overlay,
-    .nav-item { transition: none !important; }
+.sidebar-brand-toggle {
+    display:flex;
+    align-items:center;
+    gap:var(--space-3);
+    width:100%;
+    min-width:0;
+    padding:0;
+    border:0;
+    background:transparent;
+    color:inherit;
+    text-align:left;
+    cursor:pointer;
 }
+
+.sidebar-brand-toggle:focus-visible {
+    outline:2px solid var(--accent);
+    outline-offset:4px;
+}
+
+.sidebar-brand-toggle:hover .sidebar-school-name { color:var(--accent); }
+.sidebar-brand-chevron { margin-left:auto;flex-shrink:0;color:var(--text-tertiary);transition:transform var(--transition-normal); }
 
 .sidebar-logo {
     width: 40px;
@@ -782,7 +694,26 @@ button { cursor: pointer; }
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    min-width: 0;
+    transition: margin-left var(--transition-normal);
 }
+
+.layout.sidebar-collapsed .sidebar { width:var(--sidebar-collapsed-width); }
+.layout.sidebar-collapsed .main { margin-left:var(--sidebar-collapsed-width); }
+.layout.sidebar-collapsed .sidebar-brand { padding-left:var(--space-3);padding-right:var(--space-3);justify-content:center; }
+.layout.sidebar-collapsed .sidebar-brand-toggle { justify-content:center; }
+.layout.sidebar-collapsed .sidebar-brand-chevron { display:none; }
+.layout.sidebar-collapsed .sidebar-school-name,
+.layout.sidebar-collapsed .sidebar-brand-chevron,
+.layout.sidebar-collapsed .sidebar-user .user-info,
+.layout.sidebar-collapsed .sidebar-user > svg:last-child { display:none; }
+.layout.sidebar-collapsed .sidebar-nav .nav-item { justify-content:center;gap:0;padding-left:0;padding-right:0;font-size:0; }
+.layout.sidebar-collapsed .sidebar-nav .nav-item > svg { width:20px;height:20px; }
+.layout.sidebar-collapsed .sidebar-nav .nav-item > span[title] { position:absolute;top:7px;right:8px;margin:0 !important; }
+.layout.sidebar-collapsed .sidebar-footer { padding:var(--space-2); }
+.layout.sidebar-collapsed .sidebar-user { justify-content:center;padding:var(--space-2) 0; }
+
+.mobile-menu-toggle { display:none; }
 
 /* Top header bar */
 .topbar {
@@ -819,6 +750,7 @@ button { cursor: pointer; }
     max-width: var(--content-max-width);
     width: 100%;
     margin: 0 auto;
+    min-width:0;
 }
 
 /* Full-width page — for tables and data-heavy pages */
@@ -828,6 +760,21 @@ button { cursor: pointer; }
 
 .page-header {
     margin-bottom: var(--space-8);
+}
+
+.page-header-generated {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:var(--space-4);
+}
+
+.page-header-actions {
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:var(--space-2);
+    flex-wrap:wrap;
 }
 
 .page-title {
@@ -1103,13 +1050,16 @@ textarea:-ms-input-placeholder {
 
 /* ── Select — custom chevron ───────────────────────────────── */
 .form-select,
-select.form-control {
+select {
     cursor: pointer;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M6 9l6 6 6-6' stroke='%239a9a92' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right var(--space-3) center;
     background-size: 16px 16px;
     padding-right: calc(var(--space-3) + 24px);
+    border-radius:var(--radius);
+    background-color:var(--bg-elevated);
+    color:var(--text-primary);
 }
 
 /* ── Exam take — short answer & paragraph inputs ────────────── */
@@ -1829,26 +1779,23 @@ tbody tr:hover { background: var(--bg-overlay); }
     position: relative;
 }
 
-/* Opens upward and hugs the account row's left edge (Lakbay: side=top align=start),
-   so it never runs off the 48px collapsed rail. */
-.sidebar-footer .dropdown-menu { bottom: calc(100% + var(--space-2)); top: auto; left: 0; right: auto; min-width: 200px; }
+.sidebar-footer .dropdown-menu { bottom: calc(100% + var(--space-2)); top: auto; }
 
 .dropdown-menu {
     position: absolute;
-    top: calc(100% + var(--space-2));
+    top: calc(100% + var(--space-1));
     right: 0;
-    min-width: 180px;
-    background: var(--bg-elevated);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
-    padding: var(--space-2) 0;
+    min-width: 176px;
+    padding: var(--space-1) 0;
     z-index: 100;
     opacity: 0;
     visibility: hidden;
     transform: translateY(-4px);
     transition: all var(--transition-fast);
 }
+
+/* All interface elements use the single shared corner token. */
+:where(*) { border-radius:var(--radius) !important; }
 
 .dropdown.open .sidebar-footer .dropdown-menu { bottom: calc(100% + var(--space-2)); top: auto; }
 
@@ -1878,6 +1825,71 @@ tbody tr:hover { background: var(--bg-overlay); }
 }
 
 .dropdown-item svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+.segmented-control {
+    display:inline-flex;
+    align-items:center;
+    gap:var(--space-1);
+    padding:var(--space-1);
+    border:1px solid var(--border);
+    background:var(--bg-subtle);
+}
+
+.segmented-control > a,
+.segmented-control > button {
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:var(--space-1);
+    padding:var(--space-2) var(--space-3);
+    border:0;
+    background:transparent;
+    color:var(--text-secondary);
+    font:inherit;
+    font-size:var(--text-sm);
+    font-weight:var(--weight-medium);
+    line-height:1.2;
+    text-decoration:none;
+    white-space:nowrap;
+    cursor:pointer;
+}
+
+.segmented-control > .is-active {
+    background:var(--bg-elevated);
+    color:var(--text-primary);
+    box-shadow:var(--shadow-xs);
+}
+
+.segmented-control > a:hover,
+.segmented-control > button:hover { color:var(--text-primary); opacity:1; }
+
+.results-toolbar {
+    display:flex;
+    align-items:center;
+    gap:var(--space-3);
+    flex-wrap:nowrap;
+    padding:var(--space-3);
+    border-bottom:1px solid var(--border);
+    background:var(--bg-elevated);
+}
+
+.results-toolbar .segmented-control { flex:1;min-width:0;max-width:100%;overflow-x:auto; }
+.results-toolbar-search { flex:0 0 250px;min-width:0; }
+.results-toolbar-search form { width:100%; }
+.results-close-cycle { color:var(--error); }
+
+@media (max-width:760px) {
+    .results-toolbar { align-items:stretch;flex-wrap:wrap; }
+    .results-toolbar .segmented-control { flex:1 0 100%; }
+    .results-toolbar-search { flex:1 1 100%; }
+    .results-toolbar-search input { width:100% !important; }
+}
+
+.segmented-control-count {
+    color:var(--text-tertiary);
+    font-size:var(--text-sm);
+    font-variant-numeric:tabular-nums;
+}
 
 .dropdown-separator {
     height: 1px;
@@ -3847,57 +3859,3 @@ html[data-font-size="xlarge"] { font-size: 22px; --height-table-row: 68px; --hei
 
 /* Keep every row one line tall: clip instead of wrapping */
 .auto-table td { white-space: nowrap; text-overflow: ellipsis; }
-
-/* ── Phosphor icons (CDN) ─────────────────────────────────────
-   <i class="ph-bold|ph-fill ph-*"> replaces the old inline <svg>.
-   Block-level + non-shrinking like svg was; the !important sizes
-   mirror the old `X svg { width/height }` rules so nothing shifts. */
-.ph-bold, .ph-fill { display: block; flex-shrink: 0; }
-.nav-item i { font-size: 16px !important; }
-.sidebar-logo-placeholder i { font-size: 18px !important; }
-.btn i, .dropdown-item i, .btn-outline-warning i { font-size: 15px !important; }
-.alert i, .input-prefix-icon i, .input-suffix-icon i, .btn-pw-toggle i,
-.theme-toggle i, .auto-table-page-btn i { font-size: 16px !important; }
-.alert i { margin-top: 1px; }
-.auth-theme-toggle i, .sort-btn i { font-size: 14px !important; }
-.doc-icon i { font-size: 18px !important; color: var(--text-secondary); }
-.auth-logo i { font-size: 26px !important; color: white; }
-.session-modal-icon i { font-size: 24px !important; }
-.empty-state i { font-size: 32px !important; opacity: 0.4; }
-.sidebar-logo-placeholder i { color: white; }
-.btn-pw-toggle i { pointer-events: none; }
-.step-dot i { font-size: 12px !important; color: var(--text-tertiary); }
-.step.done .step-dot i { color: white; }
-.step.active .step-dot i { color: var(--accent); }
-.auto-table-search i {
-    position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
-    color: var(--text-tertiary); pointer-events: none;
-}
-
-/* ── School Year: one card, fits the viewport ─────────────────
-   Same pinning trick as .auto-table-card. Two columns of sections
-   separated by hairlines; Applicant History scrolls inside itself. */
-.main:has(.sy-card) { height: 100vh; overflow: hidden; }
-.page:has(.sy-card) { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
-.sy-card {
-    flex: 1; min-height: 0;
-    display: grid; grid-template-columns: 1.15fr 1fr;
-    background: var(--bg-elevated);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-}
-.sy-col { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
-.sy-col + .sy-col { border-left: 1px solid var(--border); }
-.sy-sec { padding: var(--space-5) var(--space-6); flex-shrink: 0; }
-.sy-sec + .sy-sec { border-top: 1px solid var(--border); }
-.sy-sec.sy-grow { flex: 1 1 0; min-height: 0; overflow-y: auto; }
-.sy-sec.sy-danger { margin-top: auto; }
-.sy-sec.sy-danger .card-title { color: var(--error); }
-@media (max-width: 960px) {
-    .main:has(.sy-card) { height: auto; overflow: visible; }
-    .page:has(.sy-card) { overflow: visible; }
-    .sy-card { grid-template-columns: 1fr; overflow: visible; }
-    .sy-col + .sy-col { border-left: 0; border-top: 1px solid var(--border); }
-    .sy-sec.sy-grow { overflow: visible; }
-}

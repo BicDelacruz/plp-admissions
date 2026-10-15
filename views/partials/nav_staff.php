@@ -25,7 +25,15 @@ $_navIntReady = (int)$_navDb->query(
 $items = [
     ['href' => '/staff/interviews/queue',  'key' => 'interviews', 'label' => 'Interview Queue', 'icon' => 'users',     'alert' => !$_navIntReady],
 ];
-
-// Rendered by the shared sidebar partial (collapse / expand markup lives there).
-$sidebarItems = $items;
-include __DIR__ . '/sidebar_nav_items.php';
+?>
+<?php foreach ($items as $item): ?>
+    <a href="<?= url($item['href']) ?>"
+       class="nav-item <?= $nav === $item['key'] ? 'active' : '' ?>"
+       aria-current="<?= $nav === $item['key'] ? 'page' : 'false' ?>">
+        <?php include __DIR__ . '/icons/' . $item['icon'] . '.svg'; ?>
+        <?= e($item['label']) ?>
+        <?php if (!empty($item['alert'])): ?>
+            <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--error);margin-left:auto;flex-shrink:0" title="Needs setup"></span>
+        <?php endif; ?>
+    </a>
+<?php endforeach; ?>

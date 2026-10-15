@@ -104,7 +104,7 @@ ob_start();
 <?php endforeach; ?>
 
 <div style="display:flex;justify-content:flex-start;margin-bottom:var(--space-4);max-width:560px;margin-left:auto;margin-right:auto">
-    <a href="javascript:history.back()" class="btn btn-ghost btn-sm" style="display:flex;align-items:center;gap:var(--space-1)">
+    <a href="javascript:history.back()" class="btn btn-ghost btn-sm" style="display:flex;align-items:center;gap:5px">
         <?= icon('ic_fluent_arrow_left_24_regular', 16) ?>
         Back
     </a>
@@ -275,5 +275,6 @@ function setSettingsSex(val) {
 <?php
 $content   = ob_get_clean();
 $pageTitle = 'Settings';
+$pageActions = '<a href="javascript:history.back()" class="btn-icon" aria-label="Back" title="Back">' . icon('ic_fluent_arrow_left_24_regular', 18) . '</a>';
 $activeNav = 'settings';
 include VIEWS_PATH . '/layouts/app.php';

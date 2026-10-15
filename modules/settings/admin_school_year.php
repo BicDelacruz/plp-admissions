@@ -452,6 +452,8 @@ ob_start();
 </div><!-- /sy-col -->
 <div class="sy-col">
 
+    <div class="school-year-history-layout">
+        <div class="school-year-history-tools">
     <!-- ── Import Historical Records ──────────────────────────────── -->
     <div class="sy-sec">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-2)">
@@ -468,6 +470,28 @@ ob_start();
         </p>
     </div>
 
+    <!-- New cycle — danger zone -->
+    <div class="card card-danger">
+        <div class="card-title" style="color:var(--error);margin-bottom:var(--space-1)">Start New Admission Cycle</div>
+        <p class="card-description" style="margin-bottom:var(--space-5)">
+            Starts a new admissions cycle. The current exam is deactivated and all previous applicant data is preserved.
+        </p>
+        <form method="POST">
+            <?= csrf_field() ?>
+            <input type="hidden" name="action" value="new_cycle">
+            <div>
+                <label class="form-label">Type <strong>Start new cycle</strong> to confirm</label>
+                <input type="text" name="confirm_text" class="form-input"
+                       placeholder="Start new cycle" autocomplete="off" style="max-width:280px">
+            </div>
+            <div style="margin-top:var(--space-5)">
+                <button type="submit" class="btn btn-danger">Start New Cycle</button>
+            </div>
+        </form>
+    </div>
+        </div>
+
+        <div class="school-year-history-summary">
     <!-- Historical summary -->
     <?php if (!empty($statsByYear)): ?>
     <div class="sy-sec sy-grow">
@@ -506,7 +530,7 @@ ob_start();
     <?php endif; ?>
 
     <!-- New cycle — danger zone -->
-    <div class="sy-sec sy-danger">
+    <div class="card card-danger">
         <div class="card-title" style="color:var(--error);margin-bottom:var(--space-1)">Start New Admission Cycle</div>
         <p class="card-description" style="margin-bottom:var(--space-5)">
             Starts a new admissions cycle. The current exam is deactivated and all previous applicant data is preserved.
@@ -534,6 +558,34 @@ ob_start();
 ════════════════════════════════════════════════════════════ -->
 <style>
 @keyframes ai-pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+.school-year-history-layout {
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    gap:var(--space-6);
+    position:relative;
+    align-items:start;
+}
+.school-year-history-layout::before {
+    content:'';
+    position:absolute;
+    top:0;
+    bottom:0;
+    left:50%;
+    border-left:1px solid var(--border);
+    pointer-events:none;
+}
+.school-year-history-tools,
+.school-year-history-summary {
+    display:flex;
+    flex-direction:column;
+    gap:var(--space-4);
+    min-width:0;
+}
+.school-year-history-summary .card { border-bottom:0; }
+@media (max-width:760px) {
+    .school-year-history-layout { grid-template-columns:1fr; }
+    .school-year-history-layout::before { display:none; }
+}
 .ai-status-bar { display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--radius-md);font-size:var(--text-sm);border:1px solid; }
 .ai-status-bar.connected { background:#f0faf4;border-color:#a7d9b8;color:#1a5c32; }
 .ai-status-bar.disconnected { background:#fafafa;border-color:var(--border);color:var(--text-secondary); }
@@ -581,8 +633,8 @@ ob_start();
             <div id="legacy-puter-status" class="ai-status-bar disconnected">
                 <div class="ai-status-dot"></div>
                 <div id="legacy-puter-status-text" style="flex:1">Checking Puter connection…</div>
-                <a id="legacy-puter-link" href="https://puter.com" target="_blank" style="display:none;font-size:var(--text-xs);font-weight:var(--weight-medium);color:var(--accent);text-decoration:none;white-space:nowrap">Create account →</a>
-                <button id="legacy-puter-signin-btn" onclick="legacyPuterSignIn()" style="display:none;font-size:var(--text-xs);font-weight:var(--weight-medium);color:var(--accent);background:none;border:none;cursor:pointer;padding:0;white-space:nowrap">Sign in →</button>
+                <a id="legacy-puter-link" href="https://puter.com" target="_blank" style="display:none;font-size:var(--text-xs);font-weight:var(--weight-medium);color:var(--accent);text-decoration:none;white-space:nowrap">Create account <?= icon('ic_fluent_arrow_right_24_regular', 14) ?></a>
+                <button id="legacy-puter-signin-btn" onclick="legacyPuterSignIn()" style="display:none;font-size:var(--text-xs);font-weight:var(--weight-medium);color:var(--accent);background:none;border:none;cursor:pointer;padding:0;white-space:nowrap">Sign in <?= icon('ic_fluent_arrow_right_24_regular', 14) ?></button>
                 <button id="legacy-puter-signout-btn" onclick="legacyPuterSignOut()" style="display:none;font-size:var(--text-xs);color:var(--text-tertiary);background:none;border:none;cursor:pointer;padding:0">Sign out</button>
             </div>
 
@@ -647,7 +699,7 @@ ob_start();
             <div id="legacy-step-preview" style="display:none;flex-direction:column;gap:var(--space-3)">
                 <div style="display:flex;align-items:center;justify-content:space-between">
                     <div style="font-size:var(--text-sm);font-weight:var(--weight-semibold)" id="legacy-preview-count"></div>
-                    <button class="btn btn-ghost btn-sm" onclick="resetLegacyImport()">← Try again</button>
+                    <button class="btn btn-ghost btn-sm" onclick="resetLegacyImport()"><?= icon('ic_fluent_arrow_left_24_regular', 16) ?> Try again</button>
                 </div>
                 <div class="ai-warn-strip">
                     <?= icon('warning:fill', 14, 'margin-top:1px;color:#d97706') ?>
@@ -681,7 +733,7 @@ ob_start();
                     <?= icon('warning-circle:fill', 16, 'margin-top:1px') ?>
                     <span id="legacy-error-msg"></span>
                 </div>
-                <button class="btn btn-ghost btn-sm" style="align-self:flex-start" onclick="resetLegacyImport()">← Try again</button>
+                <button class="btn btn-ghost btn-sm" style="align-self:flex-start" onclick="resetLegacyImport()"><?= icon('ic_fluent_arrow_left_24_regular', 16) ?> Try again</button>
             </div>
 
         </div><!-- /modal-body -->
