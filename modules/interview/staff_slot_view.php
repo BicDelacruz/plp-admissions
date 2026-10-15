@@ -189,13 +189,6 @@ ob_start();
     <div class="alert alert-success" style="margin-bottom:var(--space-4);flex-shrink:0"><?= e($s) ?></div>
 <?php endforeach; ?>
 
-<!-- Breadcrumb -->
-<div data-page-actions style="font-size:var(--text-sm);flex-shrink:0">
-    <a href="<?= url('/staff/interviews') ?>" style="color:var(--text-secondary)">
-        <?= icon('arrow-left', 14) ?> Back to sessions
-    </a>
-</div>
-
 <!-- Slot summary -->
 <div class="card" style="padding:var(--space-5);margin-bottom:var(--space-5);flex-shrink:0">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--space-3)">
@@ -576,6 +569,7 @@ ob_start();
 <?php
 $content   = ob_get_clean();
 $pageTitle = 'Interview Roster';
+$pageActions = '<a href="' . e(url('/staff/interviews')) . '" class="btn-icon" aria-label="Back to interviews" title="Back to interviews">' . icon('ic_fluent_arrow_left_24_regular', 18) . '</a>';
 $activeNav = 'interviews';
 $pageWide  = true; // table-heavy page — same as the other auto-table pages
 include VIEWS_PATH . '/layouts/app.php';

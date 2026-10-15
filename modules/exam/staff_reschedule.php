@@ -436,18 +436,12 @@ $hasFilters = ($search !== '' || $filterDept !== '' || $filterDate !== '');
 ob_start();
 ?>
 
-<div data-page-actions style="margin-bottom:var(--space-5);display:flex;justify-content:space-between;align-items:center;gap:var(--space-3);flex-wrap:wrap;flex-shrink:0">
-    <a href="<?= url('/staff/exam/slots') ?>" class="btn btn-ghost btn-sm"><?= icon('arrow-left', 14) ?> Back to Exam Slots</a>
-    <?php if ($canReschedule): ?>
-        <a href="<?= url('/staff/exam/cancel-slot') ?>" class="btn btn-ghost btn-sm">
-            Cancel a slot (bulk move) <?= icon('arrow-right', 14) ?>
-        </a>
-    <?php else: ?>
-        <span style="font-size:var(--text-xs);color:var(--text-tertiary)">
-            Only SSO and Admin can approve or deny exam reschedule requests.
-        </span>
-    <?php endif; ?>
-</div>
+<style>
+.page:has(.sa-table-card) { display:flex; flex-direction:column; }
+.sa-table-card { flex:1; min-height:300px; display:flex; flex-direction:column; }
+.sa-table-card table { flex:0 0 auto; }
+.sa-table-card .sa-filler { flex:1; border-top:1px solid var(--border); }
+</style>
 
 <?php
 // Same structure as the audit log (and lakbay-pasig's AdminDataTable): one
@@ -617,6 +611,8 @@ ob_start();
 <?php
 $content   = ob_get_clean();
 $pageTitle = 'Exam Reschedule Requests';
+$pageActions = '<a href="' . e(url('/staff/exam/slots')) . '" class="btn-icon" aria-label="Back to exam slots" title="Back to exam slots">' . icon('ic_fluent_arrow_left_24_regular', 18) . '</a>'
+    . ($canReschedule ? '<a href="' . e(url('/staff/exam/cancel-slot')) . '" class="btn btn-ghost btn-sm">Cancel a slot (bulk move) ' . icon('ic_fluent_arrow_right_24_regular', 16) . '</a>' : '');
 $activeNav = 'exam-reschedule';
 $pageWide  = true; // table-heavy page — match staff_slots / staff_review / staff_manage
 include VIEWS_PATH . '/layouts/app.php';

@@ -1760,11 +1760,11 @@ document.addEventListener('DOMContentLoaded', function () {
 <div class="step-nav">
     <span></span>
     <?php if ($allApproved && $_examResult): ?>
-        <a href="<?= url('/student/interview') ?>" class="btn btn-primary">Interview <?= icon('arrow-right', 14) ?></a>
+        <a href="<?= url('/student/interview') ?>" class="btn btn-primary">Interview <?= icon('ic_fluent_arrow_right_24_regular', 16) ?></a>
     <?php elseif ($allApproved && !$_examResult): ?>
-        <a href="<?= url('/student/exam') ?>" class="btn btn-primary">Entrance Exam <?= icon('arrow-right', 14) ?></a>
+        <a href="<?= url('/student/exam') ?>" class="btn btn-primary">Entrance Exam <?= icon('ic_fluent_arrow_right_24_regular', 16) ?></a>
     <?php else: ?>
-        <span class="btn btn-primary" style="opacity:.4;cursor:not-allowed" title="All documents must be approved first">Entrance Exam <?= icon('arrow-right', 14) ?></span>
+        <span class="btn btn-primary" style="opacity:.4;cursor:not-allowed" title="All documents must be approved first">Entrance Exam <?= icon('ic_fluent_arrow_right_24_regular', 16) ?></span>
     <?php endif; ?>
 </div>
 

@@ -67,6 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db->prepare('UPDATE users SET password_hash=? WHERE id=?')
                ->execute([password_hash($new, PASSWORD_BCRYPT, ['cost'=>12]), $userId]);
             audit_log('admin_password_changed', 'Admin changed their own password', 'user', $userId);
+            Auth::rememberRevokeAll((int) $userId);
             $success[] = 'Password changed.';
         }
     }
@@ -85,13 +86,6 @@ ob_start();
 <?php foreach ($success as $s): ?>
     <div class="alert alert-success" style="margin-bottom:var(--space-3)"><?= e($s) ?></div>
 <?php endforeach; ?>
-
-<div data-page-actions>
-    <a href="javascript:history.back()" class="btn btn-ghost btn-sm" style="display:flex;align-items:center;gap:5px">
-        <?= icon('ic_fluent_arrow_left_24_regular', 16) ?>
-        Back
-    </a>
-</div>
 
 <div style="display:flex;flex-direction:column;gap:var(--space-6);max-width:560px;margin:0 auto">
 
@@ -179,5 +173,6 @@ document.getElementById('color-picker').addEventListener('input', function() {
 <?php
 $content   = ob_get_clean();
 $pageTitle = 'Settings';
+$pageActions = '<a href="javascript:history.back()" class="btn-icon" aria-label="Back" title="Back">' . icon('ic_fluent_arrow_left_24_regular', 18) . '</a>';
 $activeNav = 'settings';
 include VIEWS_PATH . '/layouts/app.php';

@@ -8,18 +8,14 @@
 $_isSSO_picker = (Auth::role() === ROLE_SSO);
 ?>
 
-<?php if (!$_isSSO_picker): ?>
-<div style="margin-bottom:var(--space-3)">
-    <a href="<?= url('/staff/interviews') ?>" class="btn btn-ghost btn-sm">
-        <?= icon('arrow-left', 14) ?> Back</a>
-</div>
-<?php endif; ?>
-
-<div class="page-header" style="text-align:center;margin-bottom:var(--space-6)">
-    <h1 class="page-title" style="margin:0 0 var(--space-1) 0">Interview Setup</h1>
-    <p class="page-subtitle" style="text-align:center">
-        Pick a college to manage its interview sessions.
-    </p>
+<div class="page-header" style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-4);margin-bottom:var(--space-6)">
+    <div>
+        <h1 class="page-title" style="margin:0 0 var(--space-1) 0">Interview Setup</h1>
+        <p class="page-subtitle">Pick a college to manage its interview sessions.</p>
+    </div>
+    <?php if (!$_isSSO_picker): ?>
+        <a href="<?= url('/staff/interviews') ?>" class="btn-icon" aria-label="Back to interviews" title="Back to interviews"><?= icon('ic_fluent_arrow_left_24_regular', 18) ?></a>
+    <?php endif; ?>
 </div>
 
 <style>

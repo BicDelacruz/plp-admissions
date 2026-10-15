@@ -819,7 +819,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div style="font-weight:var(--weight-semibold);font-size:var(--text-sm)">Next: Interview</div>
                 <div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:2px">The admissions office will automatically assign you an interview slot. No action required.</div>
             </div>
-            <a href="<?= url('/student/interview') ?>" class="btn btn-primary btn-sm">Continue <?= icon('arrow-right', 14) ?></a>
+            <a href="<?= url('/student/interview') ?>" class="btn btn-primary btn-sm">Continue <?= icon('ic_fluent_arrow_right_24_regular', 16) ?></a>
         </div>
 
         <?php else: ?>
@@ -1518,7 +1518,7 @@ window.addEventListener('beforeunload', e => {
 
 <!-- Step navigation -->
 <div class="step-nav" style="margin-top:var(--space-4)">
-    <a href="<?= url('/student/documents') ?>" class="btn btn-ghost"><?= icon('arrow-left', 14) ?> Documents</a>
+    <a href="<?= url('/student/documents') ?>" class="btn btn-ghost"><?= icon('ic_fluent_arrow_left_24_regular', 16) ?> Documents</a>
     <span></span>
 </div>
 

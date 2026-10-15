@@ -16,17 +16,24 @@ $activeNav    = $activeNav ?? '';
 $showStepper  = $showStepper ?? false;
 $pageWide     = $pageWide ?? false;
 $isStudent    = ($userRole === 'student');
+// True when the page already draws its own heading (an <h1> or .page-title).
+$hasPageHeading = !empty($content) && preg_match('/<h1\b|class=["\'][^"\']*\bpage-title\b/i', $content);
 
-// Page heading (staff / admin pages). Title only, no subtitle.
+// Page heading. Title only, no subtitle.
 //   $pageHeading = 'Text'  -> override the heading text (defaults to $pageTitle)
 //   $pageHeading = false   -> no heading for this page
 //   $pageActions = '<html>' -> buttons shown at the top right of the heading row
-// Pages that already draw their own .page-header are left alone.
-$pageHeading  = $pageHeading ?? $pageTitle;
-$pageActions  = $pageActions ?? '';
-$showPageHead = !$isStudent
+//   data-page-action / data-page-actions in the page body are also moved up there.
+// Pages that already draw their own heading / .page-header are left alone.
+// Staff / admin pages get the .page-head row; students get the simpler
+// .page-header-generated row (same $pageActions slot).
+$pageHeading    = $pageHeading ?? $pageTitle;
+$pageActions    = $pageActions ?? '';
+$showPageHead   = !$isStudent
     && $pageHeading !== false
+    && !$hasPageHeading
     && !str_contains((string)($content ?? ''), 'class="page-header"');
+$showStudentHead = $isStudent && $pageHeading !== false && !$hasPageHeading;
 
 // Sidebar (staff / admin / SSO / dean / proctor), ported from lakbay-pasig's
 // SidebarProvider. Lakbay keeps the desktop open/closed state in a cookie so
@@ -51,7 +58,7 @@ $sidebarHome = match ($userRole) {
 // returned at runtime. A strict allow-list breaks every time Puter changes
 // infra. (The old documents AI Validate feature has been removed; Puter is
 // only used by the exam builder now.)
-header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://*.hcaptcha.com https://cdnjs.cloudflare.com https://js.puter.com; worker-src 'self' blob: https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob: https:; frame-src https://newassets.hcaptcha.com https://*.hcaptcha.com https://*.puter.com; connect-src 'self' https: blob: data:;");
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://js.puter.com; worker-src 'self' blob: https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob: https:; frame-src https://*.puter.com; connect-src 'self' https: blob: data:;");
 header("X-Content-Type-Options: nosniff");
 header("X-Frame-Options: SAMEORIGIN");
 header("Referrer-Policy: strict-origin-when-cross-origin");
@@ -383,6 +390,11 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                 <h1 class="page-heading"><?= e($pageHeading) ?></h1>
                 <div class="page-head-actions" id="page-head-actions"><?= $pageActions ?></div>
             </div>
+            <?php elseif ($showStudentHead): ?>
+            <header class="page-header page-header-generated">
+                <h1 class="page-title"><?= e($pageHeading) ?></h1>
+                <?php if (!empty($pageActions)): ?><div class="page-header-actions"><?= $pageActions ?></div><?php endif; ?>
+            </header>
             <?php endif; ?>
             <?= $content ?? '' ?>
         </main>

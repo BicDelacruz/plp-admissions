@@ -25,26 +25,26 @@ function _session_expired(string $date, ?string $endTime, string $today, string 
     <div class="alert alert-error" style="margin-bottom:var(--space-4)"><?= e($msg) ?></div>
 <?php endif; ?>
 
-<!-- Header -->
-<div style="margin-bottom:var(--space-3);display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap">
-    <?php if ($canManage): ?>
-        <a href="<?= url('/staff/interviews/setup') ?>" class="btn btn-ghost btn-sm">
-        <?= icon('arrow-left', 14) ?> Back</a>
-    <?php else: ?>
-        <a href="<?= url('/staff/interviews') ?>" class="btn btn-ghost btn-sm">
-        <?= icon('arrow-left', 14) ?> Back</a>
-    <?php endif; ?>
-    <?php if ($canManage && !empty($byDate)): ?>
-        <button type="button" id="sess-select-toggle" class="btn btn-ghost btn-sm"
-                style="margin-left:auto" onclick="toggleSessSelectMode()">
-            Select
-        </button>
-    <?php endif; ?>
-</div>
-
-<div class="page-header" style="text-align:center;margin-bottom:var(--space-4)">
-    <h1 class="page-title" style="margin:0 0 var(--space-1) 0"><?= e($college) ?></h1>
-    <p class="page-subtitle" style="text-align:center">Interview Sessions</p>
+<div class="page-header" style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-4);margin-bottom:var(--space-4)">
+    <div>
+        <h1 class="page-title" style="margin:0 0 var(--space-1) 0"><?= e($college) ?></h1>
+        <p class="page-subtitle">Interview Sessions</p>
+    </div>
+    <div style="display:flex;align-items:center;gap:var(--space-2)">
+        <?php if ($canManage): ?>
+            <button type="button" class="btn btn-primary btn-sm" onclick="document.getElementById('add-session-modal').style.display='flex'">
+                <?= icon('ic_fluent_add_24_regular', 15) ?> Add Session
+            </button>
+        <?php endif; ?>
+        <?php if ($canManage && !empty($byDate)): ?>
+            <button type="button" id="sess-select-toggle" class="btn btn-ghost btn-sm" onclick="toggleSessSelectMode()">Select</button>
+        <?php endif; ?>
+        <?php if ($canManage): ?>
+            <a href="<?= url('/staff/interviews/setup') ?>" class="btn-icon" aria-label="Back to interview setup" title="Back to interview setup"><?= icon('ic_fluent_arrow_left_24_regular', 18) ?></a>
+        <?php else: ?>
+            <a href="<?= url('/staff/interviews') ?>" class="btn-icon" aria-label="Back to interviews" title="Back to interviews"><?= icon('ic_fluent_arrow_left_24_regular', 18) ?></a>
+        <?php endif; ?>
+    </div>
 </div>
 
 <?php
@@ -283,7 +283,7 @@ foreach ($byDate as $date => $dateSlots) {
          style="align-items:center;justify-content:center;min-height:200px;border-style:dashed;cursor:pointer">
         <div style="width:48px;height:48px;border-radius:50%;background:var(--accent-muted);
                     display:flex;align-items:center;justify-content:center;color:var(--accent)">
-            <?= icon('plus:fill', 24) ?>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
         </div>
         <div style="font-size:var(--text-sm);font-weight:var(--weight-medium);color:var(--accent);margin-top:var(--space-2)">Add Session</div>
     </div>

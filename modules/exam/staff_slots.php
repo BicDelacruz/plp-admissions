@@ -948,16 +948,12 @@ ob_start();
          MODE 1 — COLLEGE SELECTOR
          (Admins land here. Staff are auto-routed to their college.)
     ============================================================ -->
-    <div style="margin-bottom:var(--space-3)">
-        <a href="<?= e(url('/staff/exam')) ?>" class="btn btn-ghost btn-sm">
-            <?= icon('arrow-left', 14) ?> Back</a>
-    </div>
-
-    <div class="page-header" style="text-align:center;margin-bottom:var(--space-4)">
-        <h1 class="page-title" style="margin:0 0 var(--space-1) 0">Exam Room Slots</h1>
-        <p class="page-subtitle" style="text-align:center">
-            Pick a college to manage its exam slots and rooms.
-        </p>
+    <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-4);margin-bottom:var(--space-4)">
+        <div>
+            <h1 class="page-title" style="margin:0 0 var(--space-1) 0">Exam Room Slots</h1>
+            <p class="page-subtitle">Pick a college to manage its exam slots and rooms.</p>
+        </div>
+        <a href="<?= e(url('/staff/exam')) ?>" class="btn-icon" aria-label="Back to exams" title="Back to exams"><?= icon('ic_fluent_arrow_left_24_regular', 18) ?></a>
     </div>
 
     <?php if (empty($departments)): ?>
@@ -1002,34 +998,26 @@ ob_start();
     <!-- ============================================================
          MODE 2 — SLOT CARD GRID FOR ONE COLLEGE
     ============================================================ -->
-    <div style="display:flex;align-items:center;margin-bottom:var(--space-3);gap:var(--space-2);flex-wrap:wrap">
-        <?php if ($canManage): ?>
-            <a href="<?= e(url('/staff/exam/slots')) ?>" class="btn btn-ghost btn-sm" style="margin-right:auto">
-            <?= icon('arrow-left', 14) ?> Back</a>
-        <?php endif; ?>
-
-        <?php if ($canManage): ?>
-            <a href="<?= e(url('/staff/exam/export-rooms')) ?>"
-               class="btn btn-sm" target="_blank" rel="noopener"
-               title="Printable per-room sheets to post on the school board"
-               style="font-size:var(--text-xs)">
-                <?= icon('ic_fluent_document_24_regular', 14) ?> Export Lists
-            </a>
-            <button type="button" class="btn btn-ghost btn-sm"
-                    onclick="document.getElementById('exam-config-modal').style.display='flex'"
-                    style="font-size:var(--text-xs);color:var(--text-secondary)">
-                <?= icon('ic_fluent_settings_24_regular', 14) ?> Config
-            </button>
-        <?php else: ?>
-            <span class="badge badge-neutral" style="font-size:var(--text-xs)">
-                <?= icon('ic_fluent_eye_24_regular', 12) ?> Read-only
-            </span>
-        <?php endif; ?>
-    </div>
-
-    <div class="page-header" style="text-align:center;margin-bottom:var(--space-4)">
-        <h1 class="page-title" style="margin:0 0 var(--space-1) 0"><?= e($collegeParam) ?></h1>
-        <p class="page-subtitle" style="text-align:center">Exam Room Slots</p>
+    <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-4);margin-bottom:var(--space-4)">
+        <div>
+            <h1 class="page-title" style="margin:0 0 var(--space-1) 0"><?= e($collegeParam) ?></h1>
+            <p class="page-subtitle">Exam Room Slots</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap;justify-content:flex-end">
+            <?php if ($canManage): ?>
+                <a href="<?= e(url('/staff/exam/slots')) ?>" class="btn-icon" aria-label="Back to exam slots" title="Back to exam slots"><?= icon('ic_fluent_arrow_left_24_regular', 18) ?></a>
+                <a href="<?= e(url('/staff/exam/export-rooms')) ?>" class="btn btn-sm" target="_blank" rel="noopener" title="Printable per-room sheets to post on the school board">
+                    <?= icon('ic_fluent_document_24_regular', 14) ?> Export Lists
+                </a>
+                <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('exam-config-modal').style.display='flex'">
+                    <?= icon('ic_fluent_settings_24_regular', 14) ?> Config
+                </button>
+            <?php else: ?>
+                <span class="badge badge-neutral" style="font-size:var(--text-xs)">
+                    <?= icon('ic_fluent_eye_24_regular', 12) ?> Read-only
+                </span>
+            <?php endif; ?>
+        </div>
     </div>
 
     <?php
@@ -1261,7 +1249,7 @@ ob_start();
     ], JSON_HEX_APOS | JSON_HEX_QUOT);
     ?>
 
-    <div style="display:flex;align-items:center;margin-bottom:var(--space-4);gap:var(--space-2);flex-wrap:wrap;flex-shrink:0">
+    <div style="display:flex;align-items:center;margin-bottom:var(--space-4);gap:var(--space-2);flex-wrap:wrap">
         <a href="<?= e(url('/staff/exam/slots') . '?college=' . urlencode($slotDetail['department'])) ?>"
            class="btn btn-ghost btn-sm" style="margin-right:auto"><?= icon('arrow-left', 14) ?> Back to <?= e($slotDetail['department']) ?> slots</a>
 
@@ -2175,6 +2163,10 @@ async function saveRoomLabel(slotId) {
 <?php
 $content   = ob_get_clean();
 $pageTitle = 'Exam Room Slots';
+$pageActions = ($mode === 'roster' && !empty($slotDetail))
+    ? '<a href="' . e(url('/staff/exam/slots') . '?college=' . urlencode($slotDetail['department'])) . '" class="btn-icon" aria-label="Back to ' . e($slotDetail['department']) . ' slots" title="Back to ' . e($slotDetail['department']) . ' slots">' . icon('ic_fluent_arrow_left_24_regular', 18) . '</a>'
+        . ($canManage && !$isPast ? '<button type="button" class="btn btn-sm" onclick="openEditExamSlot(' . e($editPayload) . ')">' . icon('ic_fluent_edit_24_regular', 14) . ' Edit slot</button>' : '')
+    : '';
 $activeNav = 'exam';
 $pageWide  = true; // all three modes use the wide-page container
 include VIEWS_PATH . '/layouts/app.php';

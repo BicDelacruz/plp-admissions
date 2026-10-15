@@ -1,61 +1,130 @@
 <?php
 // ============================================================
 // modules/auth/forgot_password.php
-// M2 — Token-based password reset (token shown on screen)
-// No email required — token displayed for staff/admin to relay
+// Password reset steps 1 and 2: email -> 6-digit code -> confirm.
+// The code is only ever emailed. It is never shown on screen.
 // ============================================================
 
 require_once CORE_PATH . '/bootstrap.php';
 
 if (Auth::check()) { header("Location: " . Auth::homeUrl()); exit; }
 
-$errors  = [];
-$success = false;
-$token   = null;
-$email   = '';
+// "Use a different email" clears the flow.
+if (isset($_GET['new'])) {
+    unset($_SESSION['reset_email'], $_SESSION['reset_sent_at'], $_SESSION['reset_miss']);
+    header('Location: ' . url('/forgot-password')); exit;
+}
+
+$errors = [];
+$notice = '';
+$email  = trim($_SESSION['reset_email'] ?? '');
+$step   = $email !== '' ? 2 : 1;
+
+function reset_find_user(string $email): ?array
+{
+    $stmt = db()->prepare('SELECT id, email FROM users WHERE email = ? AND is_active = 1 LIMIT 1');
+    $stmt->execute([$email]);
+    return $stmt->fetch() ?: null;
+}
+
+/** Send a code if the account exists and the rest period is over. Never reveals anything. */
+function reset_send(?array $user): void
+{
+    if (!$user) return;
+    if (reset_cooldown((int) $user['id']) > 0) return;
+    $code = create_reset_code((int) $user['id']);
+    if (!send_reset_code_email($user['email'], $code)) {
+        error_log('Password reset email failed for user ' . (int) $user['id']);
+    }
+    audit_log('password_reset_requested', 'Reset code sent', 'user', (int) $user['id']);
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
+    $action = $_POST['action'] ?? 'send';
 
-    $email = trim($_POST['email'] ?? '');
-
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errors['email'] = 'Enter a valid email address.';
-    }
-
-    if (empty($errors)) {
-        $stmt = db()->prepare('SELECT id FROM users WHERE email = ? AND is_active = 1 LIMIT 1');
-        $stmt->execute([$email]);
-        $user = $stmt->fetch();
-
-        if ($user) {
-            // Invalidate old tokens
-            db()->prepare('UPDATE password_resets SET used = 1 WHERE user_id = ?')
-               ->execute([$user['id']]);
-
-            // Generate new token
-            $token   = bin2hex(random_bytes(16));
-            $expires = date('Y-m-d H:i:s', strtotime('+1 hour'));
-
-            db()->prepare(
-                'INSERT INTO password_resets (user_id, token, expires_at) VALUES (?, ?, ?)'
-            )->execute([$user['id'], $token, $expires]);
-
-            // Email the reset token
-            $resetUrl = rtrim(BASE_URL, '/') . '/reset-password?token=' . $token;
-            $body = '<p>You requested a password reset for your account.</p>'
-                . '<p>Your reset token is: <strong style="font-size:18px;letter-spacing:2px">' . e($token) . '</strong></p>'
-                . '<p>Or click the button below:</p>'
-                . '<p style="margin-top:16px"><a href="' . e($resetUrl) . '" '
-                . 'style="display:inline-block;padding:10px 24px;background:' . e(school_setting('accent_color', '#2d6a4f')) . ';color:#fff;'
-                . 'text-decoration:none;border-radius:8px;font-weight:bold">Reset Password</a></p>'
-                . '<p style="margin-top:16px;color:#6b7280;font-size:13px">This link expires in 1 hour. If you did not request this, ignore this email.</p>';
-            send_email($email, 'Password Reset — ' . school_setting('school_name', 'PLP Admissions'), email_template('Password Reset', $body));
+    if ($action === 'send') {
+        $email = trim($_POST['email'] ?? '');
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors['email'] = 'Enter a valid email address.';
+        } else {
+            reset_send(reset_find_user($email));
+            // Same screen for known and unknown emails.
+            $_SESSION['reset_email']   = $email;
+            $_SESSION['reset_sent_at'] = time();
+            $_SESSION['reset_miss']    = 0;
+            $step = 2;
         }
 
-        // Always show success (don't reveal whether email exists)
-        $success = true;
+    } elseif ($action === 'resend' && $email !== '') {
+        $user  = reset_find_user($email);
+        $rest  = max(0, RESET_RESEND_SECS - (time() - (int) ($_SESSION['reset_sent_at'] ?? 0)));
+        if ($user) $rest = max($rest, reset_cooldown((int) $user['id']));
+
+        if ($rest > 0) {
+            $errors['code'] = 'Please wait ' . $rest . ' seconds before requesting another code.';
+        } else {
+            reset_send($user);
+            $_SESSION['reset_sent_at'] = time();
+            $_SESSION['reset_miss']    = 0;
+            $notice = 'A new code was sent. The older code no longer works.';
+        }
+
+    } elseif ($action === 'confirm' && $email !== '') {
+        $code = preg_replace('/\D/', '', $_POST['code'] ?? '');
+        $msgs = [
+            'wrong'   => 'That code is not correct.',
+            'expired' => 'That code has expired. Request a new one.',
+            'used'    => 'That code is no longer valid. Request a new one.',
+            'locked'  => 'Too many wrong tries. Request a new code.',
+        ];
+
+        if (strlen($code) !== 6) {
+            $errors['code'] = 'Enter the 6 digit code.';
+        } else {
+            $stmt = db()->prepare(
+                'SELECT pr.* FROM password_resets pr
+                   JOIN users u ON u.id = pr.user_id
+                  WHERE u.email = ? AND u.is_active = 1 AND pr.used = 0
+                  ORDER BY pr.id DESC LIMIT 1'
+            );
+            $stmt->execute([$email]);
+            $row = $stmt->fetch();
+
+            if (!$row) {
+                // Unknown email (or no live code): count misses in the session so
+                // the lockout looks the same as for a real account.
+                $_SESSION['reset_miss'] = (int) ($_SESSION['reset_miss'] ?? 0) + 1;
+                $result = $_SESSION['reset_miss'] >= RESET_MAX_ATTEMPTS ? 'locked' : 'wrong';
+            } else {
+                $result = reset_code_check($row, $code, time());
+                if ($result === 'wrong') {
+                    db()->prepare('UPDATE password_resets SET attempts = attempts + 1 WHERE id = ?')
+                       ->execute([$row['id']]);
+                    if ((int) $row['attempts'] + 1 >= RESET_MAX_ATTEMPTS) $result = 'locked';
+                }
+            }
+
+            if ($result === 'ok') {
+                $_SESSION['reset_ok'] = [
+                    'user_id' => (int) $row['user_id'],
+                    'row_id'  => (int) $row['id'],
+                    'expires' => time() + RESET_OK_TTL_SECS,
+                ];
+                unset($_SESSION['reset_email'], $_SESSION['reset_sent_at'], $_SESSION['reset_miss']);
+                header('Location: ' . url('/reset-password')); exit;
+            }
+            $errors['code'] = $msgs[$result];
+        }
     }
+}
+
+// Seconds left on the Resend button (server value, JS only counts down).
+$resendIn = 0;
+if ($step === 2) {
+    $resendIn = max(0, RESET_RESEND_SECS - (time() - (int) ($_SESSION['reset_sent_at'] ?? 0)));
+    $u = reset_find_user($email);
+    if ($u) $resendIn = max($resendIn, reset_cooldown((int) $u['id']));
 }
 
 ob_start();
@@ -77,36 +146,28 @@ $schoolLogo = school_setting('school_logo', '');
             </div>
         <?php endif; ?>
         <div class="auth-header-text">
-            <h1 class="auth-title">Forgot your password?</h1>
-            <p class="auth-subtitle">Enter your email and we will generate a reset token.</p>
+            <?php if ($step === 1): ?>
+                <h1 class="auth-title">Forgot your password?</h1>
+                <p class="auth-subtitle">Enter your email and we will send you a 6 digit code.</p>
+            <?php else: ?>
+                <h1 class="auth-title">Enter the code</h1>
+                <p class="auth-subtitle">If that email is registered, we sent a 6 digit code to <strong><?= e($email) ?></strong>. It expires in 15 minutes.</p>
+            <?php endif; ?>
         </div>
     </div>
 
-    <?php if ($success): ?>
+    <?php if ($notice): ?>
         <div class="alert alert-success" style="margin-bottom:var(--space-5)">
             <?= icon('ic_fluent_checkmark_circle_24_regular', 16) ?>
-            <?php if ($token): ?>
-                Your reset token has been generated. Bring this to the admissions office or use it below.
-            <?php else: ?>
-                If that email is registered, a reset token has been generated.
-            <?php endif; ?>
+            <?= e($notice) ?>
         </div>
+    <?php endif; ?>
 
-        <?php if ($token): ?>
-            <div class="card" style="margin-bottom:var(--space-5);text-align:center">
-                <div class="card-title" style="font-size:var(--text-sm);color:var(--text-secondary);margin-bottom:var(--space-2)">Your reset token</div>
-                <code style="font-family:var(--font-mono);font-size:var(--text-xl);font-weight:500;letter-spacing:0.1em;color:var(--accent)"><?= e($token) ?></code>
-                <p style="margin-top:var(--space-2);font-size:var(--text-xs);color:var(--text-tertiary)">Expires in 1 hour</p>
-            </div>
-            <a href="<?= url('/reset-password?token=' . urlencode($token)) ?>" class="btn btn-primary btn-block">
-                Use this token now
-            </a>
-        <?php endif; ?>
-
-    <?php else: ?>
+    <?php if ($step === 1): ?>
 
         <form method="POST" action="<?= url('/forgot-password') ?>" data-once novalidate>
             <?= csrf_field() ?>
+            <input type="hidden" name="action" value="send">
             <div class="form-group">
                 <label class="form-label" for="email">Email address</label>
                 <input type="email" id="email" name="email"
@@ -118,13 +179,65 @@ $schoolLogo = school_setting('school_logo', '');
                     <span class="form-error"><?= e($errors['email']) ?></span>
                 <?php endif; ?>
             </div>
-            <button type="submit" class="btn btn-primary btn-block">Get reset token</button>
+            <button type="submit" class="btn btn-primary btn-block">Send code</button>
         </form>
+
+    <?php else: ?>
+
+        <form method="POST" action="<?= url('/forgot-password') ?>" novalidate>
+            <?= csrf_field() ?>
+            <input type="hidden" name="action" value="confirm">
+            <div class="form-group">
+                <label class="form-label" for="code">6 digit code</label>
+                <input type="text" id="code" name="code"
+                    class="form-input <?= isset($errors['code']) ? 'error' : '' ?>"
+                    inputmode="numeric" maxlength="6" pattern="[0-9]*"
+                    autocomplete="one-time-code" placeholder="123456"
+                    style="letter-spacing:.4em;text-align:center;font-family:var(--font-mono)"
+                    required autofocus>
+                <?php if (!empty($errors['code'])): ?>
+                    <span class="form-error"><?= e($errors['code']) ?></span>
+                <?php endif; ?>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Confirm code</button>
+        </form>
+
+        <form method="POST" action="<?= url('/forgot-password') ?>" style="margin-top:var(--space-3)">
+            <?= csrf_field() ?>
+            <input type="hidden" name="action" value="resend">
+            <button type="submit" id="resend-btn" class="btn btn-secondary btn-block" <?= $resendIn > 0 ? 'disabled' : '' ?>>
+                <span id="resend-label"><?= $resendIn > 0 ? 'Resend in ' . (int) $resendIn . 's' : 'Resend code' ?></span>
+            </button>
+        </form>
+
+        <div style="margin-top:var(--space-3);text-align:center">
+            <a href="<?= url('/forgot-password?new=1') ?>" style="font-size:var(--text-sm)">Use a different email</a>
+        </div>
+
+        <script>
+        (function () {
+            var btn = document.getElementById('resend-btn');
+            var label = document.getElementById('resend-label');
+            var left = <?= (int) $resendIn ?>;
+            if (!btn || left <= 0) return;
+            btn.disabled = true;
+            var t = setInterval(function () {
+                left -= 1;
+                if (left <= 0) {
+                    clearInterval(t);
+                    btn.disabled = false;
+                    label.textContent = 'Resend code';
+                } else {
+                    label.textContent = 'Resend in ' + left + 's';
+                }
+            }, 1000);
+        })();
+        </script>
 
     <?php endif; ?>
 
     <div class="auth-footer">
-        <a href="<?= url('/login') ?>"><?= icon('arrow-left', 14) ?> Back to sign in</a>
+        <a href="<?= url('/login') ?>" aria-label="Back to sign in" title="Back to sign in"><?= icon('ic_fluent_arrow_left_24_regular', 18) ?></a>
     </div>
 
 </div>

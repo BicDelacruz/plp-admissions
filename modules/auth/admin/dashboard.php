@@ -342,6 +342,10 @@ ob_start();
 @media (max-width:560px) {
     .db-grid { grid-template-columns:1fr; }
 }
+@media (max-width:768px) {
+    .db-kpi-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .db-kpi-item { min-width:0;padding:var(--space-4) var(--space-3); }
+}
 </style>
 
 <div class="dashboard-wrap">
@@ -382,7 +386,7 @@ ob_start();
                     <span id="dpLabel"><?= e($rangeLabel) ?></span>
                     <?= icon('caret-down', 10) ?>
                 </button>
-                <div class="dp-menu" id="dpMenu">
+                <div class="dp-menu app-dropdown-panel" id="dpMenu">
                     <button class="dp-item <?= $range==='today'      ?'active':''?>" onclick="dpSet('today')">Today</button>
                     <button class="dp-item <?= $range==='yesterday'  ?'active':''?>" onclick="dpSet('yesterday')">Yesterday</button>
                     <div class="dp-divider"></div>
@@ -540,6 +544,7 @@ ob_start();
         var textPrimary = v('--text-primary');
         var textSecond  = v('--text-secondary');
         var border      = v('--border');
+        var radius      = parseFloat(v('--radius')) || 8;
         // Single accent color family for all charts — no rainbow
         var barColor    = accentLight || accent;
 

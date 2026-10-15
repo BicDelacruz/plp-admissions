@@ -557,6 +557,13 @@ $absUrl = function (array $merge = []) use ($activeTab, $search, $filterDept, $f
 ob_start();
 ?>
 
+<style>
+.page:has(.sa-table-card) { display:flex; flex-direction:column; }
+.sa-table-card { flex:1; min-height:300px; display:flex; flex-direction:column; }
+.sa-table-card table { flex:0 0 auto; }
+.sa-table-card .sa-filler { flex:1; border-top:1px solid var(--border); }
+</style>
+
 <?php foreach ($errors as $err): ?>
     <div class="alert alert-error" style="margin-bottom:var(--space-4);flex-shrink:0"><?= e($err) ?></div>
 <?php endforeach; ?>
@@ -571,22 +578,6 @@ if (!$isDean) {
     $segTabs['requests'] = ['label' => 'Reschedule Requests', 'href' => url('/staff/interviews/absent?tab=requests'), 'count' => $reschedTotal, 'tone' => 'warning'];
 }
 ?>
-<div data-page-actions style="margin-bottom:var(--space-5);display:flex;justify-content:space-between;align-items:center;gap:var(--space-3);flex-wrap:wrap;flex-shrink:0">
-    <a href="<?= url('/staff/interviews') ?>" class="btn btn-ghost btn-sm">
-        <?= icon('arrow-left', 14) ?> Back</a>
-    <?php if ($canReschedule): ?>
-        <a href="<?= url('/staff/interviews/cancel-slot') ?>" class="btn btn-ghost btn-sm">
-            Cancel a slot (bulk move) <?= icon('arrow-right', 14) ?>
-        </a>
-    <?php else: ?>
-        <span style="font-size:var(--text-xs);color:var(--text-tertiary)">
-            <?= $activeTab === 'requests'
-                ? 'Only SSO and Admin can approve or deny reschedule requests.'
-                : 'Only SSO and Admin can reschedule students.' ?>
-        </span>
-    <?php endif; ?>
-</div>
-
 <?php if ($activeTab === 'absent'): ?>
 <!-- ============================================================
      TAB 1: ABSENT STUDENTS
@@ -919,10 +910,13 @@ if (!$isDean) {
 
 </div><!-- /.auto-table-wrap -->
 <?php endif; /* end activeTab */ ?>
+</div>
 
 <?php
 $content   = ob_get_clean();
 $pageTitle = $activeTab === 'requests' ? 'Reschedule Requests' : 'Absent Students';
+$pageActions = '<a href="' . e(url('/staff/interviews')) . '" class="btn-icon" aria-label="Back to interviews" title="Back to interviews">' . icon('ic_fluent_arrow_left_24_regular', 18) . '</a>'
+    . ($canReschedule ? '<a href="' . e(url('/staff/interviews/cancel-slot')) . '" class="btn btn-ghost btn-sm">Cancel a slot (bulk move) ' . icon('ic_fluent_arrow_right_24_regular', 16) . '</a>' : '');
 $activeNav = $activeTab === 'requests' ? 'reschedule' : 'interviews';
 $pageWide  = true; // table-heavy page — match staff_slots / staff_review / staff_manage
 include VIEWS_PATH . '/layouts/app.php';
