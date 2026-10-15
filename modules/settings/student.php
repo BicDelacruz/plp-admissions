@@ -78,10 +78,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $hash = password_hash($new, PASSWORD_BCRYPT, ['cost' => 12]);
             $db->prepare('UPDATE users SET password_hash=? WHERE id=?')->execute([$hash, $userId]);
+            Auth::rememberRevokeAll((int) $userId);
             $success[] = 'Password changed successfully.';
         }
     }
 }
+
+// Google users have no password of their own yet (they set one through Forgot password).
+// ponytail: stays hidden for any user with google_sub, even after they set a password. Upgrade: a password_set flag.
+$gs = $db->prepare('SELECT google_sub FROM users WHERE id = ?');
+$gs->execute([$userId]);
+$isGoogleUser = !empty($gs->fetchColumn());
 
 // Strip ", Pasig City" suffix for display in the address input
 $addressDisplay = preg_replace('/,?\s*Pasig City\s*$/i', '', $user['address'] ?? '');
@@ -97,7 +104,7 @@ ob_start();
 <?php endforeach; ?>
 
 <div style="display:flex;justify-content:flex-start;margin-bottom:var(--space-4);max-width:560px;margin-left:auto;margin-right:auto">
-    <a href="javascript:history.back()" class="btn btn-ghost btn-sm" style="display:flex;align-items:center;gap:var(--space-1)">
+    <a href="javascript:history.back()" class="btn btn-ghost btn-sm" style="display:flex;align-items:center;gap:5px">
         <?= icon('ic_fluent_arrow_left_24_regular', 16) ?>
         Back
     </a>
@@ -207,6 +214,16 @@ ob_start();
         </form>
     </div>
 
+    <?php if ($isGoogleUser): ?>
+    <!-- Password (Google account) -->
+    <div class="card" style="padding:var(--space-6)">
+        <div style="font-weight:var(--weight-semibold);margin-bottom:var(--space-3)">Password</div>
+        <p style="font-size:var(--text-sm);color:var(--text-secondary);margin:0">
+            You sign in with Google. To set a password as well, use
+            <a href="<?= url('/forgot-password') ?>">Forgot password</a> on the sign in page.
+        </p>
+    </div>
+    <?php else: ?>
     <!-- Password -->
     <div class="card" style="padding:var(--space-6)">
         <div style="font-weight:var(--weight-semibold);margin-bottom:var(--space-5)">Change Password</div>
@@ -232,6 +249,7 @@ ob_start();
             </div>
         </form>
     </div>
+    <?php endif; ?>
 
 </div>
 
@@ -257,5 +275,6 @@ function setSettingsSex(val) {
 <?php
 $content   = ob_get_clean();
 $pageTitle = 'Settings';
+$pageActions = '<a href="javascript:history.back()" class="btn-icon" aria-label="Back" title="Back">' . icon('ic_fluent_arrow_left_24_regular', 18) . '</a>';
 $activeNav = 'settings';
 include VIEWS_PATH . '/layouts/app.php';

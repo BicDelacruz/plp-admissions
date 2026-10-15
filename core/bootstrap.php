@@ -29,3 +29,4 @@ if (APP_DEBUG) {
 
 // -- Session -----------------------------------------------------
 Session::start();
+Auth::rememberRestore();
