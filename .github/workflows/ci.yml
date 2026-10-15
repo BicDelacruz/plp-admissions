@@ -186,6 +186,7 @@ jobs:
           check /public/login
           check /public/register
           check /public/forgot-password
+          check /public/privacy
           check /public/student/documents
           check /public/staff/dashboard
           check /public/admin/dashboard

@@ -44,7 +44,7 @@ The development database is shared and already loaded. You don't need to set any
 |---------|------------------|
 | `SMTP_*` (Gmail App Password) | Email sending, such as student verification codes. Without it, emails are skipped and logged, and you can still log in with the seeded accounts. |
 | `SUPABASE_URL`, `SUPABASE_SERVICE_KEY` | Document uploads and branding images (Supabase Storage). |
-| `HCAPTCHA_*` | Not needed. hCaptcha is off (`HCAPTCHA_ENABLED` is `false` in `config/app.php`). |
+| `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | Cloudflare Turnstile on login and register. Without both keys the captcha is off and the forms still work. |
 
 ---
 

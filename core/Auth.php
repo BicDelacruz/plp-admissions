@@ -7,20 +7,132 @@
 class Auth
 {
     // -- Login / logout ------------------------------------------
-    public static function login(array $user): void
+    public static function login(array $user, bool $remember = false): void
     {
         session_regenerate_id(true);
         Session::set('user_id',   (int)  $user['id']);
         Session::set('user_name',        $user['name']);
         Session::set('user_email',       $user['email']);
         Session::set('user_role',        $user['role']);
+        if ($remember) {
+            self::rememberIssue((int) $user['id']);
+        }
     }
 
     public static function logout(): void
     {
+        self::rememberForget();
         Session::destroy();
         header('Location: ' . url('/login'));
         exit;
+    }
+
+    // -- Remember me ---------------------------------------------
+    // Long-lived cookie "selector:validator". Only sha256(validator) is stored.
+    private static function rememberSetCookie(string $value, int $expires): void
+    {
+        setcookie(REMEMBER_COOKIE, $value, [
+            'expires'  => $expires,
+            'path'     => '/',
+            'secure'   => isset($_SERVER['HTTPS'])
+                          || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https',
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
+        if ($expires > time()) { $_COOKIE[REMEMBER_COOKIE] = $value; } else { unset($_COOKIE[REMEMBER_COOKIE]); }
+    }
+
+    public static function rememberIssue(int $userId): void
+    {
+        $selector  = bin2hex(random_bytes(12));
+        $validator = bin2hex(random_bytes(32));
+        $expires   = time() + REMEMBER_DAYS * 86400;
+        try {
+            db()->prepare('DELETE FROM remember_tokens WHERE user_id = ? AND expires_at < NOW()')->execute([$userId]);
+            db()->prepare('INSERT INTO remember_tokens (user_id, selector, token_hash, expires_at) VALUES (?, ?, ?, ?)')
+               ->execute([$userId, $selector, hash('sha256', $validator), date('Y-m-d H:i:s', $expires)]);
+        } catch (\Throwable $e) {
+            error_log('[remember] issue failed: ' . $e->getMessage());
+            return; // login still works, just not remembered
+        }
+        self::rememberSetCookie($selector . ':' . $validator, $expires);
+    }
+
+    public static function rememberRestore(): void
+    {
+        if (self::check() || empty($_COOKIE[REMEMBER_COOKIE])) {
+            return;
+        }
+        $parts = remember_cookie_parse((string) $_COOKIE[REMEMBER_COOKIE]);
+        if (!$parts) {
+            self::rememberSetCookie('', time() - 3600);
+            return;
+        }
+        [$selector, $validator] = $parts;
+
+        try {
+            $stmt = db()->prepare('SELECT id, user_id, token_hash, (expires_at > NOW()) AS live FROM remember_tokens WHERE selector = ? LIMIT 1');
+            $stmt->execute([$selector]);
+            $row = $stmt->fetch();
+            if (!$row || !$row['live']) {
+                if ($row) { db()->prepare('DELETE FROM remember_tokens WHERE id = ?')->execute([$row['id']]); }
+                self::rememberSetCookie('', time() - 3600);
+                return;
+            }
+            if (!remember_hash_ok($validator, (string) $row['token_hash'])) {
+                // Known selector, wrong validator: assume the cookie was stolen.
+                self::rememberRevokeAll((int) $row['user_id']);
+                self::rememberSetCookie('', time() - 3600);
+                return;
+            }
+
+            $stmt = db()->prepare('SELECT * FROM users WHERE id = ? AND is_active = 1 LIMIT 1');
+            $stmt->execute([(int) $row['user_id']]);
+            $user = $stmt->fetch();
+            if (!$user || ($user['role'] === 'student' && empty($user['email_verified']))) {
+                db()->prepare('DELETE FROM remember_tokens WHERE id = ?')->execute([$row['id']]);
+                self::rememberSetCookie('', time() - 3600);
+                return;
+            }
+
+            // Rotate the validator on every use.
+            // ponytail: two requests racing with the same old cookie look like theft and sign the user out everywhere. Upgrade: keep the previous hash for a few seconds.
+            $newValidator = bin2hex(random_bytes(32));
+            $expires      = time() + REMEMBER_DAYS * 86400;
+            db()->prepare('UPDATE remember_tokens SET token_hash = ?, expires_at = ? WHERE id = ?')
+               ->execute([hash('sha256', $newValidator), date('Y-m-d H:i:s', $expires), $row['id']]);
+            self::rememberSetCookie($selector . ':' . $newValidator, $expires);
+
+            self::login($user);
+            // The idle timeout just ended the old session; do not tell a restored user it expired.
+            Session::getFlash('timeout');
+        } catch (\Throwable $e) {
+            error_log('[remember] restore failed: ' . $e->getMessage());
+        }
+    }
+
+    public static function rememberForget(): void
+    {
+        $parts = remember_cookie_parse((string) ($_COOKIE[REMEMBER_COOKIE] ?? ''));
+        if ($parts) {
+            try {
+                db()->prepare('DELETE FROM remember_tokens WHERE selector = ?')->execute([$parts[0]]);
+            } catch (\Throwable $e) {
+                error_log('[remember] forget failed: ' . $e->getMessage());
+            }
+        }
+        if (isset($_COOKIE[REMEMBER_COOKIE])) {
+            self::rememberSetCookie('', time() - 3600);
+        }
+    }
+
+    public static function rememberRevokeAll(int $userId): void
+    {
+        try {
+            db()->prepare('DELETE FROM remember_tokens WHERE user_id = ?')->execute([$userId]);
+        } catch (\Throwable $e) {
+            error_log('[remember] revoke failed: ' . $e->getMessage());
+        }
     }
 
     // -- State checks --------------------------------------------
@@ -149,4 +261,19 @@ class Auth
             default      => url('/student/documents'),
         };
     }
+}
+
+// -- Pure helpers (no DB, used by tests/remember_check.php) -------
+/** Returns [selector, validator] for a well-formed cookie value, else null. */
+function remember_cookie_parse(string $raw): ?array
+{
+    if (preg_match('/^([a-f0-9]{24}):([a-f0-9]{64})$/', $raw, $m)) {
+        return [$m[1], $m[2]];
+    }
+    return null;
+}
+
+function remember_hash_ok(string $validator, string $storedHash): bool
+{
+    return hash_equals($storedHash, hash('sha256', $validator));
 }

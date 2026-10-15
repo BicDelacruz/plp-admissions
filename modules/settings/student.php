@@ -78,10 +78,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $hash = password_hash($new, PASSWORD_BCRYPT, ['cost' => 12]);
             $db->prepare('UPDATE users SET password_hash=? WHERE id=?')->execute([$hash, $userId]);
+            Auth::rememberRevokeAll((int) $userId);
             $success[] = 'Password changed successfully.';
         }
     }
 }
+
+// Google users have no password of their own yet (they set one through Forgot password).
+// ponytail: stays hidden for any user with google_sub, even after they set a password. Upgrade: a password_set flag.
+$gs = $db->prepare('SELECT google_sub FROM users WHERE id = ?');
+$gs->execute([$userId]);
+$isGoogleUser = !empty($gs->fetchColumn());
 
 // Strip ", Pasig City" suffix for display in the address input
 $addressDisplay = preg_replace('/,?\s*Pasig City\s*$/i', '', $user['address'] ?? '');
@@ -207,6 +214,16 @@ ob_start();
         </form>
     </div>
 
+    <?php if ($isGoogleUser): ?>
+    <!-- Password (Google account) -->
+    <div class="card" style="padding:var(--space-6)">
+        <div style="font-weight:var(--weight-semibold);margin-bottom:var(--space-3)">Password</div>
+        <p style="font-size:var(--text-sm);color:var(--text-secondary);margin:0">
+            You sign in with Google. To set a password as well, use
+            <a href="<?= url('/forgot-password') ?>">Forgot password</a> on the sign in page.
+        </p>
+    </div>
+    <?php else: ?>
     <!-- Password -->
     <div class="card" style="padding:var(--space-6)">
         <div style="font-weight:var(--weight-semibold);margin-bottom:var(--space-5)">Change Password</div>
@@ -232,6 +249,7 @@ ob_start();
             </div>
         </form>
     </div>
+    <?php endif; ?>
 
 </div>
 

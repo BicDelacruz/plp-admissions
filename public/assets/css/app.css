@@ -1550,6 +1550,21 @@ tbody tr:hover { background: var(--bg-overlay); }
     position: relative;
 }
 .auth-card-wide { max-width: 580px; }
+/* Readable long-text card (privacy policy) */
+.auth-card-read { max-width: 760px; }
+.privacy-body { font-size: var(--text-sm); line-height: 1.65; color: var(--text-primary); }
+.privacy-body h2 { margin: var(--space-6) 0 var(--space-2); font-size: 1.02rem; font-weight: var(--weight-semibold); color: var(--accent); }
+.privacy-body p, .privacy-body ul { margin: 0 0 var(--space-3); }
+.privacy-body ul { padding-left: 1.2em; }
+.privacy-body li { margin-bottom: var(--space-2); }
+.privacy-body a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+.privacy-meta { color: var(--text-secondary); }
+.privacy-todo { background: #fff3bf; color: #5c4400; padding: 0 4px; border-radius: 3px; font-weight: var(--weight-semibold); }
+[data-theme="dark"] .privacy-todo { background: #5c4400; color: #fff3bf; }
+/* Footer link under the card on the auth layout */
+.auth-legal { padding: 14px var(--space-4) 20px; text-align: center; font-size: .82rem; background: #0c2a1a; }
+.auth-legal a { color: rgba(255,255,255,.8); text-decoration: underline; text-underline-offset: 3px; }
+.auth-legal a:hover { color: #fff; }
 
 /* Card heading: the bar already carries logo and school name */
 .auth-header .auth-logo,
