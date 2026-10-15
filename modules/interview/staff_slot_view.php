@@ -189,13 +189,6 @@ ob_start();
     <div class="alert alert-success" style="margin-bottom:var(--space-4);flex-shrink:0"><?= e($s) ?></div>
 <?php endforeach; ?>
 
-<!-- Breadcrumb -->
-<div style="margin-bottom:var(--space-4);font-size:var(--text-sm)">
-    <a href="<?= url('/staff/interviews') ?>" style="color:var(--text-secondary)">
-        ← Back to sessions
-    </a>
-</div>
-
 <!-- Slot summary -->
 <div class="card" style="padding:var(--space-5);margin-bottom:var(--space-5);flex-shrink:0">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--space-3)">

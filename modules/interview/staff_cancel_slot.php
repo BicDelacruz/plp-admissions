@@ -288,10 +288,6 @@ $pageUrl  = fn(int $p): string => url('/staff/interviews/cancel-slot') . '?' . h
 ob_start();
 ?>
 
-<div style="margin-bottom:var(--space-5)">
-    <a href="<?= url('/staff/interviews/setup') ?>" class="btn btn-ghost btn-sm">← Back to Interview Slots</a>
-</div>
-
 <div class="card" style="padding:var(--space-6);margin-bottom:var(--space-5);flex-shrink:0">
     <h2 style="font-size:var(--text-xl);font-weight:var(--weight-semibold);margin:0 0 var(--space-2)">
         Cancel an interview slot

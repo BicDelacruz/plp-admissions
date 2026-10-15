@@ -893,7 +893,7 @@ document.addEventListener('DOMContentLoaded', function () {
 .sex-btn {
     width: 48px;
     border: 1px solid var(--border);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius);
     background: var(--bg-elevated);
     color: var(--text-secondary);
     font-size: var(--text-sm);
@@ -911,7 +911,7 @@ document.addEventListener('DOMContentLoaded', function () {
 .qual-box {
     background: var(--bg-subtle);
     border: 1px solid var(--border);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius);
     padding: var(--space-3) var(--space-4);
     margin-bottom: var(--space-4);
     font-size: var(--text-sm);

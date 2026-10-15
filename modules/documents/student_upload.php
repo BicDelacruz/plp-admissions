@@ -744,7 +744,7 @@ ob_start();
 <?php if ($manualPage): ?>
 <!-- Manual upload page: same step, one document at a time -->
 <div style="margin-bottom:var(--space-4)">
-    <a href="<?= url('/student/documents') ?>" style="font-size:var(--text-sm);color:var(--accent);text-decoration:underline">&larr; Back to Upload many files</a>
+    <a href="<?= url('/student/documents') ?>" style="font-size:var(--text-sm);color:var(--accent);text-decoration:underline"><?= icon('arrow-left', 14) ?> Back to Upload many files</a>
     <h2 style="font-size:var(--text-xl);font-weight:var(--weight-semibold);margin:var(--space-2) 0 var(--space-1);color:var(--text-primary)">Upload documents manually</h2>
 </div>
 <?php endif; ?>
@@ -811,7 +811,7 @@ ob_start();
 
 <?php if (!$manualPage && $hasBatch): ?>
 <style>
-.batch-drop { border:2px dashed var(--border); border-radius:var(--radius-lg); padding:var(--space-6) var(--space-4); text-align:center; cursor:pointer; transition:border-color var(--transition-fast), background var(--transition-fast); }
+.batch-drop { border:2px dashed var(--border); border-radius:var(--radius); padding:var(--space-6) var(--space-4); text-align:center; cursor:pointer; transition:border-color var(--transition-fast), background var(--transition-fast); }
 .batch-drop:hover, .batch-drop:focus, .batch-drop.drag-over { border-color:var(--accent); background:var(--bg-subtle); outline:none; }
 .batch-row { border-top:1px solid var(--border); padding:var(--space-3) 0; }
 .batch-head { display:flex; align-items:center; justify-content:space-between; gap:var(--space-3); }
@@ -821,7 +821,7 @@ ob_start();
 .batch-actions:empty { display:none; }
 .batch-actions .batch-select { flex:1 1 100%; width:100%; max-width:100%; min-width:0; text-overflow:ellipsis; }
 .batch-link { color:var(--accent); text-decoration:underline; }
-.batch-bar { height:4px; border-radius:var(--radius-full); background:var(--bg-subtle); margin-top:var(--space-2); overflow:hidden; }
+.batch-bar { height:4px; border-radius:var(--radius); background:var(--bg-subtle); margin-top:var(--space-2); overflow:hidden; }
 .batch-bar > span { display:block; height:100%; width:0; background:var(--accent); transition:width .15s; }
 .batch-tip { font-size:var(--text-xs); color:var(--warning); margin-top:var(--space-2); }
 </style>
@@ -870,7 +870,7 @@ ob_start();
         <div style="display:flex;align-items:center;gap:var(--space-4)">
 
             <!-- Icon -->
-            <div style="width:40px;height:40px;border-radius:var(--radius-md);background:var(--bg-subtle);display:flex;align-items:center;justify-content:center;flex-shrink:0;<?= $isApproved ? 'background:var(--success-bg)' : '' ?>">
+            <div style="width:40px;height:40px;border-radius:var(--radius);background:var(--bg-subtle);display:flex;align-items:center;justify-content:center;flex-shrink:0;<?= $isApproved ? 'background:var(--success-bg)' : '' ?>">
                 <?php if ($isApproved): ?>
                     <?= icon('ic_fluent_checkmark_circle_24_regular', 18, 'color:var(--success)') ?>
                 <?php else: ?>
@@ -1160,7 +1160,7 @@ function updateDropLabel(name) {
         width:min(94vw,1100px);
         height:min(90vh,860px);
         background:var(--bg-elevated);
-        border-radius:var(--radius-lg);
+        border-radius:var(--radius);
         box-shadow:var(--shadow-lg);
         display:flex;flex-direction:column;
         overflow:hidden;
@@ -1174,7 +1174,7 @@ function updateDropLabel(name) {
         ">
             <button id="fv-prev" onclick="fvNavigate(-1)" type="button" style="
                 display:flex;align-items:center;justify-content:center;
-                width:32px;height:32px;border-radius:var(--radius-sm);
+                width:32px;height:32px;border-radius:var(--radius);
                 border:1px solid var(--border);background:var(--bg);
                 color:var(--text-secondary);cursor:pointer;flex-shrink:0;
                 transition:background var(--transition-fast),color var(--transition-fast);
@@ -1187,7 +1187,7 @@ function updateDropLabel(name) {
             </div>
             <button id="fv-next" onclick="fvNavigate(1)" type="button" style="
                 display:flex;align-items:center;justify-content:center;
-                width:32px;height:32px;border-radius:var(--radius-sm);
+                width:32px;height:32px;border-radius:var(--radius);
                 border:1px solid var(--border);background:var(--bg);
                 color:var(--text-secondary);cursor:pointer;flex-shrink:0;
                 transition:background var(--transition-fast),color var(--transition-fast);
@@ -1228,7 +1228,7 @@ function updateDropLabel(name) {
             <div id="fv-hint" style="
                 position:absolute;bottom:var(--space-2);left:50%;transform:translateX(-50%);
                 background:rgba(0,0,0,0.55);color:#fff;
-                font-size:var(--text-xs);padding:var(--space-1) var(--space-4);border-radius:var(--radius-full);
+                font-size:var(--text-xs);padding:var(--space-1) var(--space-4);border-radius:var(--radius);
                 pointer-events:none;opacity:0;transition:opacity .4s ease;white-space:nowrap;
             ">Scroll to zoom · Drag to pan when zoomed in</div>
         </div>
@@ -1242,7 +1242,7 @@ function updateDropLabel(name) {
 <style>
 .fv-ctrl-btn {
     display:flex;align-items:center;justify-content:center;
-    width:30px;height:30px;border-radius:var(--radius-sm);
+    width:30px;height:30px;border-radius:var(--radius);
     border:1px solid var(--border);background:var(--bg);
     color:var(--text-secondary);cursor:pointer;
     transition:background var(--transition-fast),color var(--transition-fast);
@@ -1293,9 +1293,9 @@ function updateDropLabel(name) {
         var wrap=document.getElementById('fv-transform-wrap');
         var isPdf=f.url.toLowerCase().split('?')[0].endsWith('.pdf');
         if(isPdf){
-            wrap.innerHTML='<iframe src="'+f.url+'" style="width:100%;height:78vh;border:none;border-radius:var(--radius-sm);background:#fff;"></iframe>';
+            wrap.innerHTML='<iframe src="'+f.url+'" style="width:100%;height:78vh;border:none;border-radius:var(--radius);background:#fff;"></iframe>';
         } else {
-            wrap.innerHTML='<img src="'+f.url+'" alt="Document preview" style="max-width:100%;max-height:78vh;border-radius:var(--radius-sm);box-shadow:var(--shadow-md);display:block;pointer-events:none;user-select:none;-webkit-user-drag:none;">';
+            wrap.innerHTML='<img src="'+f.url+'" alt="Document preview" style="max-width:100%;max-height:78vh;border-radius:var(--radius);box-shadow:var(--shadow-md);display:block;pointer-events:none;user-select:none;-webkit-user-drag:none;">';
         }
         document.getElementById('fv-label').textContent=f.label;
         document.getElementById('fv-counter').textContent=(_idx+1)+' of '+_files.length;

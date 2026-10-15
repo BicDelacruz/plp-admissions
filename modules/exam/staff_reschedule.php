@@ -443,15 +443,6 @@ ob_start();
 .sa-table-card .sa-filler { flex:1; border-top:1px solid var(--border); }
 </style>
 
-<div style="margin-bottom:var(--space-5);display:flex;justify-content:space-between;gap:var(--space-3);flex-wrap:wrap">
-    <a href="<?= url('/staff/exam/slots') ?>" class="btn btn-ghost btn-sm">← Back to Exam Slots</a>
-    <?php if ($canReschedule): ?>
-        <a href="<?= url('/staff/exam/cancel-slot') ?>" class="btn btn-ghost btn-sm">
-            Cancel a slot (bulk move) →
-        </a>
-    <?php endif; ?>
-</div>
-
 <?php
 // Same structure as the audit log (and lakbay-pasig's AdminDataTable): one
 // .auto-table-wrap that AutoPageSize measures, the card with the toolbar and

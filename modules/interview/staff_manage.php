@@ -73,7 +73,7 @@ ob_start();
         display:flex;flex-direction:column;align-items:center;text-align:center;
         gap:var(--space-4);padding:var(--space-10) var(--space-6);
         background:var(--bg-elevated);border:1.5px solid var(--border);
-        border-radius:var(--radius-lg);text-decoration:none;color:var(--text-primary);
+        border-radius:var(--radius);text-decoration:none;color:var(--text-primary);
         transition:border-color .18s,box-shadow .18s,transform .15s;cursor:pointer;
     }
     .intv-landing-card:hover {
@@ -91,7 +91,7 @@ ob_start();
         border-color:var(--border);box-shadow:none;transform:none;
     }
     .intv-landing-icon {
-        width:60px;height:60px;border-radius:var(--radius-lg);
+        width:60px;height:60px;border-radius:var(--radius);
         background:var(--accent-muted);color:var(--accent);
         display:flex;align-items:center;justify-content:center;flex-shrink:0;
     }

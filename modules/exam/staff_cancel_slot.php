@@ -231,10 +231,6 @@ foreach ($slots as $s) {
 ob_start();
 ?>
 
-<div style="margin-bottom:var(--space-5)">
-    <a href="<?= url('/staff/exam/slots') ?>" class="btn btn-ghost btn-sm">← Back to Exam Slots</a>
-</div>
-
 <div class="card" style="padding:var(--space-6);margin-bottom:var(--space-5);flex-shrink:0">
     <h2 style="font-size:var(--text-xl);font-weight:var(--weight-semibold);margin:0 0 var(--space-2)">
         Cancel an exam slot

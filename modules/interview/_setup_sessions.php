@@ -71,7 +71,7 @@ $totalSessCount = array_sum(array_column($sessDateMap, 'count'));
     <select id="sess-date-filter" class="form-control"
             title="Filter by session date"
             style="height:32px;min-height:32px;font-size:var(--text-xs);max-width:280px;
-                   border:1px solid var(--border);border-radius:var(--radius-sm);
+                   border:1px solid var(--border);border-radius:var(--radius);
                    padding:0 var(--space-2);background:var(--bg-elevated);color:var(--text-primary)">
         <option value="" data-count="<?= (int)$totalSessCount ?>">
             All dates · <?= (int)$totalSessCount ?> session<?= (int)$totalSessCount === 1 ? '' : 's' ?>
@@ -105,7 +105,7 @@ $totalSessCount = array_sum(array_column($sessDateMap, 'count'));
     padding: var(--space-5);
     background: var(--bg-elevated);
     border: 1.5px solid var(--border);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius);
     text-decoration: none;
     color: var(--text-primary);
     transition: border-color .15s, box-shadow .15s;
@@ -152,7 +152,7 @@ $totalSessCount = array_sum(array_column($sessDateMap, 'count'));
 .sess-bulk-bar {
     position:fixed;left:50%;bottom:24px;transform:translateX(-50%);
     background:var(--bg-elevated);border:1px solid var(--border);
-    border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);
+    border-radius:var(--radius);box-shadow:var(--shadow-lg);
     padding:var(--space-3) var(--space-4);
     display:none;align-items:center;gap:var(--space-3);z-index:50;
     font-size:var(--text-sm);

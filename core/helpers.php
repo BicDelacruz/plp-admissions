@@ -1148,6 +1148,33 @@ function exam_late_cutoff_minutes(): int
     return max(0, $v);
 }
 
+
+/**
+ * Segmented control used for page tabs. Renders as links so every tab is a
+ * normal page load / bookmarkable URL. Put it as the FIRST item of a table
+ * toolbar (left of the search box).
+ *
+ * $tabs = [ key => ['label' => 'Absent', 'href' => '?tab=absent',
+ *                   'count' => 3 (optional), 'tone' => 'warning' (optional)] ]
+ */
+function segmented_tabs(array $tabs, string $active, string $ariaLabel = 'Views'): string
+{
+    $html = '<div class="seg-control" role="tablist" aria-label="' . htmlspecialchars($ariaLabel) . '">';
+    foreach ($tabs as $key => $t) {
+        $isActive = ((string)$key === $active);
+        $count = $t['count'] ?? null;
+        $html .= '<a href="' . htmlspecialchars($t['href']) . '" role="tab" aria-selected="' . ($isActive ? 'true' : 'false') . '"'
+               . ' class="seg-control-item' . ($isActive ? ' active' : '') . '">'
+               . htmlspecialchars($t['label']);
+        if ($count !== null && (int)$count > 0) {
+            $tone = !empty($t['tone']) ? ' seg-control-count--' . htmlspecialchars($t['tone']) : '';
+            $html .= '<span class="seg-control-count' . $tone . '">' . (int)$count . '</span>';
+        }
+        $html .= '</a>';
+    }
+    return $html . '</div>';
+}
+
 /**
  * Sortable table header link, shared by any staff listing page with
  * click-to-sort columns (results, documents, etc). $extraParams carries

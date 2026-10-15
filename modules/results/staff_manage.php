@@ -307,94 +307,6 @@ $secondaryTabs = [
 ];
 $awaitingCount = (int)$countRows['awaiting_count'];
 ?>
-<div style="
-    display:flex;
-    align-items:flex-end;
-    justify-content:space-between;
-    gap:var(--space-4);
-    margin-bottom:var(--space-3);
-    border-bottom:1px solid var(--border);
-    flex-wrap:wrap;
-">
-    <!-- LEFT: Search + Auto-Release -->
-    <div style="display:flex;align-items:center;gap:var(--space-2);padding-bottom:var(--space-1);flex-shrink:0">
-        <form method="GET" style="display:flex;align-items:center;gap:var(--space-2);margin:0">
-            <input type="hidden" name="result"   value="<?= e($filterRes) ?>">
-            <input type="hidden" name="sort_col" value="<?= e($sortCol) ?>">
-            <input type="hidden" name="sort_dir" value="<?= e($sortDir) ?>">
-
-            <!-- Search input -->
-            <div style="position:relative">
-                <?= icon('ic_fluent_search_24_filled', 14, 'position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-tertiary);pointer-events:none') ?>
-                <input type="text" name="q" value="<?= e($search) ?>" class="form-control"
-                       style="padding:0 var(--space-3) 0 32px;height:32px;min-height:32px;font-size:var(--text-sm);width:220px;border-radius:var(--radius-sm)"
-                       placeholder="Search name, email, course…">
-            </div>
-
-            <button type="submit" style="display:none" aria-hidden="true"></button>
-        </form>
-
-        <?php if ($canCloseCycle): ?>
-            <!-- Close Admissions (SSO / Admin) — bulk-rejects every
-                 unreleased applicant so leftover rows don't sit forever. -->
-            <button type="button" class="btn btn-ghost btn-sm"
-                    onclick="openCloseAdmissionsModal()"
-                    style="display:inline-flex;align-items:center;gap:6px;font-size:var(--text-xs);color:var(--error);border:1px solid var(--error)">
-                <?= icon('ic_fluent_lock_closed_24_regular', 13) ?>
-                Close Admissions
-            </button>
-        <?php endif; ?>
-    </div>
-
-    <!-- RIGHT: Bucket tabs (primary + de-emphasized Withdrawn) -->
-    <div style="display:flex;gap:var(--space-1);flex-wrap:wrap;align-items:flex-end">
-        <?php foreach ($primaryTabs as $val => $tab):
-            $active = ($filterRes === $val);
-        ?>
-            <a href="<?= filterUrl(['result' => $val]) ?>"
-               style="
-                   padding:var(--space-2) var(--space-4);
-                   border-bottom:2px solid <?= $active ? 'var(--accent)' : 'transparent' ?>;
-                   color:<?= $active ? 'var(--accent)' : 'var(--text-secondary)' ?>;
-                   font-size:var(--text-sm);
-                   font-weight:<?= $active ? 'var(--weight-semibold)' : 'var(--weight-regular)' ?>;
-                   white-space:nowrap;text-decoration:none;margin-bottom:-1px;
-                   transition:color var(--transition-fast);
-               ">
-                <?= $tab['label'] ?>
-                <span style="margin-left:4px;font-size:var(--text-xs);color:var(--text-tertiary)"><?= $tab['count'] ?></span>
-            </a>
-        <?php endforeach; ?>
-
-        <?php // Subtle separator before the de-emphasized archive tab. ?>
-        <span aria-hidden="true" style="
-            align-self:center;width:1px;height:14px;background:var(--border);
-            margin:0 var(--space-2) calc(var(--space-1) + 2px)">
-        </span>
-
-        <?php foreach ($secondaryTabs as $val => $tab):
-            $active = ($filterRes === $val);
-        ?>
-            <a href="<?= filterUrl(['result' => $val]) ?>"
-               style="
-                   padding:var(--space-2) var(--space-3);
-                   border-bottom:2px solid <?= $active ? 'var(--text-tertiary)' : 'transparent' ?>;
-                   color:<?= $active ? 'var(--text-secondary)' : 'var(--text-tertiary)' ?>;
-                   font-size:var(--text-xs);
-                   font-weight:<?= $active ? 'var(--weight-medium)' : 'var(--weight-regular)' ?>;
-                   white-space:nowrap;text-decoration:none;margin-bottom:-1px;
-                   opacity:<?= $active ? '1' : '.75' ?>;
-                   transition:color var(--transition-fast),opacity var(--transition-fast);
-               "
-               onmouseover="this.style.opacity='1'"
-               onmouseout="this.style.opacity='<?= $active ? '1' : '.75' ?>'">
-                <?= $tab['label'] ?>
-                <span style="margin-left:4px;font-size:var(--text-xs);color:var(--text-tertiary)"><?= $tab['count'] ?></span>
-            </a>
-        <?php endforeach; ?>
-    </div>
-</div>
-
 <?php if ($awaitingCount > 0): ?>
 <!-- Awaiting-interview nudge — replaces the old "Awaiting interview" tab.
      SSO can't release these here (Professor hasn't evaluated yet), so
@@ -404,7 +316,7 @@ $awaitingCount = (int)$countRows['awaiting_count'];
     <a href="<?= url('/staff/interviews/queue') ?>"
        style="
            display:inline-flex;align-items:center;gap:var(--space-2);
-           padding:4px var(--space-3);border-radius:var(--radius-full);
+           padding:4px var(--space-3);border-radius:var(--radius);
            background:var(--bg-secondary);border:1px solid var(--border);
            font-size:var(--text-xs);color:var(--text-tertiary);text-decoration:none;
            transition:background var(--transition-fast),color var(--transition-fast);
@@ -438,7 +350,7 @@ $awaitingCount = (int)$countRows['awaiting_count'];
         display:flex;flex-direction:column;gap:4px;
         padding:var(--space-2) var(--space-3);
         border:1px solid <?= $borderColor ?>;
-        border-radius:var(--radius-md);
+        border-radius:var(--radius);
         background:var(--bg-elevated);
         font-size:var(--text-xs);
         min-width:180px;flex-shrink:0;
@@ -452,8 +364,8 @@ $awaitingCount = (int)$countRows['awaiting_count'];
             </span>
         </div>
         <!-- Progress bar -->
-        <div style="height:4px;background:var(--border);border-radius:var(--radius-full);overflow:hidden">
-            <div style="height:100%;width:<?= $pct ?>%;background:<?= $barColor ?>;border-radius:var(--radius-full);transition:width .3s"></div>
+        <div style="height:4px;background:var(--border);border-radius:var(--radius);overflow:hidden">
+            <div style="height:100%;width:<?= $pct ?>%;background:<?= $barColor ?>;border-radius:var(--radius);transition:width .3s"></div>
         </div>
         <div style="color:var(--text-tertiary)">
             <?= $accepted ?> accepted<?= $pending > 0 ? ' · <strong style="color:' . $barColor . '">' . $pending . ' pending</strong>' : '' ?>
@@ -468,35 +380,79 @@ $awaitingCount = (int)$countRows['awaiting_count'];
 </div>
 <?php endif; ?>
 
-<style>
-/* Make the table card stretch to fill the .page area so the gap below the
-   card matches the .page horizontal padding (var(--space-8) = 32px). */
-.page:has(.results-table-card) { display:flex; flex-direction:column; }
-.results-table-card { flex:1; min-height:300px; }
-</style>
+<?php
+// Same structure as the audit log (and lakbay-pasig's AdminDataTable): one
+// .auto-table-wrap that AutoPageSize measures, the card with the toolbar and
+// the fixed-height table fused together, and the pagination bar under the card.
+$sortParams = ['q' => $search, 'result' => $filterRes, 'per_page' => $perPage, 'page' => 1];
+?>
+<div class="auto-table-wrap" data-auto-page-size="results-manage" data-current-per-page="<?= (int)$perPage ?>">
 
-<!-- ── Results table ──────────────────────────────────────── -->
-<div class="card results-table-card" style="padding:0;overflow:hidden;display:flex;flex-direction:column">
-    <table class="table" id="results-table">
-        <thead>
-            <tr>
-                <?php if ($canRelease): ?>
-                <th style="width:40px;padding-left:var(--space-3)">
-                    <input type="checkbox" id="res-select-all" onchange="resToggleAll(this)"
-                           style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent)">
-                </th>
-                <?php endif; ?>
-                <?= sortable_th('applicant', 'Applicant',   $sortCol, $sortDir, ['q' => $search, 'result' => $filterRes, 'page' => 1]) ?>
-                <?= sortable_th('course',    'Course',      $sortCol, $sortDir, ['q' => $search, 'result' => $filterRes, 'page' => 1]) ?>
-                <th>Exam Score</th>
-                <th>Interview</th>
-                <?= sortable_th('result',    'Result',      $sortCol, $sortDir, ['q' => $search, 'result' => $filterRes, 'page' => 1]) ?>
-                <?= sortable_th('released',  'Released',    $sortCol, $sortDir, ['q' => $search, 'result' => $filterRes, 'page' => 1]) ?>
-                <th style="width:160px">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        <?php if (!empty($result['data'])): ?>
+<div class="auto-table-card">
+
+    <!-- Toolbar: search + Close Admissions (left), bucket tabs (right), one row -->
+    <form method="GET" class="auto-table-toolbar">
+        <input type="hidden" name="result"   value="<?= e($filterRes) ?>">
+        <input type="hidden" name="sort_col" value="<?= e($sortCol) ?>">
+        <input type="hidden" name="sort_dir" value="<?= e($sortDir) ?>">
+        <input type="hidden" name="per_page" value="<?= (int)$perPage ?>">
+
+        <?php
+        $segTabs = [];
+        foreach (array_merge($primaryTabs, $secondaryTabs) as $val => $tab) {
+            $segTabs[$val] = ['label' => $tab['label'], 'href' => filterUrl(['result' => $val]), 'count' => $tab['count']];
+        }
+        echo segmented_tabs($segTabs, (string)$filterRes, 'Result buckets');
+        ?>
+
+        <div class="auto-table-search" style="max-width:320px">
+            <?= icon('ic_fluent_search_24_filled', 14) ?>
+            <input type="text" name="q" class="form-input" placeholder="Search name, email, course…" value="<?= e($search) ?>">
+        </div>
+
+        <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
+        <?php if ($search !== ''): ?>
+            <a href="<?= e(filterUrl(['q' => ''])) ?>" class="btn btn-ghost btn-sm">Clear</a>
+        <?php endif; ?>
+
+        <?php if ($canCloseCycle): ?>
+            <!-- Close Admissions (SSO / Admin) — bulk-rejects every
+                 unreleased applicant so leftover rows don't sit forever. -->
+            <button type="button" class="btn btn-ghost btn-sm" data-page-action
+                    onclick="openCloseAdmissionsModal()"
+                    style="display:inline-flex;align-items:center;gap:6px;font-size:var(--text-xs);color:var(--error);border:1px solid var(--error)">
+                <?= icon('ic_fluent_lock_closed_24_regular', 13) ?>
+                Close Admissions
+            </button>
+        <?php endif; ?>
+
+        <span class="toolbar-spacer"></span>
+
+    </form>
+
+    <!-- Table body — sized so the rows AutoPageSize picks fit exactly; it
+         only scrolls as a safety net (e.g. a very narrow window) -->
+    <div class="auto-table-body">
+        <table class="auto-table" id="results-table">
+            <thead>
+                <tr>
+                    <?php if ($canRelease): ?>
+                    <th class="col-check">
+                        <input type="checkbox" id="res-select-all" onchange="resToggleAll(this)"
+                               style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent)">
+                    </th>
+                    <?php endif; ?>
+                    <?= sortable_th('applicant', 'Applicant', $sortCol, $sortDir, $sortParams) ?>
+                    <?= sortable_th('course',    'Course',    $sortCol, $sortDir, $sortParams) ?>
+                    <th style="width:100px">Exam Score</th>
+                    <th style="width:120px">Interview</th>
+                    <?= sortable_th('result',    'Result',    $sortCol, $sortDir, $sortParams, 'width:200px') ?>
+                    <?= sortable_th('released',  'Released',  $sortCol, $sortDir, $sortParams, 'width:120px') ?>
+                    <th style="width:240px">Actions</th>
+                </tr>
+            </thead>
+            <?php if (!empty($result['data'])): ?>
+            <tbody>
             <?php foreach ($result['data'] as $row):
                 $bucket     = $row['bucket'] ?? 'awaiting';
                 $isReady    = ($bucket === 'ready_accept' || $bucket === 'ready_reject');
@@ -744,7 +700,7 @@ $awaitingCount = (int)$countRows['awaiting_count'];
             <input type="hidden" name="action" value="override">
             <div class="modal-body" style="display:flex;flex-direction:column;gap:var(--space-4)">
                 <div style="background:var(--warning-bg,rgba(245,158,11,.08));border:1px solid var(--warning);
-                            border-radius:var(--radius-md);padding:var(--space-3) var(--space-4);
+                            border-radius:var(--radius);padding:var(--space-3) var(--space-4);
                             font-size:var(--text-xs);color:var(--text-secondary)">
                     <strong style="color:var(--warning)">Admin override.</strong>
                     Changing a released result is audited. Use only when correcting a clerical error or
@@ -796,7 +752,7 @@ $awaitingCount = (int)$countRows['awaiting_count'];
                 <div id="release-override-warning" style="
                     background:var(--warning-bg,rgba(245,158,11,.08));
                     border:1px solid var(--warning);
-                    border-radius:var(--radius-md);padding:var(--space-3) var(--space-4);
+                    border-radius:var(--radius);padding:var(--space-3) var(--space-4);
                     font-size:var(--text-xs);color:var(--text-secondary)">
                     <strong style="color:var(--warning)">Heads up.</strong>
                     The Professor interviewed this applicant face-to-face. Overriding their
@@ -844,7 +800,7 @@ $awaitingCount = (int)$countRows['awaiting_count'];
             <div class="modal-body" style="display:flex;flex-direction:column;gap:var(--space-4)">
                 <div style="background:var(--error-bg,rgba(220,38,38,.08));
                             border:1px solid var(--error);
-                            border-radius:var(--radius-md);padding:var(--space-3) var(--space-4);
+                            border-radius:var(--radius);padding:var(--space-3) var(--space-4);
                             font-size:var(--text-xs);color:var(--text-secondary)">
                     <strong style="color:var(--error)">Irreversible.</strong>
                     All unreleased applicants will be marked <strong>Declined</strong>
@@ -884,7 +840,7 @@ $awaitingCount = (int)$countRows['awaiting_count'];
             <?= csrf_field() ?>
             <input type="hidden" name="action" value="suggest_course">
             <div class="modal-body" style="display:flex;flex-direction:column;gap:var(--space-4)">
-                <div style="background:var(--bg-subtle);border-radius:var(--radius-md);padding:var(--space-3) var(--space-4);font-size:var(--text-sm)">
+                <div style="background:var(--bg-subtle);border-radius:var(--radius);padding:var(--space-3) var(--space-4);font-size:var(--text-sm)">
                     Applicant: <strong id="suggest-name"></strong><br>
                     <span style="font-size:var(--text-xs);color:var(--text-tertiary)">
                         Exam rank: <strong id="suggest-rank"></strong>/10 — did not pass applied course threshold.
@@ -934,7 +890,7 @@ function openSuggestModal(appId, name, alts, rank) {
     list.innerHTML = '';
     alts.forEach(function(course) {
         const li = document.createElement('label');
-        li.style.cssText = 'display:flex;align-items:center;gap:var(--space-2);padding:var(--space-3) var(--space-4);border:1px solid var(--border);border-radius:var(--radius-md);cursor:pointer;font-size:var(--text-sm)';
+        li.style.cssText = 'display:flex;align-items:center;gap:var(--space-2);padding:var(--space-3) var(--space-4);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;font-size:var(--text-sm)';
         li.innerHTML = '<input type="radio" name="suggest_course" value="' + escHtml(course) + '" style="accent-color:var(--accent)"> ' + escHtml(course);
         list.appendChild(li);
     });
@@ -960,7 +916,7 @@ document.getElementById('suggest-modal').addEventListener('click', function(e){
     display:none;
     position:fixed;bottom:var(--space-6);left:50%;transform:translateX(-50%);z-index:500;
     background:var(--bg-elevated);border:1px solid var(--border);
-    border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);
+    border-radius:var(--radius);box-shadow:var(--shadow-lg);
     padding:var(--space-3) var(--space-5);
     align-items:center;gap:var(--space-4);
     animation:resToolbarSlideUp .2s ease-out;
@@ -969,7 +925,7 @@ document.getElementById('suggest-modal').addEventListener('click', function(e){
         <span id="res-bulk-count" style="
             display:inline-flex;align-items:center;justify-content:center;
             min-width:24px;height:24px;padding:0 var(--space-2);
-            border-radius:var(--radius-full);
+            border-radius:var(--radius);
             background:var(--accent);color:var(--accent-text);
             font-size:var(--text-xs);font-weight:var(--weight-semibold);
         ">0</span>
@@ -1031,7 +987,7 @@ function showResUndoToast(msg, onCommit) {
     toast.style.cssText = [
         'position:fixed;bottom:calc(var(--space-6) + 56px);left:50%;transform:translateX(-50%);',
         'z-index:600;background:var(--bg-elevated);border:1px solid var(--border);',
-        'border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);',
+        'border-radius:var(--radius);box-shadow:var(--shadow-lg);',
         'padding:12px 20px;display:flex;align-items:center;gap:12px;',
         'font-size:var(--text-sm);min-width:320px;',
         'animation:resUndoSlideUp .25s ease'
@@ -1039,10 +995,10 @@ function showResUndoToast(msg, onCommit) {
 
     // Progress bar
     var bar = document.createElement('div');
-    bar.style.cssText = 'position:absolute;bottom:0;left:0;height:3px;background:var(--accent);border-radius:0 0 var(--radius-lg) var(--radius-lg);width:100%;transition:width ' + DELAY + 'ms linear';
+    bar.style.cssText = 'position:absolute;bottom:0;left:0;height:3px;background:var(--accent);border-radius:0 0 var(--radius) var(--radius);width:100%;transition:width ' + DELAY + 'ms linear';
 
     toast.innerHTML = '<span style="flex:1">' + msg + '</span>'
-        + '<button id="res-undo-btn" style="background:none;border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 14px;cursor:pointer;font-size:var(--text-sm);color:var(--text-primary);font-weight:500;white-space:nowrap">Undo</button>'
+        + '<button id="res-undo-btn" style="background:none;border:1px solid var(--border);border-radius:var(--radius);padding:4px 14px;cursor:pointer;font-size:var(--text-sm);color:var(--text-primary);font-weight:500;white-space:nowrap">Undo</button>'
         + '<button onclick="dismissResUndoToast()" style="background:none;border:none;cursor:pointer;color:var(--text-tertiary);font-size:16px;padding:0 4px">&times;</button>';
     toast.appendChild(bar);
     document.body.appendChild(toast);
@@ -1235,9 +1191,6 @@ include VIEWS_PATH . '/partials/applicant_drawer.php';
 
 $content   = ob_get_clean();
 $pageTitle = 'Results';
-$pageActions = $canCloseCycle
-    ? '<button type="button" class="btn btn-ghost btn-sm results-close-cycle" onclick="openCloseAdmissionsModal()">' . icon('ic_fluent_lock_closed_24_regular', 14) . ' Close Admissions</button>'
-    : '';
 $activeNav = 'results';
 $pageWide  = true;
 include VIEWS_PATH . '/layouts/app.php';

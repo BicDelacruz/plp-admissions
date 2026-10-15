@@ -264,7 +264,7 @@ ob_start();
             </div>
         </div>
     </div>
-    <div style="border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;font-size:var(--text-sm);margin-bottom:var(--space-6);background:var(--bg-elevated);width:100%">
+    <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;font-size:var(--text-sm);margin-bottom:var(--space-6);background:var(--bg-elevated);width:100%">
         <?php
         $hStyle = 'padding:var(--space-3) var(--space-4);background:var(--bg-subtle);font-size:var(--text-xs);font-weight:var(--weight-semibold);color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.04em;border-bottom:1px solid var(--border)';
         $hStyleC = $hStyle . ';text-align:center';
@@ -300,13 +300,13 @@ ob_start();
             <div style="padding:var(--space-3) var(--space-4)">
                 <?= e($course) ?>
                 <?php if ($isFull): ?>
-                    <span style="font-size:10px;padding:1px 6px;background:#fee2e2;color:#b91c1c;border-radius:9999px;margin-left:4px">Full</span>
+                    <span style="font-size:10px;padding:1px 6px;background:#fee2e2;color:#b91c1c;border-radius:var(--radius);margin-left:4px">Full</span>
                 <?php endif; ?>
             </div>
             <div style="padding:var(--space-3) var(--space-4)">
                 <div style="display:flex;gap:4px;flex-wrap:wrap">
                     <?php if ($strands): foreach ($strands as $s): ?>
-                        <span style="font-size:11px;padding:2px 8px;background:var(--bg-subtle);border-radius:9999px;color:var(--text-secondary);white-space:nowrap"><?= e($s) ?></span>
+                        <span style="font-size:11px;padding:2px 8px;background:var(--bg-subtle);border-radius:var(--radius);color:var(--text-secondary);white-space:nowrap"><?= e($s) ?></span>
                     <?php endforeach; else: ?>
                         <span style="font-size:var(--text-xs);color:var(--text-tertiary)">—</span>
                     <?php endif; ?>
@@ -345,7 +345,7 @@ ob_start();
                 <div style="padding:var(--space-3) var(--space-4)">
                     <div style="display:flex;gap:4px;flex-wrap:wrap">
                         <?php if ($strands): foreach ($strands as $s): ?>
-                            <span style="font-size:11px;padding:2px 8px;background:var(--bg-subtle);border-radius:9999px;color:var(--text-secondary);white-space:nowrap"><?= e($s) ?></span>
+                            <span style="font-size:11px;padding:2px 8px;background:var(--bg-subtle);border-radius:var(--radius);color:var(--text-secondary);white-space:nowrap"><?= e($s) ?></span>
                         <?php endforeach; else: ?>
                             <span style="color:var(--text-tertiary)">—</span>
                         <?php endif; ?>
@@ -423,20 +423,20 @@ ob_start();
         <?php foreach ($customCourses as $cc):
             $ccStrands = json_decode($cc['strands'] ?? '[]', true) ?: [];
         ?>
-        <div style="border:1px solid var(--border);border-radius:var(--radius-md);padding:var(--space-3) var(--space-4);
+        <div style="border:1px solid var(--border);border-radius:var(--radius);padding:var(--space-3) var(--space-4);
                     display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap;
                     <?= !$cc['is_active'] ? 'opacity:0.55' : '' ?>">
             <div style="flex:1;min-width:200px">
                 <div style="display:flex;align-items:center;gap:var(--space-2)">
                     <span style="font-size:var(--text-sm);font-weight:var(--weight-medium)"><?= e($cc['course_name']) ?></span>
                     <?php if (!$cc['is_active']): ?>
-                        <span style="font-size:var(--text-xs);padding:1px 7px;background:#f3f4f6;color:#6b7280;border-radius:9999px">Inactive</span>
+                        <span style="font-size:var(--text-xs);padding:1px 7px;background:#f3f4f6;color:#6b7280;border-radius:var(--radius)">Inactive</span>
                     <?php endif; ?>
                 </div>
                 <div style="display:flex;gap:var(--space-1);flex-wrap:wrap;margin-top:var(--space-1)">
                     <?php foreach ($ccStrands as $s): ?>
                         <span style="font-size:var(--text-xs);padding:1px 7px;background:var(--bg-subtle);
-                                     border-radius:9999px;color:var(--text-secondary)"><?= e($s) ?></span>
+                                     border-radius:var(--radius);color:var(--text-secondary)"><?= e($s) ?></span>
                     <?php endforeach; ?>
                     <?php if (!$ccStrands): ?>
                         <span style="font-size:var(--text-xs);color:var(--text-tertiary)">No strands set</span>
@@ -474,7 +474,7 @@ ob_start();
     <div class="card" style="padding:var(--space-5)">
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:var(--space-3)">
         <?php foreach (SHS_STRANDS as $key => $label): ?>
-            <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-md);
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);
                         padding:var(--space-3)">
                 <div style="font-size:var(--text-xs);font-weight:var(--weight-semibold);color:var(--text-primary)"><?= e($key) ?></div>
                 <div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:2px"><?= e($label) ?></div>
@@ -490,7 +490,7 @@ ob_start();
 <div id="add-course-modal"
      style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;
             align-items:center;justify-content:center;padding:var(--space-4)">
-    <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-6);
+    <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);padding:var(--space-6);
                 max-width:520px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg)">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-5)">
             <div style="font-weight:var(--weight-semibold);font-size:var(--text-lg)">Add Custom Course</div>
@@ -547,7 +547,7 @@ ob_start();
 <div id="edit-course-modal"
      style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;
             align-items:center;justify-content:center;padding:var(--space-4)">
-    <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-6);
+    <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);padding:var(--space-6);
                 max-width:520px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg)">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-5)">
             <div style="font-weight:var(--weight-semibold);font-size:var(--text-lg)">Edit Course</div>

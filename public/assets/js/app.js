@@ -192,6 +192,20 @@ const Sidebar = (() => {
         wrapper.addEventListener('focusout', hideTooltip);
         wrapper.addEventListener('click', hideTooltip); // e.g. opening the account menu
 
+        // Tablet widths (769-1100px): start on the icon rail so the content has
+        // room — unless the person already chose (the cookie exists). Not saved.
+        const TABLET_QUERY = '(min-width: 769px) and (max-width: 1100px)';
+        const hasChoice = () => document.cookie.split('; ').some((c) => c.indexOf(COOKIE_NAME + '=') === 0);
+        const applyTablet = (q) => {
+            if (hasChoice()) return;
+            open = !q.matches;
+            wrapper.dataset.state       = open ? 'expanded' : 'collapsed';
+            wrapper.dataset.collapsible = open ? '' : 'icon';
+        };
+        const tabletMql = window.matchMedia(TABLET_QUERY);
+        applyTablet(tabletMql);
+        tabletMql.addEventListener('change', applyTablet);
+
         // Resized from a phone width up to desktop with the drawer open:
         // close it, the desktop rail takes over.
         mql.addEventListener('change', () => {

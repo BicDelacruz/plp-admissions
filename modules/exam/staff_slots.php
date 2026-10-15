@@ -771,7 +771,7 @@ ob_start();
     padding: var(--space-5);
     background: var(--bg-elevated);
     border: 1.5px solid var(--border);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius);
     text-decoration: none;
     color: var(--text-primary);
     transition: border-color .15s, box-shadow .15s, transform .12s;
@@ -798,7 +798,7 @@ ob_start();
 .es-card-code-badge {
     display: inline-flex; align-items: center; gap: 4px;
     padding: 2px 8px;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius);
     background: var(--success-muted, #e6f4ec);
     color: var(--success, #2d6a4f);
     font-family: monospace;
@@ -814,7 +814,7 @@ ob_start();
     padding: var(--space-3) var(--space-4);
     background: var(--bg-elevated);
     border: 1px solid var(--border);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius);
     margin-bottom: var(--space-4);
     flex-wrap: wrap;
 }
@@ -831,7 +831,7 @@ ob_start();
     padding: 4px 12px;
     background: var(--bg-subtle);
     border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius);
     color: var(--text-primary);
 }
 .es-code-display.is-empty {
@@ -848,7 +848,7 @@ ob_start();
 .es-code-timer.is-expired { color: var(--error); }
 
 .es-card-icon {
-    width: 44px; height: 44px; border-radius: var(--radius-lg);
+    width: 44px; height: 44px; border-radius: var(--radius);
     background: var(--accent-muted); color: var(--accent);
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
@@ -874,7 +874,7 @@ ob_start();
     position: absolute; top: var(--space-3); right: var(--space-3);
     width: 28px; height: 28px;
     display: flex; align-items: center; justify-content: center;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius);
     background: var(--bg-subtle); color: var(--text-secondary);
     border: 1px solid transparent;
     cursor: pointer;
@@ -898,7 +898,7 @@ ob_start();
 .es-bulk-bar {
     position:fixed;left:50%;bottom:24px;transform:translateX(-50%);
     background:var(--bg-elevated);border:1px solid var(--border);
-    border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);
+    border-radius:var(--radius);box-shadow:var(--shadow-lg);
     padding:var(--space-3) var(--space-4);
     display:none;align-items:center;gap:var(--space-3);z-index:50;
     font-size:var(--text-sm);
@@ -913,7 +913,7 @@ ob_start();
     padding: var(--space-5);
     background: transparent;
     border: 1.5px dashed var(--border);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius);
     color: var(--accent);
     cursor: pointer;
     min-height: 200px;
@@ -1046,7 +1046,7 @@ ob_start();
             <select id="es-date-filter" class="form-control"
                     title="Filter by exam date"
                     style="height:32px;min-height:32px;font-size:var(--text-xs);max-width:280px;
-                           border:1px solid var(--border);border-radius:var(--radius-sm);
+                           border:1px solid var(--border);border-radius:var(--radius);
                            padding:0 var(--space-2);background:var(--bg-elevated);color:var(--text-primary)">
                 <option value="" data-count="<?= count($slotsForCollege) ?>">
                     All dates · <?= count($slotsForCollege) ?> slot<?= count($slotsForCollege) === 1 ? '' : 's' ?>
@@ -1251,7 +1251,7 @@ ob_start();
 
     <div style="display:flex;align-items:center;margin-bottom:var(--space-4);gap:var(--space-2);flex-wrap:wrap">
         <a href="<?= e(url('/staff/exam/slots') . '?college=' . urlencode($slotDetail['department'])) ?>"
-           class="btn btn-ghost btn-sm" style="margin-right:auto">← Back to <?= e($slotDetail['department']) ?> slots</a>
+           class="btn btn-ghost btn-sm" style="margin-right:auto"><?= icon('arrow-left', 14) ?> Back to <?= e($slotDetail['department']) ?> slots</a>
 
         <?php if ($canManage && !$isPast): ?>
             <button type="button" class="btn btn-sm"
@@ -1264,7 +1264,7 @@ ob_start();
     <!-- Slot summary strip -->
     <div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) var(--space-4);
                 margin-bottom:var(--space-4);background:var(--bg-elevated);border:1px solid var(--border);
-                border-radius:var(--radius-md);font-size:var(--text-sm);flex-wrap:wrap;flex-shrink:0">
+                border-radius:var(--radius);font-size:var(--text-sm);flex-wrap:wrap;flex-shrink:0">
         <?= icon('ic_fluent_location_24_regular', 14, 'color:var(--text-tertiary);flex-shrink:0') ?>
 
         <?php if ($canManage && !$isPast): ?>
@@ -1773,7 +1773,7 @@ ob_start();
                                value="<?= $examDailyCap ?>" min="1" max="10000">
                     </div>
                     <?php $roomsNeeded = $examRoomCap > 0 ? ceil($examDailyCap / $examRoomCap) : '—'; ?>
-                    <div style="background:var(--bg-subtle);border-radius:var(--radius-md);
+                    <div style="background:var(--bg-subtle);border-radius:var(--radius);
                                 padding:var(--space-3) var(--space-4);font-size:var(--text-xs);
                                 color:var(--text-secondary)">
                         <?= $examDailyCap ?> applicants &divide; <?= $examRoomCap ?>/room

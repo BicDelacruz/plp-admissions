@@ -253,9 +253,9 @@ ob_start();
     </table>
 </div>
 
-<!-- New User button below table -->
-<div style="margin-top:var(--space-4);display:flex;justify-content:center">
-    <button class="btn btn-primary" onclick="document.getElementById('create-user-modal').style.display='flex'">
+<!-- New User — moved into the page heading (top right) by the layout -->
+<div data-page-actions>
+    <button type="button" class="btn btn-primary btn-sm" onclick="document.getElementById('create-user-modal').style.display='flex'">
         <?= icon('ic_fluent_add_24_regular', 15) ?>
         New User
     </button>

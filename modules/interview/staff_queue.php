@@ -435,7 +435,7 @@ ob_start();
 <?php if ($canSeeAll): ?>
     <div style="display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-5);flex-wrap:wrap">
         <a href="<?= e(url('/staff/interviews/queue')) ?>" class="btn btn-ghost btn-sm">
-            ← Back to colleges
+            <?= icon('arrow-left', 14) ?> Back to colleges
         </a>
         <span style="font-size:var(--text-sm);color:var(--text-secondary)">
             <?php if ($showAll): ?>
@@ -457,7 +457,7 @@ ob_start();
     <div style="display:flex;align-items:center;gap:var(--space-3);flex-shrink:0;
                  padding:var(--space-3) var(--space-4);margin-bottom:var(--space-4);
                  background:var(--bg-elevated);border:1px solid var(--border);
-                 border-radius:var(--radius-md);font-size:var(--text-sm)">
+                 border-radius:var(--radius);font-size:var(--text-sm)">
         <?= icon('ic_fluent_location_24_regular', 13, 'color:var(--text-tertiary);flex-shrink:0') ?>
         <span style="font-weight:var(--weight-medium)"><?= e($deskLabel) ?></span>
         <?php if ($deskNotes): ?>
@@ -495,7 +495,7 @@ ob_start();
     -->
     <div class="card iq-table-card"
          style="padding:var(--space-12) var(--space-8);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--space-3);text-align:center">
-        <div style="width:56px;height:56px;border-radius:var(--radius-lg);background:var(--bg-subtle);color:var(--text-tertiary);display:flex;align-items:center;justify-content:center">
+        <div style="width:56px;height:56px;border-radius:var(--radius);background:var(--bg-subtle);color:var(--text-tertiary);display:flex;align-items:center;justify-content:center">
             <?= icon('ic_fluent_calendar_ltr_24_regular', 28) ?>
         </div>
         <div style="font-size:var(--text-base);font-weight:var(--weight-semibold);color:var(--text-primary)">
