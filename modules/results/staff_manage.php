@@ -418,12 +418,7 @@ $sortParams = ['q' => $search, 'result' => $filterRes, 'per_page' => $perPage, '
         <?php if ($canCloseCycle): ?>
             <!-- Close Admissions (SSO / Admin) — bulk-rejects every
                  unreleased applicant so leftover rows don't sit forever. -->
-            <button type="button" class="btn btn-ghost btn-sm" data-page-action
-                    onclick="openCloseAdmissionsModal()"
-                    style="display:inline-flex;align-items:center;gap:6px;font-size:var(--text-xs);color:var(--error);border:1px solid var(--error)">
-                <?= icon('ic_fluent_lock_closed_24_regular', 13) ?>
-                Close Admissions
-            </button>
+            <?= ui_button('Close Admissions', ['variant' => 'outline-danger', 'icon' => 'ic_fluent_lock_closed_24_regular', 'attrs' => ['data-page-action' => '', 'onclick' => 'openCloseAdmissionsModal()']]) ?>
         <?php endif; ?>
 
         <span class="toolbar-spacer"></span>

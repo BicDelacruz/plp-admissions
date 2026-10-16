@@ -10,6 +10,7 @@ require_once __DIR__ . '/Session.php';
 require_once __DIR__ . '/Auth.php';
 require_once __DIR__ . '/Router.php';
 require_once __DIR__ . '/helpers.php';
+require_once __DIR__ . '/../views/partials/button.php';   // ui_button(): shared button component
 require_once __DIR__ . '/interview_scheduler.php';
 require_once __DIR__ . '/automation.php';
 

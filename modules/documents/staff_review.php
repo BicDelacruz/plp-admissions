@@ -791,7 +791,7 @@ function undoApproveAll() {
     $content   = ob_get_clean();
     $pageTitle = 'Review: ' . format_full_name($applicant);
     $pageBreadcrumb = [['label' => 'Documents', 'to' => '/staff/applicants']];
-    $pageActions = ($approvableCount > 0 ? '<button type="button" class="btn btn-success btn-sm" id="approve-all-btn" onclick="approveAllAjax()">' . icon('ic_fluent_checkmark_circle_24_regular', 15) . ' Approve All (' . (int)$approvableCount . ')</button>' : '');
+    $pageActions = ($approvableCount > 0 ? ui_button('Approve All (' . (int)$approvableCount . ')', ['variant' => 'success', 'icon' => 'ic_fluent_checkmark_circle_24_regular', 'attrs' => ['id' => 'approve-all-btn', 'onclick' => 'approveAllAjax()']]) : '');
     $activeNav = 'documents';
     include VIEWS_PATH . '/layouts/app.php';
     return;

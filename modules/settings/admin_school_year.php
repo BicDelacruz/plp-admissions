@@ -470,8 +470,8 @@ ob_start();
         </p>
     </div>
 
-    <!-- New cycle — danger zone -->
-    <div class="card card-danger">
+    <!-- New cycle — danger zone (flat section, not a nested card) -->
+    <div class="sy-sec sy-danger">
         <div class="card-title" style="color:var(--error);margin-bottom:var(--space-1)">Start New Admission Cycle</div>
         <p class="card-description" style="margin-bottom:var(--space-5)">
             Starts a new admissions cycle. The current exam is deactivated and all previous applicant data is preserved.
@@ -496,11 +496,11 @@ ob_start();
     <?php if (!empty($statsByYear)): ?>
     <div class="sy-sec sy-grow">
         <div class="card-title" style="margin-bottom:var(--space-5)">Applicant History</div>
-        <div style="display:flex;flex-direction:column;gap:var(--space-4)">
+        <div class="sy-years">
         <?php foreach ($statsByYear as $year => $statuses):
             $total = array_sum($statuses);
         ?>
-            <div style="padding:var(--space-4);background:var(--bg-subtle);border-radius:var(--radius)">
+            <div class="sy-year">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-3)">
                     <div>
                         <span style="font-weight:var(--weight-semibold)"><?= e($year) ?></span>
@@ -561,10 +561,16 @@ ob_start();
 .school-year-history-summary {
     display:flex;
     flex-direction:column;
-    gap:var(--space-4);
+    gap:0;
     min-width:0;
 }
-.school-year-history-summary .card { border-bottom:0; }
+/* No nested boxes in the School Year card: sections and year rows are flat,
+   square, and separated by single divider lines. */
+.school-year-history-tools .sy-sec + .sy-sec { border-top:1px solid var(--border); }
+.sy-years { display:flex; flex-direction:column; }
+.sy-year { padding:var(--space-4) 0; border-radius:0 !important; background:none; }
+.sy-year:first-child { padding-top:0; }
+.sy-year + .sy-year { border-top:1px solid var(--border); }
 @media (max-width:760px) {
     .school-year-history-layout { grid-template-columns:1fr; }
     .school-year-history-layout::before { display:none; }

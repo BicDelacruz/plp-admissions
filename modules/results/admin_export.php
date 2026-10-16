@@ -138,7 +138,7 @@ ob_start();
 <?php
 $content   = ob_get_clean();
 $pageTitle = 'Results Export';
-$pageActions = '<a href="?export=csv&amp;sy=' . urlencode($schoolYear) . '" class="btn btn-primary">' . icon('ic_fluent_arrow_download_24_regular', 16) . ' Export CSV</a>';
+$pageActions = ui_button('Export CSV', ['href' => '?export=csv&sy=' . urlencode($schoolYear), 'variant' => 'primary', 'icon' => 'ic_fluent_arrow_download_24_regular']);
 $activeNav = 'results-export';
 $pageWide  = true;
 include VIEWS_PATH . '/layouts/app.php';

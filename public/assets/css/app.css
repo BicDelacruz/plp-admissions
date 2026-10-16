@@ -615,7 +615,7 @@ button { cursor: pointer; }
 .nav-section-label {
     font-size: var(--text-xs);
     font-weight: var(--weight-medium);
-    color: var(--text-tertiary);
+    color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.06em;
     padding: var(--space-5) var(--space-5) var(--space-2);
@@ -633,7 +633,7 @@ button { cursor: pointer; }
     font-size: var(--text-sm);
     font-weight: var(--weight-medium);
     line-height: 1.4;
-    color: var(--text-secondary);
+    color: var(--text-primary);
     border-radius: var(--radius);
     text-decoration: none;
     transition: width var(--transition-fast), height var(--transition-fast), padding var(--transition-fast),
@@ -654,6 +654,7 @@ button { cursor: pointer; }
 
 .nav-item.active {
     color: var(--text-primary);
+    font-weight: var(--weight-semibold);
     background: var(--accent-muted);
 }
 
@@ -782,7 +783,7 @@ button { cursor: pointer; }
 
 .user-role {
     font-size: var(--text-xs);
-    color: var(--text-tertiary);
+    color: var(--text-secondary);
     text-transform: capitalize;
 }
 
@@ -1347,6 +1348,7 @@ select {
     font-size: var(--text-sm);
     font-weight: var(--weight-medium);
     line-height: 1;
+    min-height: 36px;
     border: 1px solid transparent;
     transition: all var(--transition-fast);
     text-decoration: none;
@@ -1427,8 +1429,15 @@ select {
 }
 
 /* Sizes */
-.btn-sm { padding: var(--space-1) var(--space-3); font-size: var(--text-xs); }
-.btn-lg { padding: var(--space-3) var(--space-6); font-size: var(--text-base); }
+/* Size scale (lakbay-pasig Button: default / sm / lg). Heights are minimums so a
+   button never collapses to its text, which is what made .btn-sm ~22px tall. */
+.btn-sm { padding: var(--space-1) var(--space-3); font-size: var(--text-xs); min-height: 32px; }
+.btn-lg { padding: var(--space-3) var(--space-6); font-size: var(--text-base); min-height: 40px; }
+
+/* Outline danger (e.g. Close Admissions) */
+.btn-outline-danger { background: transparent; color: var(--error); border-color: var(--error); }
+.btn-outline-danger:hover,
+.btn-outline-danger:focus-visible { background: var(--error-bg, #fee2e2); }
 
 /* Focus ring for all buttons */
 .btn:focus-visible {
@@ -1885,6 +1894,22 @@ tbody tr:hover { background: var(--bg-overlay); }
 
 /* Table rows and cells stay square; only the table / .table-wrap keeps its corners. */
 tr, th, td, thead, tbody, tfoot { border-radius: 0 !important; }
+
+/* Inside a table card everything is square: the search / filter row (so its
+   bottom edge is a straight line against the header), the scroll body, the
+   empty state, and the links / clip wrappers inside header and body cells.
+   The outline (.auto-table-card, .table-card, .table-wrap, table) keeps its
+   corners; inputs, selects and buttons in the toolbar keep theirs too. */
+.auto-table-toolbar, .results-toolbar, .filter-bar,
+.auto-table-body, .auto-table-empty,
+.auto-table th a, .auto-table-clip,
+.data-table th *, .results-table th *,
+.table-wrap thead *, .table-wrap tbody td > .auto-table-clip { border-radius: 0 !important; }
+
+/* Sidebar outline is straight: the rail and its panels have no rounded corners.
+   (Nav rows, avatar and the account row inside keep their own radius.) */
+.sidebar-wrapper, .sidebar-gap, .sidebar, .sidebar-inner,
+.sidebar-header, .sidebar-footer, .sidebar-nav, .sidebar-group { border-radius: 0 !important; }
 
 /* Horizontal lines stay square. */
 hr, .divider, .dropdown-separator, .dp-divider, .step-connector,
@@ -2435,8 +2460,8 @@ textarea:focus-visible {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     border-radius: var(--radius);
     border: none;
     background: transparent;
@@ -4073,6 +4098,14 @@ select:not([multiple]):not([size]):disabled { opacity: .6; cursor: not-allowed; 
     margin-left: auto;
 }
 .page-head-actions:empty { display: none; }
+/* Every button in a heading row is the same size, whatever markup a page used
+   (data-page-action(s) elements are moved in here as-is). */
+.page-head-actions .btn,
+.page-header-actions .btn {
+    min-height: 36px;
+    padding: var(--space-2) var(--space-4);
+    font-size: var(--text-sm);
+}
 
 /* Breadcrumb trail: "Previous Page > Current Page" (views/partials/page_header.php).
    Ported from lakbay-pasig's AdminPageHeader: small muted ancestors that

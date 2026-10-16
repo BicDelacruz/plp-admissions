@@ -916,7 +916,7 @@ if (!$isDean) {
 $content   = ob_get_clean();
 $pageTitle = $activeTab === 'requests' ? 'Reschedule Requests' : 'Absent Students';
 $pageBreadcrumb = [['label' => 'Interview Sessions', 'to' => '/staff/interviews']];
-$pageActions = ($canReschedule ? '<a href="' . e(url('/staff/interviews/cancel-slot')) . '" class="btn btn-ghost btn-sm">Cancel a slot (bulk move) ' . icon('ic_fluent_arrow_right_24_regular', 16) . '</a>' : '');
+$pageActions = ($canReschedule ? ui_button('Cancel a slot (bulk move)', ['href' => url('/staff/interviews/cancel-slot'), 'variant' => 'ghost', 'icon' => 'ic_fluent_arrow_right_24_regular', 'icon_pos' => 'after']) : '');
 $activeNav = $activeTab === 'requests' ? 'reschedule' : 'interviews';
 $pageWide  = true; // table-heavy page — match staff_slots / staff_review / staff_manage
 include VIEWS_PATH . '/layouts/app.php';

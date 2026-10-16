@@ -255,10 +255,7 @@ ob_start();
 
 <!-- New User — moved into the page heading (top right) by the layout -->
 <div data-page-actions>
-    <button type="button" class="btn btn-primary btn-sm" onclick="document.getElementById('create-user-modal').style.display='flex'">
-        <?= icon('ic_fluent_add_24_regular', 15) ?>
-        New User
-    </button>
+    <?= ui_button('New User', ['variant' => 'primary', 'icon' => 'ic_fluent_add_24_regular', 'attrs' => ['onclick' => "document.getElementById('create-user-modal').style.display='flex'"]]) ?>
 </div>
 
 <!-- Create user modal -->

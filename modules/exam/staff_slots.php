@@ -956,12 +956,8 @@ ob_start();
     ============================================================ -->
     <div data-page-actions>
     <?php if ($canManage): ?>
-        <a href="<?= e(url('/staff/exam/export-rooms')) ?>" class="btn btn-sm" target="_blank" rel="noopener" title="Printable per-room sheets to post on the school board">
-            <?= icon('ic_fluent_document_24_regular', 14) ?> Export Lists
-        </a>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('exam-config-modal').style.display='flex'">
-            <?= icon('ic_fluent_settings_24_regular', 14) ?> Config
-        </button>
+        <?= ui_button('Export Lists', ['href' => url('/staff/exam/export-rooms'), 'icon' => 'ic_fluent_document_24_regular', 'attrs' => ['target' => '_blank', 'rel' => 'noopener', 'title' => 'Printable per-room sheets to post on the school board']]) ?>
+        <?= ui_button('Config', ['variant' => 'ghost', 'icon' => 'ic_fluent_settings_24_regular', 'attrs' => ['onclick' => "document.getElementById('exam-config-modal').style.display='flex'"]]) ?>
     <?php else: ?>
         <span class="badge badge-neutral" style="font-size:var(--text-xs)">
             <?= icon('ic_fluent_eye_24_regular', 12) ?> Read-only
@@ -1197,15 +1193,6 @@ ob_start();
         'filled'     => $filled,
     ], JSON_HEX_APOS | JSON_HEX_QUOT);
     ?>
-
-    <div style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:var(--space-4);gap:var(--space-2);flex-wrap:wrap">
-        <?php if ($canManage && !$isPast): ?>
-            <button type="button" class="btn btn-sm"
-                    onclick='openEditExamSlot(<?= $editPayload ?>)'>
-                <?= icon('ic_fluent_edit_24_regular', 14) ?> Edit slot
-            </button>
-        <?php endif; ?>
-    </div>
 
     <!-- Slot summary strip -->
     <div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) var(--space-4);
@@ -2128,7 +2115,7 @@ if ($mode === 'colleges' && $canManage) {
     $pageBreadcrumb[] = ['label' => (string)$slotDetail['department'], 'to' => '/staff/exam/slots?college=' . urlencode($slotDetail['department'])];
 }
 $pageActions = ($mode === 'roster' && !empty($slotDetail))
-    ? ($canManage && !$isPast ? '<button type="button" class="btn btn-sm" onclick="openEditExamSlot(' . e($editPayload) . ')">' . icon('ic_fluent_edit_24_regular', 14) . ' Edit slot</button>' : '')
+    ? ($canManage && !$isPast ? ui_button('Edit slot', ['icon' => 'ic_fluent_edit_24_regular', 'attrs' => ['onclick' => 'openEditExamSlot(' . $editPayload . ')']]) : '')
     : '';
 $activeNav = 'exam';
 $pageWide  = true; // all three modes use the wide-page container

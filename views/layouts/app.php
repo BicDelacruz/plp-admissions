@@ -291,7 +291,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                             <div class="user-name truncate"><?= e($authUser['name'] ?? '') ?></div>
                             <div class="user-role"><?= e(Auth::roleLabel($userRole)) ?></div>
                         </div>
-                        <?= icon('caret-up-down', 16, 'flex-shrink:0;color:var(--text-tertiary)', 'class="sidebar-user-caret"') ?>
+                        <?= icon('caret-up-down', 16, 'flex-shrink:0;color:var(--text-secondary)', 'class="sidebar-user-caret"') ?>
                     </div>
                     <div class="dropdown-menu">
                         <?php

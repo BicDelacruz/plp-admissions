@@ -27,12 +27,10 @@ function _session_expired(string $date, ?string $endTime, string $today, string 
 
 <div data-page-actions>
         <?php if ($canManage): ?>
-            <button type="button" class="btn btn-primary btn-sm" onclick="document.getElementById('add-session-modal').style.display='flex'">
-                <?= icon('ic_fluent_add_24_regular', 15) ?> Add Session
-            </button>
+            <?= ui_button('Add Session', ['variant' => 'primary', 'icon' => 'ic_fluent_add_24_regular', 'attrs' => ['onclick' => "document.getElementById('add-session-modal').style.display='flex'"]]) ?>
         <?php endif; ?>
         <?php if ($canManage && !empty($byDate)): ?>
-            <button type="button" id="sess-select-toggle" class="btn btn-ghost btn-sm" onclick="toggleSessSelectMode()">Select</button>
+            <?= ui_button('Select', ['variant' => 'ghost', 'attrs' => ['id' => 'sess-select-toggle', 'onclick' => 'toggleSessSelectMode()']]) ?>
         <?php endif; ?>
     </div>
 
