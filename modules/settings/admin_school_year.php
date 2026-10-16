@@ -449,11 +449,7 @@ ob_start();
         </form>
     </div>
 
-</div><!-- /sy-col -->
-<div class="sy-col">
 
-    <div class="school-year-history-layout">
-        <div class="school-year-history-tools">
     <!-- ── Import Historical Records ──────────────────────────────── -->
     <div class="sy-sec">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-2)">
@@ -470,28 +466,20 @@ ob_start();
         </p>
     </div>
 
-    <!-- New cycle — danger zone (flat section, not a nested card) -->
+    <!-- New cycle — destructive, so the action sits behind a confirmation popup -->
     <div class="sy-sec sy-danger">
-        <div class="card-title" style="color:var(--error);margin-bottom:var(--space-1)">Start New Admission Cycle</div>
-        <p class="card-description" style="margin-bottom:var(--space-5)">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);margin-bottom:var(--space-2)">
+            <div class="card-title" style="margin:0">Start New Admission Cycle</div>
+            <button type="button" class="btn btn-danger" onclick="openNewCycleModal()">Start New Cycle</button>
+        </div>
+        <p class="card-description" style="margin:0">
             Starts a new admissions cycle. The current exam is deactivated and all previous applicant data is preserved.
         </p>
-        <form method="POST">
-            <?= csrf_field() ?>
-            <input type="hidden" name="action" value="new_cycle">
-            <div>
-                <label class="form-label">Type <strong>Start new cycle</strong> to confirm</label>
-                <input type="text" name="confirm_text" class="form-input"
-                       placeholder="Start new cycle" autocomplete="off" style="max-width:280px">
-            </div>
-            <div style="margin-top:var(--space-5)">
-                <button type="submit" class="btn btn-danger">Start New Cycle</button>
-            </div>
-        </form>
     </div>
-        </div>
 
-        <div class="school-year-history-summary">
+</div><!-- /sy-col -->
+<div class="sy-col">
+
     <!-- Historical summary -->
     <?php if (!empty($statsByYear)): ?>
     <div class="sy-sec sy-grow">
@@ -527,10 +515,12 @@ ob_start();
         <?php endforeach; ?>
         </div>
     </div>
+    <?php else: ?>
+    <div class="sy-sec sy-grow">
+        <div class="card-title" style="margin-bottom:var(--space-3)">Applicant History</div>
+        <p class="card-description" style="margin:0">No applicant history yet.</p>
+    </div>
     <?php endif; ?>
-
-        </div><!-- /school-year-history-summary -->
-    </div><!-- /school-year-history-layout -->
 
 </div><!-- /sy-col -->
 </div><!-- /sy-card -->
@@ -541,40 +531,11 @@ ob_start();
 ════════════════════════════════════════════════════════════ -->
 <style>
 @keyframes ai-pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-.school-year-history-layout {
-    display:grid;
-    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
-    gap:var(--space-6);
-    position:relative;
-    align-items:start;
-}
-.school-year-history-layout::before {
-    content:'';
-    position:absolute;
-    top:0;
-    bottom:0;
-    left:50%;
-    border-left:1px solid var(--border);
-    pointer-events:none;
-}
-.school-year-history-tools,
-.school-year-history-summary {
-    display:flex;
-    flex-direction:column;
-    gap:0;
-    min-width:0;
-}
-/* No nested boxes in the School Year card: sections and year rows are flat,
-   square, and separated by single divider lines. */
-.school-year-history-tools .sy-sec + .sy-sec { border-top:1px solid var(--border); }
 .sy-years { display:flex; flex-direction:column; }
 .sy-year { padding:var(--space-4) 0; border-radius:0 !important; background:none; }
 .sy-year:first-child { padding-top:0; }
 .sy-year + .sy-year { border-top:1px solid var(--border); }
-@media (max-width:760px) {
-    .school-year-history-layout { grid-template-columns:1fr; }
-    .school-year-history-layout::before { display:none; }
-}
+.sy-sec + .sy-sec { border-top:1px solid var(--border); }
 .ai-status-bar { display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--radius);font-size:var(--text-sm);border:1px solid; }
 .ai-status-bar.connected { background:#f0faf4;border-color:#a7d9b8;color:#1a5c32; }
 .ai-status-bar.disconnected { background:#fafafa;border-color:var(--border);color:var(--text-secondary); }
@@ -594,6 +555,34 @@ ob_start();
 .ai-progress-step { font-size:var(--text-xs);color:var(--text-tertiary);margin-top:2px; }
 .ai-warn-strip { display:flex;align-items:flex-start;gap:8px;background:#fffbeb;border:1px solid #fcd34d;border-radius:var(--radius);padding:10px 12px;font-size:var(--text-xs);color:#92400e;line-height:1.5; }
 </style>
+
+<!-- Confirm: start new cycle (destructive) -->
+<div id="new-cycle-modal" class="modal-backdrop" style="display:none">
+    <div class="modal" style="max-width:440px">
+        <form method="POST" autocomplete="off">
+            <?= csrf_field() ?>
+            <input type="hidden" name="action" value="new_cycle">
+            <div class="modal-header" style="padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--border)">
+                <div style="font-weight:var(--weight-semibold);font-size:var(--text-base);color:var(--error)">Start New Admission Cycle</div>
+                <button type="button" class="btn-icon" onclick="closeNewCycleModal()">
+                    <?= icon('ic_fluent_dismiss_24_regular', 18) ?>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:var(--text-sm);color:var(--text-secondary);margin:0 0 var(--space-4)">
+                    The current exam will be deactivated. Previous applicant data is preserved.
+                </p>
+                <label class="form-label" for="new-cycle-confirm">Type <strong>Start new cycle</strong> to confirm</label>
+                <input type="text" id="new-cycle-confirm" name="confirm_text" class="form-input"
+                       placeholder="Start new cycle" autocomplete="off">
+            </div>
+            <div class="modal-footer" style="border-top:1px solid var(--border)">
+                <button type="button" class="btn btn-ghost" onclick="closeNewCycleModal()">Cancel</button>
+                <button type="submit" class="btn btn-danger">Start New Cycle</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <div id="legacy-import-modal" class="modal-backdrop" style="display:none">
     <div class="modal" style="max-width:600px;max-height:90vh;display:flex;flex-direction:column">
@@ -839,6 +828,14 @@ async function legacyPuterSignOut() { await loadPuterIfNeeded(); try { await put
 let legacySelectedFile = null;
 let legacyExtractedRows = [];
 
+function openNewCycleModal() {
+    document.getElementById('new-cycle-modal').style.display = '';
+    var i = document.getElementById('new-cycle-confirm');
+    if (i) { i.value = ''; i.focus(); }
+}
+function closeNewCycleModal() {
+    document.getElementById('new-cycle-modal').style.display = 'none';
+}
 function openLegacyImportModal() {
     resetLegacyImport(true);
     document.getElementById('legacy-import-modal').style.display = '';

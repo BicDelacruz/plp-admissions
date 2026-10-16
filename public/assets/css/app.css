@@ -4011,7 +4011,7 @@ html[data-font-size="xlarge"] { font-size: 22px; --height-table-row: 68px; --hei
     display: grid; grid-template-columns: 1fr 1fr;
     background: var(--bg-elevated);
     border: 1px solid var(--border);
-    border-radius: var(--radius);
+    border-radius: 0;
     overflow: hidden;
 }
 .sy-col { display: flex; flex-direction: column; min-height: 0; min-width: 0; overflow-y: auto; }
