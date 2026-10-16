@@ -173,6 +173,7 @@ document.getElementById('color-picker').addEventListener('input', function() {
 <?php
 $content   = ob_get_clean();
 $pageTitle = 'Settings';
-$pageActions = '<a href="javascript:history.back()" class="btn-icon" aria-label="Back" title="Back">' . icon('ic_fluent_arrow_left_24_regular', 18) . '</a>';
+require_once VIEWS_PATH . '/partials/page_header.php';
+$pageBreadcrumb = [page_home_crumb()];
 $activeNav = 'settings';
 include VIEWS_PATH . '/layouts/app.php';

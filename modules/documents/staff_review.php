@@ -131,10 +131,6 @@ if ($applicantId) {
 ?>
 <div id="doc-review">
 <div style="display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-6)">
-    <a href="<?= url('/staff/applicants') ?>" class="btn btn-ghost btn-sm">
-        <?= icon('ic_fluent_arrow_left_24_regular', 16) ?>
-        Back
-    </a>
     <div style="margin-left:auto"></div>
     <?php if ($approvableCount > 0): ?>
         <button type="button" class="btn btn-success btn-sm" id="approve-all-btn"
@@ -794,8 +790,8 @@ function undoApproveAll() {
 <?php
     $content   = ob_get_clean();
     $pageTitle = 'Review: ' . format_full_name($applicant);
-    $pageActions = '<a href="' . e(url('/staff/applicants')) . '" class="btn-icon" aria-label="Back to applicants" title="Back to applicants">' . icon('ic_fluent_arrow_left_24_regular', 18) . '</a>'
-        . ($approvableCount > 0 ? '<button type="button" class="btn btn-success btn-sm" id="approve-all-btn" onclick="approveAllAjax()">' . icon('ic_fluent_checkmark_circle_24_regular', 15) . ' Approve All (' . (int)$approvableCount . ')</button>' : '');
+    $pageBreadcrumb = [['label' => 'Documents', 'to' => '/staff/applicants']];
+    $pageActions = ($approvableCount > 0 ? '<button type="button" class="btn btn-success btn-sm" id="approve-all-btn" onclick="approveAllAjax()">' . icon('ic_fluent_checkmark_circle_24_regular', 15) . ' Approve All (' . (int)$approvableCount . ')</button>' : '');
     $activeNav = 'documents';
     include VIEWS_PATH . '/layouts/app.php';
     return;

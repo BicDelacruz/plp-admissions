@@ -335,7 +335,7 @@ ob_start();
 <?php
 $content   = ob_get_clean();
 $pageTitle = 'Cancel Exam Slot (Bulk)';
-$pageActions = '<a href="' . e(url('/staff/exam/slots')) . '" class="btn-icon" aria-label="Back to exam slots" title="Back to exam slots">' . icon('ic_fluent_arrow_left_24_regular', 18) . '</a>';
+$pageBreadcrumb = [['label' => 'Exam Slots', 'to' => '/staff/exam/slots']];
 $activeNav = 'exam';
 $pageWide  = true; // table-heavy page — match staff_slots / staff_review / staff_manage
 include VIEWS_PATH . '/layouts/app.php';

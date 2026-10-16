@@ -2646,10 +2646,17 @@ async function saveAiQuestions(){
 <?php
 $content   = ob_get_clean();
 $pageTitle = 'Entrance Exam';
-$pageActions = $view === 'exams'
-    ? '<a href="' . e(url('/staff/exam')) . '" class="btn-icon" aria-label="Back to exam overview" title="Back to exam overview">' . icon('ic_fluent_arrow_left_24_regular', 18) . '</a>'
-    : ($view === 'editor'
-        ? '<a href="' . e(url('/staff/exam') . '?view=exams') . '" class="btn-icon" aria-label="Back to exam list" title="Back to exam list">' . icon('ic_fluent_arrow_left_24_regular', 18) . '</a>'
-        : '');
+// Entrance Exam > Exams > Exam Editor (replaces the old back-arrow buttons).
+$pageBreadcrumb = [];
+if ($view === 'exams') {
+    $pageHeading    = 'Exams';
+    $pageBreadcrumb = [['label' => 'Entrance Exam', 'to' => '/staff/exam']];
+} elseif ($view === 'editor') {
+    $pageHeading    = 'Exam Editor';
+    $pageBreadcrumb = [
+        ['label' => 'Entrance Exam', 'to' => '/staff/exam'],
+        ['label' => 'Exams',         'to' => '/staff/exam?view=exams'],
+    ];
+}
 $activeNav = 'exam';
 include VIEWS_PATH . '/layouts/app.php';

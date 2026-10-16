@@ -569,7 +569,7 @@ ob_start();
 <?php
 $content   = ob_get_clean();
 $pageTitle = 'Interview Roster';
-$pageActions = '<a href="' . e(url('/staff/interviews')) . '" class="btn-icon" aria-label="Back to interviews" title="Back to interviews">' . icon('ic_fluent_arrow_left_24_regular', 18) . '</a>';
+$pageBreadcrumb = [['label' => 'Interview Sessions', 'to' => '/staff/interviews']];
 $activeNav = 'interviews';
 $pageWide  = true; // table-heavy page — same as the other auto-table pages
 include VIEWS_PATH . '/layouts/app.php';

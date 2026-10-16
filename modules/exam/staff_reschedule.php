@@ -611,8 +611,8 @@ ob_start();
 <?php
 $content   = ob_get_clean();
 $pageTitle = 'Exam Reschedule Requests';
-$pageActions = '<a href="' . e(url('/staff/exam/slots')) . '" class="btn-icon" aria-label="Back to exam slots" title="Back to exam slots">' . icon('ic_fluent_arrow_left_24_regular', 18) . '</a>'
-    . ($canReschedule ? '<a href="' . e(url('/staff/exam/cancel-slot')) . '" class="btn btn-ghost btn-sm">Cancel a slot (bulk move) ' . icon('ic_fluent_arrow_right_24_regular', 16) . '</a>' : '');
+$pageBreadcrumb = [['label' => 'Exam Slots', 'to' => '/staff/exam/slots']];
+$pageActions = ($canReschedule ? '<a href="' . e(url('/staff/exam/cancel-slot')) . '" class="btn btn-ghost btn-sm">Cancel a slot (bulk move) ' . icon('ic_fluent_arrow_right_24_regular', 16) . '</a>' : '');
 $activeNav = 'exam-reschedule';
 $pageWide  = true; // table-heavy page — match staff_slots / staff_review / staff_manage
 include VIEWS_PATH . '/layouts/app.php';

@@ -915,10 +915,6 @@ ob_start();
          MODE 1 — COLLEGE SELECTOR
          (Admins land here. Staff are auto-routed to their college.)
     ============================================================ -->
-    <div data-page-actions>
-        <a href="<?= e(url('/staff/exam')) ?>" class="btn-icon" aria-label="Back to exams" title="Back to exams"><?= icon('ic_fluent_arrow_left_24_regular', 18) ?></a>
-    </div>
-
     <?php if (empty($departments)): ?>
         <div style="text-align:center;padding:var(--space-16);color:var(--text-tertiary);font-size:var(--text-sm)">
             No colleges / departments configured in the system.
@@ -960,7 +956,6 @@ ob_start();
     ============================================================ -->
     <div data-page-actions>
     <?php if ($canManage): ?>
-        <a href="<?= e(url('/staff/exam/slots')) ?>" class="btn-icon" aria-label="Back to exam slots" title="Back to exam slots"><?= icon('ic_fluent_arrow_left_24_regular', 18) ?></a>
         <a href="<?= e(url('/staff/exam/export-rooms')) ?>" class="btn btn-sm" target="_blank" rel="noopener" title="Printable per-room sheets to post on the school board">
             <?= icon('ic_fluent_document_24_regular', 14) ?> Export Lists
         </a>
@@ -1203,10 +1198,7 @@ ob_start();
     ], JSON_HEX_APOS | JSON_HEX_QUOT);
     ?>
 
-    <div style="display:flex;align-items:center;margin-bottom:var(--space-4);gap:var(--space-2);flex-wrap:wrap">
-        <a href="<?= e(url('/staff/exam/slots') . '?college=' . urlencode($slotDetail['department'])) ?>"
-           class="btn btn-ghost btn-sm" style="margin-right:auto"><?= icon('arrow-left', 14) ?> Back to <?= e($slotDetail['department']) ?> slots</a>
-
+    <div style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:var(--space-4);gap:var(--space-2);flex-wrap:wrap">
         <?php if ($canManage && !$isPast): ?>
             <button type="button" class="btn btn-sm"
                     onclick='openEditExamSlot(<?= $editPayload ?>)'>
@@ -2118,10 +2110,25 @@ async function saveRoomLabel(slotId) {
 $content   = ob_get_clean();
 $pageTitle = 'Exam Room Slots';
 // College page: the heading is the college name, no subtitle.
-$pageHeading = ($mode === 'slots') ? $collegeParam : null;
+$pageHeading = ($mode === 'slots') ? $collegeParam : (($mode === 'roster') ? 'Room Roster' : 'Exam Slots');
+// Breadcrumb: Entrance Exam > Exam Slots > College > Room Roster. Proctors land
+// straight on their own college's slots page, so the upper levels are only
+// parents for managers.
+$pageBreadcrumb = [];
+if ($mode === 'colleges' && $canManage) {
+    $pageBreadcrumb[] = ['label' => 'Entrance Exam', 'to' => '/staff/exam'];
+} elseif ($mode === 'slots' && $canManage) {
+    $pageBreadcrumb[] = ['label' => 'Entrance Exam', 'to' => '/staff/exam'];
+    $pageBreadcrumb[] = ['label' => 'Exam Slots', 'to' => '/staff/exam/slots'];
+} elseif ($mode === 'roster' && !empty($slotDetail)) {
+    if ($canManage) {
+        $pageBreadcrumb[] = ['label' => 'Entrance Exam', 'to' => '/staff/exam'];
+        $pageBreadcrumb[] = ['label' => 'Exam Slots', 'to' => '/staff/exam/slots'];
+    }
+    $pageBreadcrumb[] = ['label' => (string)$slotDetail['department'], 'to' => '/staff/exam/slots?college=' . urlencode($slotDetail['department'])];
+}
 $pageActions = ($mode === 'roster' && !empty($slotDetail))
-    ? '<a href="' . e(url('/staff/exam/slots') . '?college=' . urlencode($slotDetail['department'])) . '" class="btn-icon" aria-label="Back to ' . e($slotDetail['department']) . ' slots" title="Back to ' . e($slotDetail['department']) . ' slots">' . icon('ic_fluent_arrow_left_24_regular', 18) . '</a>'
-        . ($canManage && !$isPast ? '<button type="button" class="btn btn-sm" onclick="openEditExamSlot(' . e($editPayload) . ')">' . icon('ic_fluent_edit_24_regular', 14) . ' Edit slot</button>' : '')
+    ? ($canManage && !$isPast ? '<button type="button" class="btn btn-sm" onclick="openEditExamSlot(' . e($editPayload) . ')">' . icon('ic_fluent_edit_24_regular', 14) . ' Edit slot</button>' : '')
     : '';
 $activeNav = 'exam';
 $pageWide  = true; // all three modes use the wide-page container

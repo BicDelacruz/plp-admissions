@@ -555,10 +555,6 @@ $hasFilters = ($search !== '' || $filterDate !== '' || ($isAdmin && $filterDept 
 ob_start();
 ?>
 
-<div style="margin-bottom:var(--space-5);flex-shrink:0">
-    <a href="<?= url('/staff/exam/slots') ?>" class="btn btn-ghost btn-sm"><?= icon('arrow-left', 14) ?> Back to Exam Slots</a>
-</div>
-
 <?php
 // Same structure as the audit log (and lakbay-pasig's AdminDataTable): one
 // .auto-table-wrap that AutoPageSize measures, the card with the toolbar and
@@ -689,6 +685,7 @@ ob_start();
 <?php
 $content   = ob_get_clean();
 $pageTitle = 'Exam Room Roster';
+$pageBreadcrumb = [['label' => 'Exam Slots', 'to' => '/staff/exam/slots']];
 $activeNav = 'exam';
 $pageWide  = true; // table-heavy page — match staff_slots / staff_review / staff_manage
 include VIEWS_PATH . '/layouts/app.php';

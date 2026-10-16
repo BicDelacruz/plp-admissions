@@ -438,7 +438,10 @@ ob_start();
 <?php
 $content   = ob_get_clean();
 $pageTitle = 'Cancel Interview Slot (Bulk)';
-$pageActions = '<a href="' . e(url('/staff/interviews/setup')) . '" class="btn-icon" aria-label="Back to interview slots" title="Back to interview slots">' . icon('ic_fluent_arrow_left_24_regular', 18) . '</a>';
+$pageBreadcrumb = [
+    ['label' => 'Interview Sessions', 'to' => '/staff/interviews'],
+    ['label' => 'Interview Setup',    'to' => '/staff/interviews/setup'],
+];
 $activeNav = 'interview';
 $pageWide  = true; // table-heavy page — match staff_slots / staff_review / staff_manage
 include VIEWS_PATH . '/layouts/app.php';

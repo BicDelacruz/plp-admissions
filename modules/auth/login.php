@@ -162,7 +162,10 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
     .lg-info i { font-size: 52px; line-height: 1; flex: none; color: #fff; opacity: .92; }
 
     /* login card */
-    .lg-card { background: var(--lg-paper); color: var(--lg-ink); border-radius: var(--radius-panel); padding: var(--space-8); box-shadow: var(--shadow-lg); }
+    /* login.php is standalone and never loads app.css, so the old var(--space-8) /
+       var(--radius-panel) / var(--shadow-lg) resolved to nothing (no padding at all).
+       Literal values keep the box padded. */
+    .lg-card { background: var(--lg-paper); color: var(--lg-ink); border-radius: var(--radius); padding: 40px 36px 32px; box-shadow: 0 20px 48px rgba(0,0,0,.28); }
     .lg-lead { margin: 0 0 24px; text-align: center; font-size: 1.3rem; font-weight: 600; color: var(--lg-green-700); }
 
     .lg-alert { display: flex; gap: 8px; align-items: flex-start; margin: 0 0 16px; padding: 10px 12px; border-radius: var(--radius); font-size: .86rem; line-height: 1.4; }
@@ -208,7 +211,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
     }
     @media (max-width: 520px) {
         .lg-cards { grid-template-columns: minmax(0, 1fr); }
-        .lg-card { padding: 26px 20px 22px; }
+        .lg-card { padding: 32px 24px 26px; }
         .lg-bar-title { font-size: 1.2rem; }
     }
     @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }

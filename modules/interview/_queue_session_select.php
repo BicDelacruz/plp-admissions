@@ -141,6 +141,9 @@ ob_start();
 <?php
 $content   = ob_get_clean();
 $pageTitle = 'Live Queue · ' . $selectedCollege;
-$pageActions = '<a href="' . e(url('/staff/interviews/queue')) . '" class="btn-icon" aria-label="Back to queue" title="Back to queue">' . icon('ic_fluent_arrow_left_24_regular', 18) . '</a>';
+$pageBreadcrumb = [
+    ['label' => 'Interview Sessions', 'to' => '/staff/interviews'],
+    ['label' => 'Live Queue',         'to' => '/staff/interviews/queue'],
+];
 $activeNav = 'interviews';
 include VIEWS_PATH . '/layouts/app.php';

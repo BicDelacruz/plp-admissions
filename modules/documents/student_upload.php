@@ -744,7 +744,6 @@ ob_start();
 <?php if ($manualPage): ?>
 <!-- Manual upload page: same step, one document at a time -->
 <div style="margin-bottom:var(--space-4)">
-    <a href="<?= url('/student/documents') ?>" style="font-size:var(--text-sm);color:var(--accent);text-decoration:underline"><?= icon('arrow-left', 14) ?> Back to Upload many files</a>
     <h2 style="font-size:var(--text-xl);font-weight:var(--weight-semibold);margin:var(--space-2) 0 var(--space-1);color:var(--text-primary)">Upload documents manually</h2>
 </div>
 <?php endif; ?>
@@ -1771,6 +1770,7 @@ document.addEventListener('DOMContentLoaded', function () {
 <?php
 $content     = ob_get_clean();
 $pageTitle   = $manualPage ? 'Upload Documents Manually' : 'My Documents';
+$pageBreadcrumb = $manualPage ? [['label' => 'My Documents', 'to' => '/student/documents']] : [];
 $activeNav   = 'documents';
 $showStepper = true;
 include VIEWS_PATH . '/layouts/app.php';

@@ -34,11 +34,6 @@ function _session_expired(string $date, ?string $endTime, string $today, string 
         <?php if ($canManage && !empty($byDate)): ?>
             <button type="button" id="sess-select-toggle" class="btn btn-ghost btn-sm" onclick="toggleSessSelectMode()">Select</button>
         <?php endif; ?>
-        <?php if ($canManage): ?>
-            <a href="<?= url('/staff/interviews/setup') ?>" class="btn-icon" aria-label="Back to interview setup" title="Back to interview setup"><?= icon('ic_fluent_arrow_left_24_regular', 18) ?></a>
-        <?php else: ?>
-            <a href="<?= url('/staff/interviews') ?>" class="btn-icon" aria-label="Back to interviews" title="Back to interviews"><?= icon('ic_fluent_arrow_left_24_regular', 18) ?></a>
-        <?php endif; ?>
     </div>
 
 <?php

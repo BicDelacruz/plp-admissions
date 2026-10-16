@@ -29,6 +29,10 @@ $hasPageHeading = !empty($content) && preg_match('/<h1\b|class=["\'][^"\']*\bpag
 // .page-header-generated row (same $pageActions slot).
 $pageHeading    = $pageHeading ?? $pageTitle;
 $pageActions    = $pageActions ?? '';
+// Breadcrumb ancestors ("Previous Page > Current Page"), rendered by the
+// shared views/partials/page_header.php. Pages only set $pageBreadcrumb.
+$pageBreadcrumb = $pageBreadcrumb ?? [];
+require_once __DIR__ . '/../partials/page_header.php';
 $showPageHead   = !$isStudent
     && $pageHeading !== false
     && !$hasPageHeading
@@ -391,15 +395,9 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
         <!-- Page content injected here -->
         <main class="page <?= $pageWide ? 'page-wide' : '' ?>" id="main-content">
             <?php if ($showPageHead): ?>
-            <div class="page-head">
-                <h1 class="page-heading"><?= e($pageHeading) ?></h1>
-                <div class="page-head-actions" id="page-head-actions"><?= $pageActions ?></div>
-            </div>
+            <?= page_header((string)$pageHeading, $pageBreadcrumb, (string)$pageActions, 'staff') ?>
             <?php elseif ($showStudentHead): ?>
-            <header class="page-header page-header-generated">
-                <h1 class="page-title"><?= e($pageHeading) ?></h1>
-                <?php if (!empty($pageActions)): ?><div class="page-header-actions"><?= $pageActions ?></div><?php endif; ?>
-            </header>
+            <?= page_header((string)$pageHeading, $pageBreadcrumb, (string)$pageActions, 'student') ?>
             <?php endif; ?>
             <?= $content ?? '' ?>
         </main>

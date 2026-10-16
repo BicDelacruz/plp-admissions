@@ -4073,6 +4073,48 @@ select:not([multiple]):not([size]):disabled { opacity: .6; cursor: not-allowed; 
     margin-left: auto;
 }
 .page-head-actions:empty { display: none; }
+
+/* Breadcrumb trail: "Previous Page > Current Page" (views/partials/page_header.php).
+   Ported from lakbay-pasig's AdminPageHeader: small muted ancestors that
+   underline on hover, caret separators, current page at full heading size. */
+.page-crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1);
+    min-width: 0;
+    min-height: 32px;
+}
+.page-crumb-item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+.page-crumb {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium, 500);
+    color: var(--text-secondary);
+    text-decoration: none;
+}
+.page-crumb:hover {
+    color: var(--text-primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+.page-crumb:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+.page-crumb-sep {
+    flex-shrink: 0;
+    color: var(--text-secondary);
+}
+.page-crumbs .page-crumb-current {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 @media (max-width: 640px) {
     .page-head { align-items: flex-start; }
     .page-head-actions { width: 100%; margin-left: 0; justify-content: flex-start; }
