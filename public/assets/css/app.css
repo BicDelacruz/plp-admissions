@@ -4175,30 +4175,60 @@ select:not([multiple]):not([size]):disabled { opacity: .6; cursor: not-allowed; 
 }
 
 /* ============================================================
-   SELECTOR CARDS — one shared pattern for every picker page
-   (college, session, slot, exam). The grid starts at the left
-   edge of the content area, directly under the page heading,
-   and spans the full content width. Cards are left-aligned.
-   Page-specific rules only add modifiers (is-live, is-today…).
+   SELECTOR CARDS — ONE layout for every picker page (college,
+   session, slot, exam, landing). Same anatomy everywhere:
+
+     .select-toolbar            optional filter row, left aligned
+     .select-grid               grid, flush under the page heading
+       .select-card             the card (a / div)
+         .select-card-badge     status chip, top-right
+         .select-card-icon      48px tile, top-left
+         .select-card-title     name
+         .select-card-desc      optional one-liner
+         .select-card-meta      rows of icon + text
+         .select-card-footer    optional: left note, right action
+       .select-card--add        dashed "+ Add" card
+
+   States: is-live / is-today / is-active (accent), is-muted
+   (past / closed), is-full (error border), is-disabled.
+   Legacy hooks (.college-card, .es-slot-card, .sess-dir-card,
+   .exam-dir-card, ...) stay on the markup for page JS only.
    ============================================================ */
-.college-grid,
-.es-slot-grid,
-.q-sess-grid,
-.sess-dir-grid,
-.exam-dir-grid {
+.select-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+}
+.select-toolbar select {
+    height: 32px;
+    min-height: 32px;
+    max-width: 280px;
+    font-size: var(--text-xs);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0 var(--space-2);
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+}
+.select-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(var(--select-card-min), 1fr));
     gap: var(--space-4);
+    align-items: stretch;
 }
-.college-card,
-.es-slot-card,
-.q-sess-card,
-.sess-dir-card,
-.exam-dir-card {
+.select-card {
     display: flex;
     flex-direction: column;
+    align-items: stretch;
+    text-align: left;
     gap: var(--space-3);
     padding: var(--space-5);
+    min-height: 168px;
     background: var(--bg-elevated);
     border: 1.5px solid var(--border);
     border-radius: var(--radius);
@@ -4208,17 +4238,26 @@ select:not([multiple]):not([size]):disabled { opacity: .6; cursor: not-allowed; 
     position: relative;
     cursor: pointer;
 }
-.college-card:hover,
-.es-slot-card:hover,
-.q-sess-card:hover,
-.sess-dir-card:hover,
-.exam-dir-card:hover {
+.select-card:hover {
     border-color: var(--accent);
     box-shadow: var(--shadow-sm);
 }
+.select-card.is-live,
+.select-card.is-today,
+.select-card.is-active {
+    border-color: var(--accent);
+    background: var(--accent-muted);
+}
+.select-card.is-full  { border-color: var(--error); }
+.select-card.is-muted { opacity: .6; }
+.select-card.is-disabled {
+    opacity: .5;
+    cursor: not-allowed;
+    background: var(--bg-subtle);
+}
+.select-card.is-disabled:hover { border-color: var(--border); box-shadow: none; }
 
-/* College card */
-.college-card-icon {
+.select-card-icon {
     width: var(--select-card-icon);
     height: var(--select-card-icon);
     border-radius: var(--radius);
@@ -4229,27 +4268,71 @@ select:not([multiple]):not([size]):disabled { opacity: .6; cursor: not-allowed; 
     justify-content: center;
     flex-shrink: 0;
 }
-.college-card-name {
+.select-card.is-live .select-card-icon,
+.select-card.is-today .select-card-icon,
+.select-card.is-active .select-card-icon { background: var(--bg-elevated); }
+.select-card-title {
     font-size: var(--text-base);
     font-weight: var(--weight-semibold);
     color: var(--text-primary);
     line-height: 1.35;
 }
-.college-card-meta {
+.select-card-desc {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-top: calc(var(--space-1) * -1);
+}
+.select-card-meta {
     display: flex;
     flex-direction: column;
     gap: var(--space-1);
     font-size: var(--text-xs);
     color: var(--text-tertiary);
 }
-.college-card-meta-row {
+.select-card-meta-row {
     display: flex;
     align-items: center;
     gap: var(--space-1);
 }
-.college-card.is-live { border-color: var(--accent); }
-/* Red dot top-right: college has nothing scheduled and needs setup. */
-.college-card-dot {
+.select-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    margin-top: auto;
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--border);
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+}
+.select-card-footer > span:first-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+.select-card-action {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    flex-shrink: 0;
+    font-weight: var(--weight-medium);
+    color: var(--accent);
+}
+/* Status chip, top-right. .has-edit leaves room for a 28px edit button. */
+.select-card-badge {
+    position: absolute;
+    top: var(--space-3);
+    right: var(--space-3);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+.select-card-badge.has-edit { right: 44px; }
+.select-card-badge .badge { font-size: 10px; }
+/* Red dot top-right: nothing scheduled, needs setup. */
+.select-card-dot {
     position: absolute;
     top: var(--space-3);
     right: var(--space-3);
@@ -4258,23 +4341,48 @@ select:not([multiple]):not([size]):disabled { opacity: .6; cursor: not-allowed; 
     border-radius: 50%;
     background: var(--error);
 }
-.college-card-live {
+.select-card-live {
     display: inline-flex;
     align-items: center;
     gap: var(--space-1);
     padding: 2px var(--space-2);
     border-radius: var(--radius);
-    background: var(--accent-muted);
-    color: var(--accent);
-    font-size: var(--text-xs);
+    background: var(--accent);
+    color: #fff;
+    font-size: 10px;
     font-weight: var(--weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: .05em;
 }
-.college-card-live .dot {
+.select-card-live .dot {
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: var(--accent);
+    background: #fff;
     animation: q-pulse-dot 1.4s infinite;
+}
+/* Dashed "+ Add" card */
+.select-card--add {
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    background: transparent;
+    border-style: dashed;
+    color: var(--accent);
+    min-height: 168px;
+}
+.select-card--add:hover { background: var(--accent-muted); }
+.select-card--add .select-card-icon { border-radius: 50%; }
+.select-card--add .select-card-title { color: var(--accent); font-size: var(--text-sm); font-weight: var(--weight-medium); }
+.select-card--add .select-card-desc  { text-align: center; margin-top: 0; }
+/* Empty state shared by pickers */
+.select-empty {
+    padding: var(--space-8) var(--space-4);
+    background: var(--bg-subtle);
+    border-radius: var(--radius);
+    text-align: center;
+    color: var(--text-tertiary);
+    font-size: var(--text-sm);
 }
 @keyframes q-pulse-dot {
     0%, 100% { opacity: 1; transform: scale(1); }

@@ -31,17 +31,7 @@ ob_start();
 ?>
 
 <style>
-.q-sess-card.is-live { border-color: var(--accent); background: var(--accent-muted); }
-.q-sess-card-title {
-    font-size: var(--text-base); font-weight: var(--weight-semibold);
-    color: var(--text-primary); line-height: 1.35;
-    padding-right: 70px;
-}
-.q-sess-meta {
-    display: flex; flex-direction: column; gap: 4px;
-    font-size: var(--text-xs); color: var(--text-tertiary);
-}
-.q-sess-meta-row { display: flex; align-items: center; gap: 5px; }
+/* Queue stats strip inside the shared selector card (select-card in app.css). */
 .q-sess-stats {
     display: grid; grid-template-columns: repeat(4, 1fr);
     gap: var(--space-2); margin-top: auto; padding-top: var(--space-3);
@@ -57,26 +47,12 @@ ob_start();
     text-transform: uppercase; letter-spacing: .05em;
     margin-top: 2px;
 }
-.q-sess-live-badge {
-    position: absolute; top: var(--space-4); right: var(--space-4);
-    display: inline-flex; align-items: center; gap: 4px;
-    padding: 2px 8px; border-radius: var(--radius);
-    background: var(--accent); color: #fff;
-    font-size: 10px; font-weight: var(--weight-semibold);
-    text-transform: uppercase; letter-spacing: .05em;
-}
-.q-sess-live-badge .dot {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: #fff;
-    animation: q-pulse-dot 1.4s infinite;
-}
 </style>
 
 <?php if (empty($sessions)): ?>
-    <div style="padding:var(--space-8) var(--space-4);background:var(--bg-subtle);
-                 border-radius:var(--radius);text-align:center;color:var(--text-tertiary)">
+    <div class="select-empty">
         <?= icon('ic_fluent_calendar_24_regular', 32, 'color:var(--text-tertiary)') ?>
-        <div style="margin-top:var(--space-3);font-size:var(--text-sm)">
+        <div style="margin-top:var(--space-3)">
             No sessions scheduled for <?= e($selectedCollege) ?> today.
         </div>
         <div style="margin-top:var(--space-2);font-size:var(--text-xs)">
@@ -87,7 +63,7 @@ ob_start();
         </div>
     </div>
 <?php else: ?>
-    <div class="q-sess-grid">
+    <div class="select-grid q-sess-grid">
         <?php foreach ($sessions as $s):
             $isLive    = ((int) $s['in_progress']) > 0;
             $href      = url('/staff/interviews/queue') . '?slot=' . (int) $s['id'];
@@ -96,20 +72,21 @@ ob_start();
                 $timeLabel .= ' &ndash; ' . date('g:i A', strtotime($s['end_time']));
             }
         ?>
-            <a href="<?= e($href) ?>" class="q-sess-card <?= $isLive ? 'is-live' : '' ?>">
+            <a href="<?= e($href) ?>" class="select-card q-sess-card <?= $isLive ? 'is-live' : '' ?>">
                 <?php if ($isLive): ?>
-                    <div class="q-sess-live-badge"><span class="dot"></span> Live</div>
+                    <span class="select-card-badge"><span class="select-card-live"><span class="dot"></span> Live</span></span>
                 <?php endif; ?>
-                <div class="q-sess-card-title">
+                <div class="select-card-icon"><?= icon('ic_fluent_people_24_regular', 24) ?></div>
+                <div class="select-card-title">
                     <?= e($s['interviewer_name'] ?? 'Unassigned') ?>
                 </div>
-                <div class="q-sess-meta">
-                    <div class="q-sess-meta-row">
+                <div class="select-card-meta">
+                    <div class="select-card-meta-row">
                         <?= icon('clock', 12) ?>
                         <?= $timeLabel ?>
                     </div>
                     <?php if (!empty($s['location_label'])): ?>
-                        <div class="q-sess-meta-row">
+                        <div class="select-card-meta-row">
                             <?= icon('map-pin', 12) ?>
                             <?= e($s['location_label']) ?>
                         </div>
@@ -140,10 +117,12 @@ ob_start();
 
 <?php
 $content   = ob_get_clean();
-$pageTitle = 'Live Queue · ' . $selectedCollege;
+$pageTitle = 'Live Queue';
+$pageHeading = $selectedCollege; // heading = the college, like every other picker's second level
 $pageBreadcrumb = [
     ['label' => 'Interview Sessions', 'to' => '/staff/interviews'],
     ['label' => 'Live Queue',         'to' => '/staff/interviews/queue'],
 ];
 $activeNav = 'interviews';
+$pageWide  = true;
 include VIEWS_PATH . '/layouts/app.php';

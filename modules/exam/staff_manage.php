@@ -506,104 +506,7 @@ ob_start();
 .exam-meta-item { display: flex; align-items: center; gap: 5px; }
 .exam-meta-item svg, .exam-meta-item i { flex-shrink: 0; color: var(--text-tertiary); }
 
-/* ── LANDING PAGE ────────────────────────────────── */
-.exam-landing-wrap {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: calc(100vh - 200px);
-    padding-bottom: var(--space-16);
-}
-.exam-landing-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-6);
-    width: 100%;
-    max-width: 640px;
-}
-.exam-landing-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: var(--space-4);
-    padding: var(--space-10) var(--space-6);
-    background: var(--bg-elevated);
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius);
-    text-decoration: none;
-    color: var(--text-primary);
-    transition: border-color .18s, box-shadow .18s, transform .15s;
-    cursor: pointer;
-}
-.exam-landing-card:hover {
-    border-color: var(--accent);
-    box-shadow: 0 8px 24px rgba(0,0,0,.08);
-    transform: translateY(-4px);
-}
-.exam-landing-icon {
-    width: 60px; height: 60px;
-    border-radius: var(--radius);
-    background: var(--accent-muted);
-    display: flex; align-items: center; justify-content: center;
-    color: var(--accent);
-    flex-shrink: 0;
-}
-.exam-landing-title {
-    font-size: var(--text-lg);
-    font-weight: var(--weight-semibold);
-    color: var(--text-primary);
-    letter-spacing: -0.2px;
-    margin-top: var(--space-1);
-}
-.exam-landing-desc {
-    font-size: var(--text-sm);
-    color: var(--text-secondary);
-    line-height: 1.55;
-    margin-top: var(--space-1);
-}
-.exam-landing-meta {
-    font-size: var(--text-xs);
-    color: var(--text-tertiary);
-    display: flex; align-items: center; gap: var(--space-2);
-    justify-content: center;
-    flex-wrap: wrap;
-    margin-top: var(--space-2);
-}
-.exam-landing-card--disabled {
-    opacity: 0.45;
-    pointer-events: none;
-    cursor: not-allowed;
-}
-
-/* ── EXAM DIRECTORY ──────────────────────────────── */
-.exam-dir-grid { margin-top: var(--space-5); }
-.exam-dir-card.is-active {
-    border-color: var(--accent);
-    background: var(--accent-muted);
-}
-.exam-dir-title {
-    font-size: var(--text-base);
-    font-weight: var(--weight-semibold);
-    color: var(--text-primary);
-    line-height: 1.35;
-}
-.exam-dir-meta {
-    display: flex; flex-direction: column; gap: 4px;
-    font-size: var(--text-xs); color: var(--text-tertiary);
-}
-.exam-dir-meta-row {
-    display: flex; align-items: center; gap: 5px;
-}
-.exam-dir-footer {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-top: auto; padding-top: var(--space-3);
-    border-top: 1px solid var(--border);
-}
-
-@media (max-width: 640px) {
-    .exam-landing-grid { grid-template-columns: 1fr; max-width: 320px; }
-}
+/* Landing and directory cards use the shared selector-card layout (app.css). */
 </style>
 
 <?php foreach ($errors as $e): ?>
@@ -628,49 +531,44 @@ elseif ($selectedExamId) $view = 'editor';
 ════════════════════════════════════════════════════ */ ?>
 <?php if ($view === 'landing'): ?>
 
-<div class="exam-landing-wrap">
-<div class="exam-landing-grid">
+<div class="select-grid">
 
-    <!-- Exam Builder (left) — always enabled -->
-    <a href="<?= url('/staff/exam') ?>?view=exams" class="exam-landing-card">
-        <div class="exam-landing-icon">
-            <?= icon('file-text:fill', 28) ?>
-        </div>
-        <div class="exam-landing-title">Exam Builder</div>
-        <div class="exam-landing-desc">
-            Create exams, set questions, and manage schedules.
-        </div>
-        <div class="exam-landing-meta">
-            <?= icon('calendar-check', 13) ?>
-            <?= count($exams) ?> exam<?= count($exams) !== 1 ? 's' : '' ?> created
-            <?php if ($activeExam): ?>
-                &nbsp;&middot;&nbsp;
-                <span style="color:var(--success);font-weight:var(--weight-medium)"><?= e($activeExam['title']) ?> is active</span>
-            <?php endif; ?>
+    <!-- Exam Builder — always enabled -->
+    <a href="<?= url('/staff/exam') ?>?view=exams" class="select-card">
+        <div class="select-card-icon"><?= icon('file-text:fill', 24) ?></div>
+        <div class="select-card-title">Exam Builder</div>
+        <div class="select-card-desc">Create exams, set questions, and manage schedules.</div>
+        <div class="select-card-meta">
+            <div class="select-card-meta-row">
+                <?= icon('calendar-check', 12) ?>
+                <?= count($exams) ?> exam<?= count($exams) !== 1 ? 's' : '' ?> created
+                <?php if ($activeExam): ?>
+                    &nbsp;&middot;&nbsp;
+                    <span style="color:var(--success);font-weight:var(--weight-medium)"><?= e($activeExam['title']) ?> is active</span>
+                <?php endif; ?>
+            </div>
         </div>
     </a>
 
-    <!-- Room Slots (right) — disabled if no exams set up yet -->
+    <!-- Room Slots — disabled if no exams set up yet -->
     <?php if (!empty($exams)): ?>
-    <a href="<?= url('/staff/exam/slots') ?>" class="exam-landing-card">
+    <a href="<?= url('/staff/exam/slots') ?>" class="select-card">
     <?php else: ?>
-    <div class="exam-landing-card exam-landing-card--disabled" title="Create an exam first before setting up room slots">
+    <div class="select-card is-disabled" title="Create an exam first before setting up room slots">
     <?php endif; ?>
-        <div class="exam-landing-icon">
-            <?= icon('squares-four:fill', 28) ?>
-        </div>
-        <div class="exam-landing-title">Room Slots</div>
-        <div class="exam-landing-desc">
-            Assign rooms, manage seating, and organize exam-day logistics.
-        </div>
-        <div class="exam-landing-meta">
-            <?php if (empty($exams)): ?>
-                <?= icon('warning-circle:fill', 13) ?>
-                Create an exam first
-            <?php else: ?>
-                <?= icon('calendar-check', 13) ?>
-                <?= $slotCount ?> slot<?= $slotCount !== 1 ? 's' : '' ?> configured
-            <?php endif; ?>
+        <div class="select-card-icon"><?= icon('squares-four:fill', 24) ?></div>
+        <div class="select-card-title">Room Slots</div>
+        <div class="select-card-desc">Assign rooms, manage seating, and organize exam-day logistics.</div>
+        <div class="select-card-meta">
+            <div class="select-card-meta-row">
+                <?php if (empty($exams)): ?>
+                    <?= icon('warning-circle:fill', 12) ?>
+                    Create an exam first
+                <?php else: ?>
+                    <?= icon('calendar-check', 12) ?>
+                    <?= $slotCount ?> slot<?= $slotCount !== 1 ? 's' : '' ?> configured
+                <?php endif; ?>
+            </div>
         </div>
     <?php if (!empty($exams)): ?>
     </a>
@@ -678,7 +576,6 @@ elseif ($selectedExamId) $view = 'editor';
     </div>
     <?php endif; ?>
 
-</div>
 </div>
 
 <?php /* ════════════════════════════════════════════════════
@@ -686,68 +583,44 @@ elseif ($selectedExamId) $view = 'editor';
 ════════════════════════════════════════════════════ */ ?>
 <?php elseif ($view === 'exams'): ?>
 
-<?php if (empty($exams)): ?>
-    <div class="exam-dir-grid" style="max-width:320px;margin:var(--space-10) auto 0">
-        <div class="exam-dir-card" onclick="openModal('create-exam-modal')"
-             style="align-items:center;justify-content:center;min-height:220px;border-style:dashed;cursor:pointer">
-            <div style="width:56px;height:56px;border-radius:50%;background:var(--accent-muted);
-                        display:flex;align-items:center;justify-content:center;color:var(--accent)">
-                <?= icon('plus:fill', 28) ?>
-            </div>
-            <div style="font-size:var(--text-base);font-weight:var(--weight-semibold);color:var(--accent);margin-top:var(--space-2)">Create Your First Exam</div>
-            <div style="font-size:var(--text-sm);color:var(--text-tertiary);margin-top:var(--space-1)">Get started by creating an entrance exam.</div>
-        </div>
-    </div>
-<?php else: ?>
-    <div class="exam-dir-grid">
-        <?php foreach ($exams as $ex):
-            $qCount = $examMeta[$ex['id']]['question_count'] ?? 0;
-            $isActive = (bool)$ex['is_active'];
-        ?>
-            <a href="<?= url('/staff/exam') ?>?exam=<?= $ex['id'] ?>" class="exam-dir-card <?= $isActive ? 'is-active' : '' ?>">
-
-                <!-- Active badge -->
-                <?php if ($isActive): ?>
-                    <div style="position:absolute;top:var(--space-4);right:var(--space-4)">
-                        <span class="badge badge-success" style="font-size:10px">Active</span>
-                    </div>
-                <?php endif; ?>
-
-                <!-- Title -->
-                <div class="exam-dir-title"><?= e($ex['title']) ?></div>
-
-                <!-- Meta info -->
-                <div class="exam-dir-meta">
-                    <div class="exam-dir-meta-row">
-                        <?= icon('calendar-check', 12) ?>
-                        <?= $qCount ?> question<?= $qCount !== 1 ? 's' : '' ?>
-                    </div>
+<div class="select-grid exam-dir-grid">
+    <?php foreach ($exams as $ex):
+        $qCount = $examMeta[$ex['id']]['question_count'] ?? 0;
+        $isActive = (bool)$ex['is_active'];
+    ?>
+        <a href="<?= url('/staff/exam') ?>?exam=<?= $ex['id'] ?>" class="select-card exam-dir-card <?= $isActive ? 'is-active' : '' ?>">
+            <?php if ($isActive): ?>
+                <div class="select-card-badge"><span class="badge badge-success">Active</span></div>
+            <?php endif; ?>
+            <div class="select-card-icon"><?= icon('file-text:fill', 24) ?></div>
+            <div class="select-card-title"><?= e($ex['title']) ?></div>
+            <div class="select-card-meta">
+                <div class="select-card-meta-row">
+                    <?= icon('calendar-check', 12) ?>
+                    <?= $qCount ?> question<?= $qCount !== 1 ? 's' : '' ?>
                 </div>
-
-                <!-- Footer -->
-                <div class="exam-dir-footer">
-                    <span style="font-size:var(--text-xs);color:var(--text-tertiary)">
-                        Created <?= e(format_date($ex['created_at'] ?? null, 'M j, Y')) ?>
-                    </span>
-                    <span style="font-size:var(--text-xs);font-weight:var(--weight-medium);color:var(--accent);display:flex;align-items:center;gap:4px">
-                        Edit
-                        <?= icon('arrow-right', 12) ?>
-                    </span>
-                </div>
-            </a>
-        <?php endforeach; ?>
-
-        <!-- New Exam card (always last in grid) -->
-        <div class="exam-dir-card" onclick="openModal('create-exam-modal')"
-             style="align-items:center;justify-content:center;min-height:200px;border-style:dashed;cursor:pointer">
-            <div style="width:48px;height:48px;border-radius:50%;background:var(--accent-muted);
-                        display:flex;align-items:center;justify-content:center;color:var(--accent)">
-                <?= icon('plus:fill', 24) ?>
             </div>
-            <div style="font-size:var(--text-sm);font-weight:var(--weight-medium);color:var(--accent);margin-top:var(--space-2)">New Exam</div>
-        </div>
+            <div class="select-card-footer">
+                <span>Created <?= e(format_date($ex['created_at'] ?? null, 'M j, Y')) ?></span>
+                <span class="select-card-action">
+                    Edit
+                    <?= icon('arrow-right', 12) ?>
+                </span>
+            </div>
+        </a>
+    <?php endforeach; ?>
+
+    <!-- New Exam card (always last in grid) -->
+    <div class="select-card select-card--add exam-dir-card" onclick="openModal('create-exam-modal')"
+         role="button" tabindex="0"
+         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+        <div class="select-card-icon"><?= icon('plus:fill', 24) ?></div>
+        <div class="select-card-title"><?= empty($exams) ? 'Create Your First Exam' : 'New Exam' ?></div>
+        <?php if (empty($exams)): ?>
+            <div class="select-card-desc">Get started by creating an entrance exam.</div>
+        <?php endif; ?>
     </div>
-<?php endif; ?>
+</div>
 
 <?php /* ════════════════════════════════════════════════════
    EXAM EDITOR — full question builder for a selected exam
@@ -2659,4 +2532,5 @@ if ($view === 'exams') {
     ];
 }
 $activeNav = 'exam';
+$pageWide  = ($view !== 'editor'); // picker views share the wide container
 include VIEWS_PATH . '/layouts/app.php';

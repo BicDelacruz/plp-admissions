@@ -26,9 +26,6 @@ function _session_expired(string $date, ?string $endTime, string $today, string 
 <?php endif; ?>
 
 <div data-page-actions>
-        <?php if ($canManage): ?>
-            <?= ui_button('Add Session', ['variant' => 'primary', 'icon' => 'ic_fluent_add_24_regular', 'attrs' => ['onclick' => "document.getElementById('add-session-modal').style.display='flex'"]]) ?>
-        <?php endif; ?>
         <?php if ($canManage && !empty($byDate)): ?>
             <?= ui_button('Select', ['variant' => 'ghost', 'attrs' => ['id' => 'sess-select-toggle', 'onclick' => 'toggleSessSelectMode()']]) ?>
         <?php endif; ?>
@@ -53,13 +50,8 @@ usort($sessDateMap, fn($a, $b) => $a['date'] <=> $b['date']);
 $totalSessCount = array_sum(array_column($sessDateMap, 'count'));
 ?>
 <?php if (count($sessDateMap) > 1): ?>
-<div style="display:flex;align-items:center;justify-content:center;gap:var(--space-3);
-            margin-bottom:var(--space-3);flex-wrap:wrap">
-    <select id="sess-date-filter" class="form-control"
-            title="Filter by session date"
-            style="height:32px;min-height:32px;font-size:var(--text-xs);max-width:280px;
-                   border:1px solid var(--border);border-radius:var(--radius);
-                   padding:0 var(--space-2);background:var(--bg-elevated);color:var(--text-primary)">
+<div class="select-toolbar">
+    <select id="sess-date-filter" class="form-control" title="Filter by session date">
         <option value="" data-count="<?= (int)$totalSessCount ?>">
             All dates · <?= (int)$totalSessCount ?> session<?= (int)$totalSessCount === 1 ? '' : 's' ?>
         </option>
@@ -70,42 +62,25 @@ $totalSessCount = array_sum(array_column($sessDateMap, 'count'));
             </option>
         <?php endforeach; ?>
     </select>
-    <span id="sess-count" style="font-size:var(--text-xs);color:var(--text-tertiary)">
+    <span id="sess-count">
         <?= (int)$totalSessCount ?> session<?= (int)$totalSessCount === 1 ? '' : 's' ?>
     </span>
 </div>
 <?php endif; ?>
 
 <style>
-.sess-dir-grid { margin-top: var(--space-5); }
-.sess-dir-card.is-today  { border-color: var(--accent); background: var(--accent-muted); }
-.sess-dir-card.is-closed { opacity: .7; }
-
-.sess-dir-title {
-    font-size: var(--text-base);
-    font-weight: var(--weight-semibold);
-    color: var(--text-primary);
-    line-height: 1.35;
-    padding-right: 70px; /* leave room for the absolute status badge */
-}
-.sess-dir-meta {
-    display: flex; flex-direction: column; gap: 4px;
-    font-size: var(--text-xs); color: var(--text-tertiary);
-}
-.sess-dir-meta-row { display: flex; align-items: center; gap: 5px; }
-.sess-dir-footer {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-top: auto; padding-top: var(--space-3);
-    border-top: 1px solid var(--border);
-}
+/* Card layout comes from the shared selector-card rules in app.css. */
 
 /* ── Bulk-select mode: checkboxes + selected highlight ──────── */
 .sess-select-checkbox {
-    position:absolute;top:var(--space-3);left:var(--space-3);
-    width:18px;height:18px;accent-color:var(--accent);
+    /* Sits where the icon tile is; the tile hides while selecting. */
+    position:absolute;top:calc(var(--space-5) + 13px);left:calc(var(--space-5) + 13px);
+    width:22px;height:22px;accent-color:var(--accent);
     cursor:pointer;z-index:2;display:none;
 }
 .sess-dir-grid.is-selecting .sess-select-checkbox { display:inline-block; }
+.sess-dir-grid.is-selecting .select-card-icon { opacity:0; }
+.sess-dir-grid.is-selecting .sess-add-card .select-card-icon { opacity:1; }
 .sess-dir-grid.is-selecting .sess-dir-card.is-selected {
     border-color:var(--accent);background:var(--accent-muted);
 }
@@ -134,7 +109,7 @@ foreach ($byDate as $date => $dateSlots) {
 }
 ?>
 
-<div class="sess-dir-grid">
+<div class="select-grid sess-dir-grid">
 
     <?php /* ── Existing sessions (upcoming only) ────────────────── */ ?>
     <?php foreach ($flatSlots as $slot):
@@ -151,9 +126,9 @@ foreach ($byDate as $date => $dateSlots) {
             if ($slot['end_time']) $timeLabel .= ' – ' . format_time($slot['end_time']);
         }
 
-        $cardClasses = 'sess-dir-card';
+        $cardClasses = 'select-card sess-dir-card';
         if ($date === $today)             $cardClasses .= ' is-today';
-        if ($slot['status'] === 'closed') $cardClasses .= ' is-closed';
+        if ($slot['status'] === 'closed' || $isExpired) $cardClasses .= ' is-muted';
 
         $editPayload = json_encode([
             'id'             => (int)$slot['id'],
@@ -183,55 +158,55 @@ foreach ($byDate as $date => $dateSlots) {
             <?php endif; ?>
 
             <!-- Status badge top-right -->
-            <div style="position:absolute;top:var(--space-4);right:var(--space-4)">
+            <div class="select-card-badge">
                 <?php if ($isExpired && $slot['status'] !== 'closed'): ?>
-                    <span class="badge badge-neutral" style="font-size:10px">Ended</span>
+                    <span class="badge badge-neutral">Ended</span>
                 <?php elseif ($isClosed): ?>
-                    <span class="badge badge-neutral" style="font-size:10px">Closed</span>
+                    <span class="badge badge-neutral">Closed</span>
                 <?php elseif ($isFull): ?>
-                    <span class="badge badge-review" style="font-size:10px">Full</span>
+                    <span class="badge badge-review">Full</span>
                 <?php elseif ($date === $today): ?>
-                    <span class="badge badge-info" style="font-size:10px">Today</span>
+                    <span class="badge badge-info">Today</span>
                 <?php else: ?>
-                    <span class="badge badge-approved" style="font-size:10px">Open</span>
+                    <span class="badge badge-approved">Open</span>
                 <?php endif; ?>
             </div>
 
+            <div class="select-card-icon"><?= icon('ic_fluent_people_24_regular', 24) ?></div>
+
             <!-- Title: interviewer name -->
-            <div class="sess-dir-title"><?= e($slot['interviewer_name'] ?? 'Unassigned') ?></div>
+            <div class="select-card-title"><?= e($slot['interviewer_name'] ?? 'Unassigned') ?></div>
 
             <!-- Meta: date · time · location · capacity -->
-            <div class="sess-dir-meta">
-                <div class="sess-dir-meta-row">
+            <div class="select-card-meta">
+                <div class="select-card-meta-row">
                     <?= icon('calendar-blank', 12) ?>
                     <?= e(format_date($date, 'D, M j')) ?>
                 </div>
-                <div class="sess-dir-meta-row">
+                <div class="select-card-meta-row">
                     <?= icon('clock', 12) ?>
                     <?= e($timeLabel) ?>
                 </div>
                 <?php if (!empty($slot['location_label'])): ?>
-                    <div class="sess-dir-meta-row">
+                    <div class="select-card-meta-row">
                         <?= icon('map-pin', 12) ?>
                         <?= e($slot['location_label']) ?>
                     </div>
                 <?php endif; ?>
-                <div class="sess-dir-meta-row">
+                <div class="select-card-meta-row">
                     <?= icon('users', 12) ?>
                     <?= $booked ?> / <?= $capacity ?> booked
                 </div>
             </div>
 
             <!-- Footer: notes (or empty) on left, "Edit →" on right -->
-            <div class="sess-dir-footer">
-                <span style="font-size:var(--text-xs);color:var(--text-tertiary);
-                             overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60%">
+            <div class="select-card-footer">
+                <span>
                     <?= !empty($slot['location_notes'])
                         ? e($slot['location_notes'])
                         : '<span style="opacity:.5">No notes</span>' ?>
                 </span>
-                <span style="font-size:var(--text-xs);font-weight:var(--weight-medium);
-                             color:var(--accent);display:flex;align-items:center;gap:4px">
+                <span class="select-card-action">
                     Edit
                     <?= icon('arrow-right', 12) ?>
                 </span>
@@ -240,17 +215,15 @@ foreach ($byDate as $date => $dateSlots) {
     <?php endforeach; ?>
 
     <?php /* ── Add Session card (always last in grid; opens the modal) ─── */ ?>
-    <div class="sess-dir-card sess-add-card"
+    <?php if ($canManage): ?>
+    <div class="select-card select-card--add sess-dir-card sess-add-card"
          onclick="document.getElementById('add-session-modal').style.display='flex'"
          role="button" tabindex="0"
-         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}"
-         style="align-items:center;justify-content:center;min-height:200px;border-style:dashed;cursor:pointer">
-        <div style="width:48px;height:48px;border-radius:50%;background:var(--accent-muted);
-                    display:flex;align-items:center;justify-content:center;color:var(--accent)">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
-        </div>
-        <div style="font-size:var(--text-sm);font-weight:var(--weight-medium);color:var(--accent);margin-top:var(--space-2)">Add Session</div>
+         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+        <div class="select-card-icon"><?= icon('plus', 24) ?></div>
+        <div class="select-card-title">Add Session</div>
     </div>
+    <?php endif; ?>
 
 </div>
 

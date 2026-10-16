@@ -39,33 +39,29 @@ ob_start();
 ?>
 
 <?php if (empty($departments)): ?>
-    <div style="text-align:center;padding:var(--space-16);color:var(--text-tertiary);font-size:var(--text-sm)">
-        No colleges / departments configured in the system.
-    </div>
+    <div class="select-empty">No colleges / departments configured in the system.</div>
 <?php else: ?>
-    <div class="college-grid">
+    <div class="select-grid college-grid">
         <?php foreach ($departments as $dept):
             $info  = $qCounts[$dept] ?? ['queue' => 0, 'sessions' => 0, 'in_progress' => 0, 'waiting' => 0];
             $live  = $info['in_progress'] > 0 || $info['waiting'] > 0;
         ?>
             <a href="<?= url('/staff/interviews/queue') ?>?college=<?= urlencode($dept) ?>"
-               class="college-card <?= $live ? 'is-live' : '' ?>">
-                <div class="college-card-icon">
+               class="select-card college-card <?= $live ? 'is-live' : '' ?>">
+                <?php if ($info['in_progress'] > 0): ?>
+                    <span class="select-card-badge"><span class="select-card-live"><span class="dot"></span> Live</span></span>
+                <?php endif; ?>
+                <div class="select-card-icon">
                     <?= icon('ic_fluent_building_bank_24_regular', 24) ?>
                 </div>
-                <div class="college-card-name"><?= e($dept) ?></div>
-                <div class="college-card-meta">
-                    <?php if ($info['in_progress'] > 0): ?>
-                        <div class="college-card-meta-row">
-                            <span class="college-card-live"><span class="dot"></span> Live</span>
-                        </div>
-                    <?php endif; ?>
-                    <div class="college-card-meta-row">
+                <div class="select-card-title"><?= e($dept) ?></div>
+                <div class="select-card-meta">
+                    <div class="select-card-meta-row">
                         <?= icon('ic_fluent_calendar_ltr_24_regular', 12) ?>
                         <?= $info['sessions'] ?> session<?= $info['sessions'] !== 1 ? 's' : '' ?> today
                     </div>
                     <?php if ($info['queue'] > 0): ?>
-                        <div class="college-card-meta-row">
+                        <div class="select-card-meta-row">
                             <?= icon('ic_fluent_people_24_regular', 12) ?>
                             <?= $info['queue'] ?> applicant<?= $info['queue'] !== 1 ? 's' : '' ?>
                         </div>

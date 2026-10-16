@@ -333,6 +333,7 @@ if ($college !== '') {
             ]
             : [['label' => 'Interview Sessions', 'to' => '/staff/interviews']]);
     $activeNav = 'interviews';
+    $pageWide  = true;
     include VIEWS_PATH . '/layouts/app.php';
     exit;
 }
@@ -361,4 +362,5 @@ $content   = ob_get_clean();
 $pageTitle = 'Interview Setup';
 $pageBreadcrumb = $isSSO ? [] : [['label' => 'Interview Sessions', 'to' => '/staff/interviews']];
 $activeNav = 'interviews';
+$pageWide  = true;
 include VIEWS_PATH . '/layouts/app.php';

@@ -756,10 +756,6 @@ ob_start();
 /* Generic flash-message colors handled by the layout. */
 
 /* Card base, grid and hover come from the shared selector-card rules in app.css. */
-.es-slot-grid { margin-top: var(--space-5); }
-.es-slot-card.is-today  { border-color: var(--accent); background: var(--accent-muted); }
-.es-slot-card.is-past   { opacity: .55; }
-.es-slot-card.is-full   { border-color: var(--error); }
 
 /* Active access-code badge on a slot card */
 .es-card-code-badge {
@@ -814,29 +810,6 @@ ob_start();
 .es-code-timer.is-warn   { color: #d97706; }
 .es-code-timer.is-expired { color: var(--error); }
 
-.es-card-icon {
-    width: 44px; height: 44px; border-radius: var(--radius);
-    background: var(--accent-muted); color: var(--accent);
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-}
-.es-card-title {
-    font-size: var(--text-base);
-    font-weight: var(--weight-semibold);
-    color: var(--text-primary);
-    line-height: 1.3;
-    padding-right: 64px; /* room for the absolute status badge */
-}
-.es-card-meta {
-    display: flex; flex-direction: column; gap: 4px;
-    font-size: var(--text-xs); color: var(--text-tertiary);
-}
-.es-card-meta-row { display: flex; align-items: center; gap: 5px; }
-.es-card-footer {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-top: auto; padding-top: var(--space-3);
-    border-top: 1px solid var(--border);
-}
 .es-card-edit-btn {
     position: absolute; top: var(--space-3); right: var(--space-3);
     width: 28px; height: 28px;
@@ -850,11 +823,14 @@ ob_start();
 
 /* ── Bulk-select mode for slot cards ────────────────────────── */
 .es-select-checkbox {
-    position:absolute;top:var(--space-3);left:var(--space-3);
-    width:18px;height:18px;accent-color:var(--accent);
+    /* Sits where the icon tile is; the tile hides while selecting. */
+    position:absolute;top:calc(var(--space-5) + 13px);left:calc(var(--space-5) + 13px);
+    width:22px;height:22px;accent-color:var(--accent);
     cursor:pointer;z-index:2;display:none;
 }
 .es-slot-grid.is-selecting .es-select-checkbox { display:inline-block; }
+.es-slot-grid.is-selecting .select-card-icon { opacity:0; }
+.es-slot-grid.is-selecting .es-add-card .select-card-icon { opacity:1; }
 .es-slot-grid.is-selecting .es-slot-card.is-selected {
     border-color:var(--accent);background:var(--accent-muted);
 }
@@ -871,29 +847,6 @@ ob_start();
     font-size:var(--text-sm);
 }
 .es-bulk-bar.is-visible { display:flex; }
-
-/* Add Slot dashed card (matches interview Add Session card) */
-.es-add-card {
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    gap: var(--space-2);
-    padding: var(--space-5);
-    background: transparent;
-    border: 1.5px dashed var(--border);
-    border-radius: var(--radius);
-    color: var(--accent);
-    cursor: pointer;
-    min-height: 200px;
-}
-.es-add-card:hover {
-    background: var(--accent-muted);
-    border-color: var(--accent);
-}
-.es-add-card-circle {
-    width: 48px; height: 48px; border-radius: 50%;
-    background: var(--accent-muted);
-    display: flex; align-items: center; justify-content: center;
-}
 
 /* Roster page — the table is an .auto-table-wrap (app.css) that fills the page
    height left under these rows; keep the rows above it from shrinking. */
@@ -916,11 +869,9 @@ ob_start();
          (Admins land here. Staff are auto-routed to their college.)
     ============================================================ -->
     <?php if (empty($departments)): ?>
-        <div style="text-align:center;padding:var(--space-16);color:var(--text-tertiary);font-size:var(--text-sm)">
-            No colleges / departments configured in the system.
-        </div>
+        <div class="select-empty">No colleges / departments configured in the system.</div>
     <?php else: ?>
-        <div class="college-grid">
+        <div class="select-grid college-grid">
             <?php foreach ($departments as $dept):
                 $info = $collegeCounts[$dept] ?? [
                     'total_slots' => 0, 'upcoming_slots' => 0,
@@ -928,18 +879,18 @@ ob_start();
                 ];
                 $deptNeedsSetup = ((int)$info['upcoming_slots']) === 0;
             ?>
-                <a href="<?= e(url('/staff/exam/slots') . '?college=' . urlencode($dept)) ?>" class="college-card">
+                <a href="<?= e(url('/staff/exam/slots') . '?college=' . urlencode($dept)) ?>" class="select-card college-card">
                     <?php if ($deptNeedsSetup): ?>
-                        <span class="college-card-dot" title="No upcoming slots — needs setup"></span>
+                        <span class="select-card-dot" title="No upcoming slots — needs setup"></span>
                     <?php endif; ?>
-                    <div class="college-card-icon"><?= icon('ic_fluent_building_bank_24_regular', 24) ?></div>
-                    <div class="college-card-name"><?= e($dept) ?></div>
-                    <div class="college-card-meta">
-                        <div class="college-card-meta-row">
+                    <div class="select-card-icon"><?= icon('ic_fluent_building_bank_24_regular', 24) ?></div>
+                    <div class="select-card-title"><?= e($dept) ?></div>
+                    <div class="select-card-meta">
+                        <div class="select-card-meta-row">
                             <?= icon('ic_fluent_calendar_ltr_24_regular', 12) ?>
                             <?= (int)$info['upcoming_slots'] ?> upcoming slot<?= (int)$info['upcoming_slots'] === 1 ? '' : 's' ?>
                         </div>
-                        <div class="college-card-meta-row">
+                        <div class="select-card-meta-row">
                             <?= icon('ic_fluent_people_24_regular', 12) ?>
                             <?= (int)$info['filled_seats'] ?> / <?= (int)$info['total_seats'] ?> seats filled
                         </div>
@@ -955,6 +906,9 @@ ob_start();
          MODE 2 — SLOT CARD GRID FOR ONE COLLEGE
     ============================================================ -->
     <div data-page-actions>
+    <?php if ($canManage && !empty($slotsForCollege)): ?>
+        <?= ui_button('Select', ['variant' => 'ghost', 'attrs' => ['id' => 'es-select-toggle', 'onclick' => 'toggleEsSelectMode()']]) ?>
+    <?php endif; ?>
     <?php if ($canManage): ?>
         <?= ui_button('Export Lists', ['href' => url('/staff/exam/export-rooms'), 'icon' => 'ic_fluent_document_24_regular', 'attrs' => ['target' => '_blank', 'rel' => 'noopener', 'title' => 'Printable per-room sheets to post on the school board']]) ?>
         <?= ui_button('Config', ['variant' => 'ghost', 'icon' => 'ic_fluent_settings_24_regular', 'attrs' => ['onclick' => "document.getElementById('exam-config-modal').style.display='flex'"]]) ?>
@@ -985,14 +939,9 @@ ob_start();
     }
     usort($slotDateMap, fn($a, $b) => $a['date'] <=> $b['date']);
     ?>
-    <div style="display:flex;align-items:center;justify-content:center;gap:var(--space-3);
-                color:var(--text-tertiary);font-size:var(--text-xs);margin-bottom:var(--space-3);flex-wrap:wrap">
+    <div class="select-toolbar">
         <?php if (count($slotDateMap) > 1): ?>
-            <select id="es-date-filter" class="form-control"
-                    title="Filter by exam date"
-                    style="height:32px;min-height:32px;font-size:var(--text-xs);max-width:280px;
-                           border:1px solid var(--border);border-radius:var(--radius);
-                           padding:0 var(--space-2);background:var(--bg-elevated);color:var(--text-primary)">
+            <select id="es-date-filter" class="form-control" title="Filter by exam date">
                 <option value="" data-count="<?= count($slotsForCollege) ?>">
                     All dates · <?= count($slotsForCollege) ?> slot<?= count($slotsForCollege) === 1 ? '' : 's' ?>
                 </option>
@@ -1008,14 +957,9 @@ ob_start();
             <?= count($slotsForCollege) ?> slot<?= count($slotsForCollege) === 1 ? '' : 's' ?>
             &nbsp;·&nbsp; <?= $totalFil ?> / <?= $totalCap ?> seats filled
         </span>
-        <?php if ($canManage && !empty($slotsForCollege)): ?>
-            <button type="button" id="es-select-toggle"
-                    class="btn btn-ghost btn-sm" style="margin-left:auto;font-size:var(--text-xs)"
-                    onclick="toggleEsSelectMode()">Select</button>
-        <?php endif; ?>
     </div>
 
-    <div class="es-slot-grid">
+    <div class="select-grid es-slot-grid">
         <?php foreach ($slotsForCollege as $slot):
             $sid       = (int)$slot['id'];
             $filled    = (int)$slot['filled'];
@@ -1024,9 +968,9 @@ ob_start();
             $isPast    = $slot['exam_date'] < $today;
             $isToday   = $slot['exam_date'] === $today;
 
-            $cardClass = 'es-slot-card';
+            $cardClass = 'select-card es-slot-card';
             if ($isToday) $cardClass .= ' is-today';
-            if ($isPast)  $cardClass .= ' is-past';
+            if ($isPast)  $cardClass .= ' is-muted';
             if ($isFull)  $cardClass .= ' is-full';
 
             $editPayload = json_encode([
@@ -1068,35 +1012,37 @@ ob_start();
                 <?php endif; ?>
 
                 <!-- Status badge top-right (offset to leave room for edit button) -->
-                <div style="position:absolute;top:var(--space-3);right:<?= ($isPast || !$canManage) ? 'var(--space-3)' : '44px' ?>">
+                <div class="select-card-badge<?= ($isPast || !$canManage) ? '' : ' has-edit' ?>">
                     <?php if ($isPast): ?>
-                        <span class="badge badge-neutral" style="font-size:10px">Ended</span>
+                        <span class="badge badge-neutral">Ended</span>
                     <?php elseif ($isFull): ?>
-                        <span class="badge badge-rejected" style="font-size:10px">Full</span>
+                        <span class="badge badge-rejected">Full</span>
                     <?php elseif ($isToday): ?>
-                        <span class="badge badge-info" style="font-size:10px">Today</span>
+                        <span class="badge badge-info">Today</span>
                     <?php else: ?>
-                        <span class="badge badge-approved" style="font-size:10px">Open</span>
+                        <span class="badge badge-approved">Open</span>
                     <?php endif; ?>
                 </div>
 
-                <div class="es-card-title">
+                <div class="select-card-icon"><?= icon('ic_fluent_building_bank_24_regular', 24) ?></div>
+
+                <div class="select-card-title">
                     <?= e($slot['room_label'] ?? '') ?>
                 </div>
 
-                <div class="es-card-meta">
-                    <div class="es-card-meta-row">
+                <div class="select-card-meta">
+                    <div class="select-card-meta-row">
                         <?= icon('ic_fluent_calendar_ltr_24_regular', 12) ?>
                         <?= e(format_date($slot['exam_date'], 'D, M j, Y')) ?>
                     </div>
-                    <div class="es-card-meta-row">
+                    <div class="select-card-meta-row">
                         <?= icon('ic_fluent_clock_24_regular', 12) ?>
                         <?= e(format_time($slot['slot_time'])) ?>
                         <?php if (!empty($slot['end_time'])): ?>
                             &ndash; <?= e(format_time($slot['end_time'])) ?>
                         <?php endif; ?>
                     </div>
-                    <div class="es-card-meta-row">
+                    <div class="select-card-meta-row">
                         <?= icon('ic_fluent_people_24_regular', 12) ?>
                         <strong style="<?= $isFull ? 'color:var(--error)' : 'color:var(--text-secondary)' ?>">
                             <?= $filled ?> / <?= $cap ?>
@@ -1108,7 +1054,7 @@ ob_start();
                         $cardCodeActive = !empty($slot['access_password']) && $cardSecsLeft > 0;
                     ?>
                     <?php if ($cardCodeActive): ?>
-                        <div class="es-card-meta-row" style="margin-top:2px">
+                        <div class="select-card-meta-row">
                             <?= icon('ic_fluent_lock_closed_24_regular', 12) ?>
                             <span class="es-card-code-badge<?= $cardSecsLeft <= 60 ? ' is-warn' : '' ?>"
                                   data-card-pw-end="<?= time() + $cardSecsLeft ?>">
@@ -1119,12 +1065,9 @@ ob_start();
                     <?php endif; ?>
                 </div>
 
-                <div class="es-card-footer">
-                    <span style="font-size:var(--text-xs);color:var(--text-tertiary)">
-                        <?= e($slot['department']) ?>
-                    </span>
-                    <span style="font-size:var(--text-xs);font-weight:var(--weight-medium);
-                                 color:var(--accent);display:flex;align-items:center;gap:4px">
+                <div class="select-card-footer">
+                    <span><?= e($slot['department']) ?></span>
+                    <span class="select-card-action">
                         View
                         <?= icon('arrow-right', 12) ?>
                     </span>
@@ -1134,16 +1077,12 @@ ob_start();
 
         <?php if ($canManage): ?>
             <!-- Add Slot dashed card -->
-            <div class="es-add-card"
+            <div class="select-card select-card--add es-add-card"
                  role="button" tabindex="0"
                  onclick="document.getElementById('add-slot-modal').style.display='flex'"
                  onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
-                <div class="es-add-card-circle">
-                    <?= icon('plus', 22, 'color:var(--accent)') ?>
-                </div>
-                <div style="font-size:var(--text-sm);font-weight:var(--weight-medium);color:var(--accent)">
-                    Add Slot
-                </div>
+                <div class="select-card-icon"><?= icon('plus', 24) ?></div>
+                <div class="select-card-title">Add Slot</div>
             </div>
         <?php endif; ?>
     </div>
