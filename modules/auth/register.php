@@ -839,7 +839,7 @@ document.addEventListener('DOMContentLoaded', function () {
 /* Name row: first / middle / last / suffix */
 .reg-row-names {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr 80px;
+    grid-template-columns: 1fr 1fr 1fr 96px;
     gap: var(--space-3);
     margin-bottom: 0;
 }
@@ -883,10 +883,10 @@ document.addEventListener('DOMContentLoaded', function () {
 .sex-toggle {
     display: flex;
     gap: var(--space-2);
-    height: 40px;
+    height: 44px;
 }
 .sex-btn {
-    width: 48px;
+    width: 56px;
     border: 1px solid var(--border);
     border-radius: var(--radius);
     background: var(--bg-elevated);

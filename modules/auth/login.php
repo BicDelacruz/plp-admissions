@@ -128,6 +128,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
         padding: clamp(32px, 5vw, 64px);
         color: #fff;
         background: url("<?= e($photoUrl) ?>") center / cover no-repeat, var(--lg-green-950);
+        position: sticky; top: 0; height: 100vh; align-self: start;
     }
     /* One flat green wash over the photo (no gradient) */
     .lg-aside::before { content: ''; position: absolute; inset: 0; background: rgba(10,38,22,.8); z-index: -1; }
@@ -201,7 +202,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
 
     @media (max-width: 900px) {
         .lg-page { grid-template-columns: minmax(0, 1fr); }
-        .lg-aside { padding: 16px 24px; gap: 0; }
+        .lg-aside { position: static; height: auto; padding: 16px 24px; gap: 0; }
         .lg-intro, .lg-aside-foot { display: none; }
         .lg-pane { padding: 32px 24px; }
     }

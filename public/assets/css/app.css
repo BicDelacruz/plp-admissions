@@ -1609,6 +1609,11 @@ tbody tr:hover { background: var(--bg-overlay); }
     padding: clamp(32px, 5vw, 64px);
     color: #fff;
     background: var(--auth-photo) center / cover no-repeat, #0c2a1a;
+    /* Stays put while a long form (register) scrolls on the right. */
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    align-self: start;
 }
 /* One flat green wash over the photo (no gradient) */
 .auth-aside::before {
@@ -1655,7 +1660,7 @@ tbody tr:hover { background: var(--bg-overlay); }
     box-shadow: none;
     position: relative;
 }
-.auth-card-wide { max-width: 520px; }
+.auth-card-wide { max-width: 600px; }
 /* Readable long-text card (privacy policy) */
 .auth-card-read { max-width: 680px; }
 .privacy-body { font-size: var(--text-sm); line-height: 1.65; color: var(--text-primary); }
@@ -1679,10 +1684,13 @@ tbody tr:hover { background: var(--bg-overlay); }
 .auth-header .auth-subtitle { margin-top: var(--space-1); text-wrap: pretty; }
 .auth-card .form-input, .auth-card .form-select, .auth-card .form-control { min-height: 44px; }
 .auth-card .btn { min-height: 44px; }
+/* The global arrow-link rule (.auth-card a:has(> svg)) must not shrink these. */
+.auth-card a.reg-google { display: flex; width: 100%; margin-bottom: var(--space-4); }
+.auth-card .form-group { margin-bottom: var(--space-4); }
 
 @media (max-width: 900px) {
     .auth-page { grid-template-columns: minmax(0, 1fr); }
-    .auth-aside { padding: var(--space-4) var(--space-6); gap: 0; }
+    .auth-aside { position: static; height: auto; padding: var(--space-4) var(--space-6); gap: 0; }
     .auth-aside-copy, .auth-aside-foot { display: none; }
     .auth-pane { min-height: 0; padding: var(--space-8) var(--space-6); }
 }
