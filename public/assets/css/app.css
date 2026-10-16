@@ -921,7 +921,9 @@ button { cursor: pointer; }
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    transition: all var(--transition-normal);
+    transition-property: background-color, border-color, color, opacity;
+    transition-duration: 200ms;
+    transition-timing-function: ease-out;
 }
 
 .step-dot svg { width: 12px; height: 12px; color: var(--text-tertiary); }
@@ -1350,7 +1352,9 @@ select {
     line-height: 1;
     min-height: 36px;
     border: 1px solid transparent;
-    transition: all var(--transition-fast);
+    transition-property: background-color, border-color, color, box-shadow, opacity, scale;
+    transition-duration: 150ms;
+    transition-timing-function: ease-out;
     text-decoration: none;
     white-space: nowrap;
     cursor: pointer;
@@ -1886,7 +1890,9 @@ tbody tr:hover { background: var(--bg-overlay); }
     opacity: 0;
     visibility: hidden;
     transform: translateY(-4px);
-    transition: all var(--transition-fast);
+    transition-property: opacity, visibility, transform;
+    transition-duration: 150ms;
+    transition-timing-function: ease-out;
 }
 
 /* All interface elements use the single shared corner token. */
@@ -4388,3 +4394,146 @@ select:not([multiple]):not([size]):disabled { opacity: .6; cursor: not-allowed; 
     0%, 100% { opacity: 1; transform: scale(1); }
     50%      { opacity: .5; transform: scale(1.3); }
 }
+
+
+/* ============================================================
+   INTERFACE POLISH — make-interfaces-feel-better, applied once
+   for the whole system. Visual details only; no layout or
+   behaviour changes. Kept at the end so it refines the rules
+   above without rewriting them.
+   ============================================================ */
+
+:root {
+    /* Shadow as border: ring + lift + ambient depth. Adapts to any
+       background, unlike a solid border colour. */
+    --shadow-border:
+        0 0 0 1px oklch(0 0 0 / 0.06),
+        0 1px 2px -1px oklch(0 0 0 / 0.06),
+        0 2px 4px 0 oklch(0 0 0 / 0.04);
+    --shadow-border-hover:
+        0 0 0 1px oklch(0 0 0 / 0.08),
+        0 1px 2px -1px oklch(0 0 0 / 0.08),
+        0 2px 4px 0 oklch(0 0 0 / 0.06);
+    --image-outline: oklch(0 0 0 / 0.1);
+}
+[data-theme="dark"] {
+    /* Dark: a single white ring; layered depth is invisible on dark. */
+    --shadow-border: 0 0 0 1px oklch(1 0 0 / 0.08);
+    --shadow-border-hover: 0 0 0 1px oklch(1 0 0 / 0.13);
+    --image-outline: oklch(1 0 0 / 0.1);
+}
+
+/* ── Typography ─────────────────────────────────────────────── */
+html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+h1, h2, h3,
+.page-heading, .page-title,
+.card-title, .select-card-title,
+.modal-title { text-wrap: balance; }
+p, li, figcaption, blockquote,
+.card-description, .select-card-desc,
+.alert, .form-hint { text-wrap: pretty; }
+/* Equal-width digits wherever numbers change or line up in columns. */
+td, th,
+.metric-value, .stat-value,
+.q-sess-stat-num, .segmented-control-count,
+.es-code-timer, .es-code-display, .card-pw-timer,
+time, [class*="timer"], [class*="count"] { font-variant-numeric: tabular-nums; }
+
+/* ── Surfaces: depth from shadow, structure from borders ────── */
+.card, .metric-card, .stat-card, .chart-card, .quick-action-card, .select-card {
+    border-color: transparent;
+    box-shadow: var(--shadow-border);
+    transition-property: border-color, box-shadow, background-color;
+    transition-duration: 150ms;
+    transition-timing-function: ease-out;
+}
+.card:hover, .metric-card:hover, .stat-card:hover, .chart-card:hover { box-shadow: var(--shadow-border-hover); }
+/* Selectable cards: hover and state are borders (they communicate state). */
+.select-card:hover { border-color: var(--accent); box-shadow: var(--shadow-border-hover); }
+.select-card.is-live, .select-card.is-today, .select-card.is-active { border-color: var(--accent); }
+.select-card.is-full { border-color: var(--error); }
+.select-card--add { box-shadow: none; border-color: var(--border); }
+.select-card--add:hover { border-color: var(--accent); box-shadow: none; }
+.select-card.is-disabled { box-shadow: none; border-color: var(--border); }
+/* The global link hover fade would dim a whole card or button. */
+a.select-card:hover, a.btn:hover { opacity: 1; }
+
+/* Image outline: neutral black (light) / white (dark), inset so it never
+   changes the image size. Logos and icons are left alone. */
+img:not([class*="logo"]):not([src$=".svg"]) {
+    outline: 1px solid var(--image-outline);
+    outline-offset: -1px;
+}
+
+/* ── Press feedback: 0.96, interruptible (transition, not keyframes) ── */
+.btn, .btn-icon, .sidebar-icon-btn {
+    transition-property: background-color, border-color, color, box-shadow, opacity, scale;
+    transition-duration: 150ms;
+    transition-timing-function: ease-out;
+}
+.btn:active:not(:disabled):not([data-static]),
+.btn-icon:active:not(:disabled),
+.sidebar-icon-btn:active:not(:disabled) { scale: 0.96; }
+
+/* Optical alignment: the icon side carries 2px less padding. */
+.btn:not(.btn-icon):has(> svg:first-child):not(:has(> svg:last-child)) { padding-left: calc(var(--space-4) - 2px); }
+.btn:not(.btn-icon):has(> svg:last-child):not(:has(> svg:first-child)) { padding-right: calc(var(--space-4) - 2px); }
+
+/* ── Hit areas: dense desktop controls reach 40px without growing ── */
+:where(.btn-sm, .btn-icon) { position: relative; }
+.btn-sm::before { content: ""; position: absolute; inset: -4px 0; }
+.btn-icon::before { content: ""; position: absolute; inset: -2px; }
+
+/* ── Motion restraint ───────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .modal { animation: none; }
+    .btn:active, .btn-icon:active, .sidebar-icon-btn:active { scale: none; }
+    .select-card-live .dot { animation: none; }
+}
+
+/* ============================================================
+   REFINEMENTS — taken from the DESIGN.md references (Notion,
+   Linear, Mercury) and kept deliberately quiet: one accent, no
+   new colours, tonal depth over heavy shadow, calm focus states.
+   ============================================================ */
+
+/* Focus: a soft accent halo on top of the accent border (Linear / Notion
+   style) instead of a second hard outline. */
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus,
+.form-control:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+/* Disabled: flat muted surface rather than a faded copy of the live control. */
+.btn:disabled {
+    opacity: 1;
+    background: var(--bg-subtle);
+    border-color: var(--border);
+    color: var(--text-tertiary);
+}
+.form-input:disabled,
+.form-select:disabled,
+.form-textarea:disabled,
+.form-control:disabled {
+    opacity: 1;
+    color: var(--text-tertiary);
+}
+
+/* Floating layers: one soft, wide, low-opacity shadow (Notion) rather than
+   stacked hard ones. */
+.modal { box-shadow: 0 24px 48px -12px rgba(15, 15, 15, 0.22), 0 0 0 1px rgba(15, 15, 15, 0.06); }
+[data-theme="dark"] .modal { box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px oklch(1 0 0 / 0.08); }
+
+/* Dark mode depth is tonal (Linear's surface ladder): hovered cards lift one
+   step instead of gaining a shadow. */
+[data-theme="dark"] .select-card:hover { background: var(--bg-subtle); }
+[data-theme="dark"] .select-card.is-live:hover,
+[data-theme="dark"] .select-card.is-today:hover,
+[data-theme="dark"] .select-card.is-active:hover { background: var(--accent-muted); }
