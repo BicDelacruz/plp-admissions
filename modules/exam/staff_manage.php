@@ -616,9 +616,7 @@ elseif ($selectedExamId) $view = 'editor';
          onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
         <div class="select-card-icon"><?= icon('plus:fill', 24) ?></div>
         <div class="select-card-title"><?= empty($exams) ? 'Create Your First Exam' : 'New Exam' ?></div>
-        <?php if (empty($exams)): ?>
-            <div class="select-card-desc">Get started by creating an entrance exam.</div>
-        <?php endif; ?>
+        <div class="select-card-desc"><?= empty($exams) ? 'Get started by creating an entrance exam.' : 'Build a new entrance exam' ?></div>
     </div>
 </div>
 

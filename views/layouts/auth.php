@@ -33,15 +33,15 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
 
     <!-- Critical canvas colour: applies before app.css arrives so page switches never flash -->
     <style>
-        html{background:#f7f7f5;color-scheme:light}
-        html[data-theme="dark"]{background:#111110;color-scheme:dark}
+        html{background:#fff;color-scheme:light}
     </style>
     <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
 
     <script>
         (function(){
-            const t = localStorage.getItem('plp_theme') || 'light';
-            document.documentElement.dataset.theme = t;
+            // Auth pages are always light (no theme switch here).
+            window.PLP_FORCE_LIGHT = true;
+            document.documentElement.dataset.theme = 'light';
             var fs = null; try { fs = localStorage.getItem('plp_font_size'); } catch (e) {}
             document.documentElement.dataset.fontSize = ['small','medium','large','xlarge'].indexOf(fs) > -1 ? fs : 'medium';
         })();
@@ -50,22 +50,34 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
 <body>
 
 <div class="auth-page" style="--auth-photo:url('<?= e($authPhotoUrl) ?>')">
-    <header class="auth-bar">
-        <img class="auth-bar-logo" src="<?= e($authLogoUrl) ?>" alt="PLP seal">
-        <div>
-            <p class="auth-bar-title">PLP Admissions</p>
-            <p class="auth-bar-sub"><?= e($schoolName) ?></p>
+    <aside class="auth-aside">
+        <div class="auth-brand">
+            <img class="auth-brand-logo" src="<?= e($authLogoUrl) ?>" alt="PLP seal">
+            <div>
+                <p class="auth-brand-title">PLP Admissions</p>
+                <p class="auth-brand-sub"><?= e($schoolName) ?></p>
+            </div>
         </div>
-    </header>
-    <main class="auth-main">
-        <?= $content ?? '' ?>
-    </main>
-    <?php if (empty($hidePrivacyLink)): ?>
-    <footer class="auth-legal"><a href="<?= url('/privacy') ?>">Privacy Policy</a></footer>
-    <?php endif; ?>
+        <div class="auth-aside-copy">
+            <h2>Your application, in one place.</h2>
+            <p>Create an account, upload your requirements, and follow your application from documents to results.</p>
+            <ul class="auth-points">
+                <li>Upload requirements online</li>
+                <li>See your exam and interview schedule</li>
+                <li>Get your result as soon as it is released</li>
+            </ul>
+        </div>
+        <p class="auth-aside-foot">Admissions Office</p>
+    </aside>
+    <div class="auth-pane">
+        <main class="auth-main">
+            <?= $content ?? '' ?>
+        </main>
+        <?php if (empty($hidePrivacyLink)): ?>
+        <footer class="auth-legal"><a href="<?= url('/privacy') ?>">Privacy Policy</a></footer>
+        <?php endif; ?>
+    </div>
 </div>
-
-
 
 <script src="<?= asset('js/jquery.min.js') ?>"></script>
 <script src="<?= asset('js/app.js') ?>"></script>

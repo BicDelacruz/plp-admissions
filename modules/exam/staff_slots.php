@@ -822,31 +822,8 @@ ob_start();
 .es-card-edit-btn:hover { border-color: var(--border); color: var(--accent); }
 
 /* ── Bulk-select mode for slot cards ────────────────────────── */
-.es-select-checkbox {
-    /* Sits where the icon tile is; the tile hides while selecting. */
-    position:absolute;top:calc(var(--space-5) + 13px);left:calc(var(--space-5) + 13px);
-    width:22px;height:22px;accent-color:var(--accent);
-    cursor:pointer;z-index:2;display:none;
-}
-.es-slot-grid.is-selecting .es-select-checkbox { display:inline-block; }
-.es-slot-grid.is-selecting .select-card-icon { opacity:0; }
-.es-slot-grid.is-selecting .es-add-card .select-card-icon { opacity:1; }
-.es-slot-grid.is-selecting .es-slot-card.is-selected {
-    border-color:var(--accent);background:var(--accent-muted);
-}
-.es-slot-grid.is-selecting .es-slot-card.is-undeletable { opacity:.55; }
 /* Hide the per-card edit pencil while selecting so the click is unambiguous. */
 .es-slot-grid.is-selecting .es-card-edit-btn { display:none !important; }
-
-.es-bulk-bar {
-    position:fixed;left:50%;bottom:24px;transform:translateX(-50%);
-    background:var(--bg-elevated);border:1px solid var(--border);
-    border-radius:var(--radius);box-shadow:var(--shadow-lg);
-    padding:var(--space-3) var(--space-4);
-    display:none;align-items:center;gap:var(--space-3);z-index:50;
-    font-size:var(--text-sm);
-}
-.es-bulk-bar.is-visible { display:flex; }
 
 /* Roster page — the table is an .auto-table-wrap (app.css) that fills the page
    height left under these rows; keep the rows above it from shrinking. */
@@ -996,7 +973,7 @@ ob_start();
                data-capacity="<?= $cap ?>"
                onclick="return onEsCardClick(event, this)">
                 <?php if ($canManage): ?>
-                    <input type="checkbox" class="es-select-checkbox"
+                    <input type="checkbox" class="select-card-check es-select-checkbox"
                            value="<?= $sid ?>"
                            <?= $esUndeletable ? 'disabled title="Has applicants — cannot remove"' : '' ?>
                            onclick="event.stopPropagation();onEsCheckboxChange(this)">
@@ -1083,13 +1060,14 @@ ob_start();
                  onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
                 <div class="select-card-icon"><?= icon('plus', 24) ?></div>
                 <div class="select-card-title">Add Slot</div>
+                <div class="select-card-desc">Create a new exam room slot</div>
             </div>
         <?php endif; ?>
     </div>
 
     <?php if ($canManage && !empty($slotsForCollege)): ?>
     <!-- Floating bar for bulk delete (visible while in select mode). -->
-    <div id="es-bulk-bar" class="es-bulk-bar">
+    <div id="es-bulk-bar" class="select-bulk-bar es-bulk-bar">
         <span id="es-bulk-count" style="font-weight:var(--weight-medium)">0 selected</span>
         <form method="POST" id="es-bulk-form"
               style="display:flex;gap:var(--space-2);align-items:center;margin:0">

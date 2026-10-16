@@ -338,10 +338,6 @@ ob_start();
 ?>
 <div class="auth-card auth-card-wide animate-fade-in">
 
-    <button class="auth-theme-toggle" onclick="Theme.toggle()" aria-label="Toggle theme">
-        <?= icon('ic_fluent_weather_sunny_24_regular', 16, '', 'data-theme-icon="dark" class="hidden"') ?>
-        <?= icon('ic_fluent_weather_moon_24_regular', 16, '', 'data-theme-icon="light"') ?>
-    </button>
 
     <div class="auth-header">
         <?php if ($schoolLogo): ?>

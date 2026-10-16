@@ -23,6 +23,8 @@ const Theme = (() => {
     }
 
     function init() {
+        // Auth pages stay light and never touch the saved preference.
+        if (window.PLP_FORCE_LIGHT) { document.documentElement.dataset.theme = 'light'; return; }
         const saved = localStorage.getItem(KEY) || 'light';
         apply(saved);
     }

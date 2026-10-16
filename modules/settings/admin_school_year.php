@@ -534,8 +534,6 @@ ob_start();
 .sy-years { display:flex; flex-direction:column; }
 .sy-year { padding:var(--space-4) 0; border-radius:0 !important; background:none; }
 .sy-year:first-child { padding-top:0; }
-.sy-year + .sy-year { border-top:1px solid var(--border); }
-.sy-sec + .sy-sec { border-top:1px solid var(--border); }
 .ai-status-bar { display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--radius);font-size:var(--text-sm);border:1px solid; }
 .ai-status-bar.connected { background:#f0faf4;border-color:#a7d9b8;color:#1a5c32; }
 .ai-status-bar.disconnected { background:#fafafa;border-color:var(--border);color:var(--text-secondary); }

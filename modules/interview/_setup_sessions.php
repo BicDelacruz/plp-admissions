@@ -71,32 +71,7 @@ $totalSessCount = array_sum(array_column($sessDateMap, 'count'));
 <style>
 /* Card layout comes from the shared selector-card rules in app.css. */
 
-/* ── Bulk-select mode: checkboxes + selected highlight ──────── */
-.sess-select-checkbox {
-    /* Sits where the icon tile is; the tile hides while selecting. */
-    position:absolute;top:calc(var(--space-5) + 13px);left:calc(var(--space-5) + 13px);
-    width:22px;height:22px;accent-color:var(--accent);
-    cursor:pointer;z-index:2;display:none;
-}
-.sess-dir-grid.is-selecting .sess-select-checkbox { display:inline-block; }
-.sess-dir-grid.is-selecting .select-card-icon { opacity:0; }
-.sess-dir-grid.is-selecting .sess-add-card .select-card-icon { opacity:1; }
-.sess-dir-grid.is-selecting .sess-dir-card.is-selected {
-    border-color:var(--accent);background:var(--accent-muted);
-}
-.sess-dir-grid.is-selecting .sess-dir-card.is-undeletable {
-    opacity:.55;
-}
-/* Floating bulk-delete bar that pins to the bottom while in select mode. */
-.sess-bulk-bar {
-    position:fixed;left:50%;bottom:24px;transform:translateX(-50%);
-    background:var(--bg-elevated);border:1px solid var(--border);
-    border-radius:var(--radius);box-shadow:var(--shadow-lg);
-    padding:var(--space-3) var(--space-4);
-    display:none;align-items:center;gap:var(--space-3);z-index:50;
-    font-size:var(--text-sm);
-}
-.sess-bulk-bar.is-visible { display:flex; }
+/* Bulk-select checkboxes, highlight and bar come from app.css (.select-*). */
 </style>
 
 <?php
@@ -151,7 +126,7 @@ foreach ($byDate as $date => $dateSlots) {
              data-date="<?= e($date) ?>"
              onclick='handleSessCardClick(event, <?= $editPayload ?>)'>
             <?php if ($canManage): ?>
-                <input type="checkbox" class="sess-select-checkbox"
+                <input type="checkbox" class="select-card-check sess-select-checkbox"
                        value="<?= (int)$slot['id'] ?>"
                        <?= $undeletable ? 'disabled title="Has bookings — cannot remove"' : '' ?>
                        onclick="event.stopPropagation();onSessCheckboxChange(this)">
@@ -222,6 +197,7 @@ foreach ($byDate as $date => $dateSlots) {
          onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
         <div class="select-card-icon"><?= icon('plus', 24) ?></div>
         <div class="select-card-title">Add Session</div>
+        <div class="select-card-desc">Schedule a new interview session</div>
     </div>
     <?php endif; ?>
 
@@ -229,7 +205,7 @@ foreach ($byDate as $date => $dateSlots) {
 
 <?php if ($canManage && !empty($byDate)): ?>
 <!-- Floating bar for bulk delete (visible while in select mode). -->
-<div id="sess-bulk-bar" class="sess-bulk-bar">
+<div id="sess-bulk-bar" class="select-bulk-bar sess-bulk-bar">
     <span id="sess-bulk-count" style="font-weight:var(--weight-medium)">0 selected</span>
     <form method="POST" action="<?= url('/staff/interviews/setup') ?>" id="sess-bulk-form"
           style="display:flex;gap:var(--space-2);align-items:center;margin:0">

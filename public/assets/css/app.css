@@ -1590,61 +1590,74 @@ tbody tr:hover { background: var(--bg-overlay); }
    11. AUTH PAGES (login / register)
    ============================================================ */
 
+/* Split layout, light only: campus photo panel on the left (brand and a
+   short summary), plain form on the right. No card chrome around the form. */
 .auth-page {
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    background: #0c2a1a;
-}
-
-/* Top bar (matches the login page) */
-.auth-bar {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 12px clamp(16px, 8vw, 150px);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     background: #fff;
     color: #1a2420;
 }
-.auth-bar-logo { width: 52px; height: 52px; object-fit: contain; flex: none; }
-.auth-bar-title { margin: 0; font-size: 1.5rem; font-weight: var(--weight-semibold); line-height: 1.1; color: var(--accent); }
-.auth-bar-sub { margin: 2px 0 0; font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; color: #5d6b63; }
-
-/* Campus photo under a green wash, card centered on top */
-.auth-main {
-    flex: 1;
-    display: grid;
-    place-items: center;
-    padding: clamp(24px, 5vw, 64px) var(--space-4);
-    background:
-        var(--auth-photo) center / cover no-repeat,
-        #0c2a1a;
+.auth-aside {
     position: relative;
     isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: var(--space-8);
+    padding: clamp(32px, 5vw, 64px);
+    color: #fff;
+    background: var(--auth-photo) center / cover no-repeat, #0c2a1a;
 }
-
 /* One flat green wash over the photo (no gradient) */
-.auth-main::before {
+.auth-aside::before {
     content: '';
     position: absolute;
     inset: 0;
-    background: rgba(10,38,22,.72);
+    background: rgba(10, 38, 22, .8);
     z-index: -1;
 }
+.auth-brand { display: flex; align-items: center; gap: var(--space-4); }
+.auth-brand-logo { width: 48px; height: 48px; object-fit: contain; flex: none; background: #fff; padding: 4px; }
+.auth-brand-title { margin: 0; font-size: var(--text-base); font-weight: var(--weight-semibold); line-height: 1.2; }
+.auth-brand-sub { margin: 2px 0 0; font-size: var(--text-xs); letter-spacing: .06em; text-transform: uppercase; color: rgba(255,255,255,.72); }
+.auth-aside-copy { max-width: 440px; }
+.auth-aside-copy h2 {
+    margin: 0 0 var(--space-4);
+    font-size: clamp(2rem, 3.2vw, 2.75rem);
+    font-weight: var(--weight-semibold);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+}
+.auth-aside-copy p { margin: 0; color: rgba(255,255,255,.82); line-height: 1.6; text-wrap: pretty; }
+.auth-points { list-style: none; margin: var(--space-6) 0 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-3); }
+.auth-points li { display: flex; align-items: center; gap: var(--space-3); font-size: var(--text-sm); color: rgba(255,255,255,.9); }
+.auth-points li::before { content: ''; width: 6px; height: 6px; flex: none; background: #6fcf97; border-radius: 50% !important; }
+.auth-aside-foot { margin: 0; font-size: var(--text-xs); color: rgba(255,255,255,.6); }
 
+.auth-pane {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding: clamp(24px, 5vw, 64px);
+    background: #fff;
+}
+.auth-main { flex: 1; display: flex; align-items: center; justify-content: center; }
 .auth-card {
     width: 100%;
-    max-width: 440px;
-    background: var(--bg-elevated);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-panel);
-    padding: var(--space-8);
-    box-shadow: var(--shadow-lg);
+    max-width: 400px;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
     position: relative;
 }
-.auth-card-wide { max-width: 580px; }
+.auth-card-wide { max-width: 520px; }
 /* Readable long-text card (privacy policy) */
-.auth-card-read { max-width: 760px; }
+.auth-card-read { max-width: 680px; }
 .privacy-body { font-size: var(--text-sm); line-height: 1.65; color: var(--text-primary); }
 .privacy-body h2 { margin: var(--space-6) 0 var(--space-2); font-size: 1.02rem; font-weight: var(--weight-semibold); color: var(--accent); }
 .privacy-body p, .privacy-body ul { margin: 0 0 var(--space-3); }
@@ -1654,16 +1667,25 @@ tbody tr:hover { background: var(--bg-overlay); }
 .privacy-meta { color: var(--text-secondary); }
 .privacy-todo { background: #fff3bf; color: #5c4400; padding: 0 var(--space-1); border-radius: var(--radius); font-weight: var(--weight-semibold); }
 [data-theme="dark"] .privacy-todo { background: #5c4400; color: #fff3bf; }
-/* Footer link under the card on the auth layout */
-.auth-legal { padding: 14px var(--space-4) 20px; text-align: center; font-size: .82rem; background: #0c2a1a; }
-.auth-legal a { color: rgba(255,255,255,.8); text-decoration: underline; text-underline-offset: 3px; }
-.auth-legal a:hover { color: #fff; }
+.auth-legal { padding-top: var(--space-6); text-align: center; font-size: var(--text-xs); }
+.auth-legal a { color: var(--text-tertiary); text-decoration: underline; text-underline-offset: 3px; }
+.auth-legal a:hover { color: var(--text-primary); opacity: 1; }
 
-/* Card heading: the bar already carries logo and school name */
+/* Card heading: the aside carries logo and school name */
 .auth-header .auth-logo,
 .auth-header .auth-logo-img { display: none; }
-.auth-header { margin-bottom: var(--space-6); padding-right: 32px; }
-.auth-header .auth-title { color: var(--accent); font-size: 1.3rem; font-weight: var(--weight-semibold); letter-spacing: 0; }
+.auth-header { display: block; margin-bottom: var(--space-6); padding-right: 0; }
+.auth-header .auth-title { color: var(--text-primary); font-size: 1.5rem; font-weight: var(--weight-semibold); letter-spacing: -0.02em; text-wrap: balance; }
+.auth-header .auth-subtitle { margin-top: var(--space-1); text-wrap: pretty; }
+.auth-card .form-input, .auth-card .form-select, .auth-card .form-control { min-height: 44px; }
+.auth-card .btn { min-height: 44px; }
+
+@media (max-width: 900px) {
+    .auth-page { grid-template-columns: minmax(0, 1fr); }
+    .auth-aside { padding: var(--space-4) var(--space-6); gap: 0; }
+    .auth-aside-copy, .auth-aside-foot { display: none; }
+    .auth-pane { min-height: 0; padding: var(--space-8) var(--space-6); }
+}
 
 /* Show-password button injected by jQuery */
 .auth-pw { position: relative; }
@@ -1677,37 +1699,6 @@ tbody tr:hover { background: var(--bg-overlay); }
 .auth-pw-eye:focus-visible { outline: 2px solid var(--accent); }
 .auth-pw-eye.on { color: var(--accent); }
 
-/* Tiny blurred theme toggle inside the auth card */
-.auth-theme-toggle {
-    position: absolute;
-    top: var(--space-8);
-    right: var(--space-8);
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    border: none;
-    background: transparent;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: var(--text-tertiary);
-    transition: color 0.2s;
-    z-index: 10;
-    padding: 0;
-}
-.auth-theme-toggle:hover {
-    color: var(--text-secondary);
-}
-.auth-theme-toggle svg { width: 14px; height: 14px; }
-
-.auth-header {
-    display: flex;
-    align-items: center;
-    gap: var(--space-4);
-    margin-bottom: var(--space-8);
-    text-align: left;
-}
 
 .auth-logo {
     width: 52px;
@@ -2364,11 +2355,7 @@ textarea:focus-visible {
 }
 
 @media (max-width: 480px) {
-    .auth-card {
-        padding: var(--space-6) var(--space-5);
-        border-radius: var(--radius);
-    }
-    .auth-bar-title { font-size: 1.2rem; }
+    .auth-pane { padding: var(--space-6) var(--space-4); }
 
     .metrics-row {
         grid-template-columns: 1fr 1fr;
@@ -3992,7 +3979,7 @@ html[data-font-size="xlarge"] { font-size: 22px; --height-table-row: 68px; --hei
 .alert i, .input-prefix-icon i, .input-suffix-icon i, .btn-pw-toggle i,
 .theme-toggle i, .auto-table-page-btn i { font-size: 16px !important; }
 .alert i { margin-top: 1px; }
-.auth-theme-toggle i, .sort-btn i { font-size: 14px !important; }
+.sort-btn i { font-size: 14px !important; }
 .doc-icon i { font-size: 18px !important; color: var(--text-secondary); }
 .auth-logo i { font-size: 26px !important; color: white; }
 .session-modal-icon i { font-size: 24px !important; }
@@ -4021,7 +4008,18 @@ html[data-font-size="xlarge"] { font-size: 22px; --height-table-row: 68px; --hei
     overflow: hidden;
 }
 .sy-col { display: flex; flex-direction: column; min-height: 0; min-width: 0; overflow-y: auto; }
-.sy-col + .sy-col { border-left: 1px solid var(--border); }
+/* One straight, subtle divider, inset so it never touches the card edges. */
+.sy-card { position: relative; }
+.sy-card::before {
+    content: "";
+    position: absolute;
+    top: var(--space-6);
+    bottom: var(--space-6);
+    left: 50%;
+    width: 1px;
+    background: var(--border);
+    pointer-events: none;
+}
 .sy-sec { padding: var(--space-5) var(--space-6); flex-shrink: 0; }
 .sy-sec.sy-grow { flex: 1 1 auto; }
 .sy-sec.sy-danger .card-title { color: var(--error); }
@@ -4030,7 +4028,7 @@ html[data-font-size="xlarge"] { font-size: 22px; --height-table-row: 68px; --hei
     .page:has(.sy-card) { overflow: visible; }
     .sy-card { grid-template-columns: 1fr; overflow: visible; }
     .sy-col { overflow: visible; }
-    .sy-col + .sy-col { border-left: 0; }
+    .sy-card::before { display: none; }
 }
 
 
@@ -4367,20 +4365,54 @@ select:not([multiple]):not([size]):disabled { opacity: .6; cursor: not-allowed; 
     background: #fff;
     animation: q-pulse-dot 1.4s infinite;
 }
-/* Dashed "+ Add" card */
+/* Dashed "+ Add" card: same anatomy and left alignment as every other
+   card (icon tile, title, one-line description), so it reads as a sibling
+   in the grid, not a different component. */
 .select-card--add {
-    align-items: center;
-    justify-content: center;
-    gap: var(--space-2);
     background: transparent;
     border-style: dashed;
-    color: var(--accent);
-    min-height: 168px;
+    border-color: var(--border-strong);
+    box-shadow: none;
 }
-.select-card--add:hover { background: var(--accent-muted); }
-.select-card--add .select-card-icon { border-radius: 50%; }
-.select-card--add .select-card-title { color: var(--accent); font-size: var(--text-sm); font-weight: var(--weight-medium); }
-.select-card--add .select-card-desc  { text-align: center; margin-top: 0; }
+.select-card--add:hover { background: var(--accent-muted); border-color: var(--accent); box-shadow: none; }
+.select-card--add .select-card-title { color: var(--accent); }
+
+/* Bulk-select mode, shared by every grid that supports it. The checkbox
+   takes the icon tile's place; selected cards use the same highlight as
+   the live / today / active state. */
+.select-card-check {
+    position: absolute;
+    top: calc(var(--space-5) + 13px);
+    left: calc(var(--space-5) + 13px);
+    width: 22px;
+    height: 22px;
+    accent-color: var(--accent);
+    cursor: pointer;
+    z-index: 2;
+    display: none;
+}
+.select-grid.is-selecting .select-card-check { display: inline-block; }
+.select-grid.is-selecting .select-card:not(.select-card--add) .select-card-icon { opacity: 0; }
+.select-grid.is-selecting .select-card.is-selected { border-color: var(--accent); background: var(--accent-muted); }
+.select-grid.is-selecting .select-card.is-undeletable { opacity: .55; }
+.select-grid.is-selecting .select-card--add { opacity: .5; pointer-events: none; }
+.select-bulk-bar {
+    position: fixed;
+    left: 50%;
+    bottom: var(--space-6);
+    transform: translateX(-50%);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    padding: var(--space-3) var(--space-4);
+    display: none;
+    align-items: center;
+    gap: var(--space-3);
+    z-index: 50;
+    font-size: var(--text-sm);
+}
+.select-bulk-bar.is-visible { display: flex; }
 /* Empty state shared by pickers */
 .select-empty {
     padding: var(--space-8) var(--space-4);
@@ -4455,8 +4487,6 @@ time, [class*="timer"], [class*="count"] { font-variant-numeric: tabular-nums; }
 .select-card:hover { border-color: var(--accent); box-shadow: var(--shadow-border-hover); }
 .select-card.is-live, .select-card.is-today, .select-card.is-active { border-color: var(--accent); }
 .select-card.is-full { border-color: var(--error); }
-.select-card--add { box-shadow: none; border-color: var(--border); }
-.select-card--add:hover { border-color: var(--accent); box-shadow: none; }
 .select-card.is-disabled { box-shadow: none; border-color: var(--border); }
 /* The global link hover fade would dim a whole card or button. */
 a.select-card:hover, a.btn:hover { opacity: 1; }
