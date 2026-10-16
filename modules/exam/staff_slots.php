@@ -755,41 +755,8 @@ ob_start();
 <style>
 /* Generic flash-message colors handled by the layout. */
 
-/* Card grid for colleges + slots (mirrors the interview setup styles). */
-.es-college-grid,
-.es-slot-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: var(--space-4);
-    margin-top: var(--space-5);
-}
-.es-college-card,
-.es-slot-card {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-    padding: var(--space-5);
-    background: var(--bg-elevated);
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius);
-    text-decoration: none;
-    color: var(--text-primary);
-    transition: border-color .15s, box-shadow .15s, transform .12s;
-    position: relative;
-    cursor: pointer;
-    min-height: 200px;
-}
-.es-college-card:hover,
-.es-slot-card:hover {
-    border-color: var(--accent);
-    box-shadow: 0 6px 20px rgba(0,0,0,.07);
-    transform: translateY(-2px);
-}
-/* Red dot top-right on a college card with no upcoming exam slots. */
-.es-college-card-dot {
-    position:absolute;top:var(--space-3);right:var(--space-3);
-    width:8px;height:8px;border-radius:50%;background:var(--error);
-}
+/* Card base, grid and hover come from the shared selector-card rules in app.css. */
+.es-slot-grid { margin-top: var(--space-5); }
 .es-slot-card.is-today  { border-color: var(--accent); background: var(--accent-muted); }
 .es-slot-card.is-past   { opacity: .55; }
 .es-slot-card.is-full   { border-color: var(--error); }
@@ -948,11 +915,7 @@ ob_start();
          MODE 1 — COLLEGE SELECTOR
          (Admins land here. Staff are auto-routed to their college.)
     ============================================================ -->
-    <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-4);margin-bottom:var(--space-4)">
-        <div>
-            <h1 class="page-title" style="margin:0 0 var(--space-1) 0">Exam Room Slots</h1>
-            <p class="page-subtitle">Pick a college to manage its exam slots and rooms.</p>
-        </div>
+    <div data-page-actions>
         <a href="<?= e(url('/staff/exam')) ?>" class="btn-icon" aria-label="Back to exams" title="Back to exams"><?= icon('ic_fluent_arrow_left_24_regular', 18) ?></a>
     </div>
 
@@ -961,7 +924,7 @@ ob_start();
             No colleges / departments configured in the system.
         </div>
     <?php else: ?>
-        <div class="es-college-grid" style="max-width:900px;margin:0 auto">
+        <div class="college-grid">
             <?php foreach ($departments as $dept):
                 $info = $collegeCounts[$dept] ?? [
                     'total_slots' => 0, 'upcoming_slots' => 0,
@@ -969,21 +932,18 @@ ob_start();
                 ];
                 $deptNeedsSetup = ((int)$info['upcoming_slots']) === 0;
             ?>
-                <a href="<?= e(url('/staff/exam/slots') . '?college=' . urlencode($dept)) ?>"
-                   class="es-college-card" style="align-items:center;text-align:center">
+                <a href="<?= e(url('/staff/exam/slots') . '?college=' . urlencode($dept)) ?>" class="college-card">
                     <?php if ($deptNeedsSetup): ?>
-                        <span class="es-college-card-dot" title="No upcoming slots — needs setup"></span>
+                        <span class="college-card-dot" title="No upcoming slots — needs setup"></span>
                     <?php endif; ?>
-                    <div class="es-card-icon"><?= icon('ic_fluent_building_bank_24_regular', 22) ?></div>
-                    <div class="es-card-title" style="padding-right:0;text-align:center">
-                        <?= e($dept) ?>
-                    </div>
-                    <div class="es-card-meta" style="align-items:center">
-                        <div class="es-card-meta-row">
+                    <div class="college-card-icon"><?= icon('ic_fluent_building_bank_24_regular', 24) ?></div>
+                    <div class="college-card-name"><?= e($dept) ?></div>
+                    <div class="college-card-meta">
+                        <div class="college-card-meta-row">
                             <?= icon('ic_fluent_calendar_ltr_24_regular', 12) ?>
                             <?= (int)$info['upcoming_slots'] ?> upcoming slot<?= (int)$info['upcoming_slots'] === 1 ? '' : 's' ?>
                         </div>
-                        <div class="es-card-meta-row">
+                        <div class="college-card-meta-row">
                             <?= icon('ic_fluent_people_24_regular', 12) ?>
                             <?= (int)$info['filled_seats'] ?> / <?= (int)$info['total_seats'] ?> seats filled
                         </div>
@@ -998,26 +958,20 @@ ob_start();
     <!-- ============================================================
          MODE 2 — SLOT CARD GRID FOR ONE COLLEGE
     ============================================================ -->
-    <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-4);margin-bottom:var(--space-4)">
-        <div>
-            <h1 class="page-title" style="margin:0 0 var(--space-1) 0"><?= e($collegeParam) ?></h1>
-            <p class="page-subtitle">Exam Room Slots</p>
-        </div>
-        <div style="display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap;justify-content:flex-end">
-            <?php if ($canManage): ?>
-                <a href="<?= e(url('/staff/exam/slots')) ?>" class="btn-icon" aria-label="Back to exam slots" title="Back to exam slots"><?= icon('ic_fluent_arrow_left_24_regular', 18) ?></a>
-                <a href="<?= e(url('/staff/exam/export-rooms')) ?>" class="btn btn-sm" target="_blank" rel="noopener" title="Printable per-room sheets to post on the school board">
-                    <?= icon('ic_fluent_document_24_regular', 14) ?> Export Lists
-                </a>
-                <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('exam-config-modal').style.display='flex'">
-                    <?= icon('ic_fluent_settings_24_regular', 14) ?> Config
-                </button>
-            <?php else: ?>
-                <span class="badge badge-neutral" style="font-size:var(--text-xs)">
-                    <?= icon('ic_fluent_eye_24_regular', 12) ?> Read-only
-                </span>
-            <?php endif; ?>
-        </div>
+    <div data-page-actions>
+    <?php if ($canManage): ?>
+        <a href="<?= e(url('/staff/exam/slots')) ?>" class="btn-icon" aria-label="Back to exam slots" title="Back to exam slots"><?= icon('ic_fluent_arrow_left_24_regular', 18) ?></a>
+        <a href="<?= e(url('/staff/exam/export-rooms')) ?>" class="btn btn-sm" target="_blank" rel="noopener" title="Printable per-room sheets to post on the school board">
+            <?= icon('ic_fluent_document_24_regular', 14) ?> Export Lists
+        </a>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('exam-config-modal').style.display='flex'">
+            <?= icon('ic_fluent_settings_24_regular', 14) ?> Config
+        </button>
+    <?php else: ?>
+        <span class="badge badge-neutral" style="font-size:var(--text-xs)">
+            <?= icon('ic_fluent_eye_24_regular', 12) ?> Read-only
+        </span>
+    <?php endif; ?>
     </div>
 
     <?php
@@ -2163,6 +2117,8 @@ async function saveRoomLabel(slotId) {
 <?php
 $content   = ob_get_clean();
 $pageTitle = 'Exam Room Slots';
+// College page: the heading is the college name, no subtitle.
+$pageHeading = ($mode === 'slots') ? $collegeParam : null;
 $pageActions = ($mode === 'roster' && !empty($slotDetail))
     ? '<a href="' . e(url('/staff/exam/slots') . '?college=' . urlencode($slotDetail['department'])) . '" class="btn-icon" aria-label="Back to ' . e($slotDetail['department']) . ' slots" title="Back to ' . e($slotDetail['department']) . ' slots">' . icon('ic_fluent_arrow_left_24_regular', 18) . '</a>'
         . ($canManage && !$isPast ? '<button type="button" class="btn btn-sm" onclick="openEditExamSlot(' . e($editPayload) . ')">' . icon('ic_fluent_edit_24_regular', 14) . ' Edit slot</button>' : '')

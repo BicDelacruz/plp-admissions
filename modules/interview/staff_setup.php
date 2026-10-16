@@ -321,7 +321,8 @@ if ($college !== '') {
     ob_start();
     include __DIR__ . '/_setup_sessions.php';
     $content   = ob_get_clean();
-    $pageTitle = e($college) . ' — Interview Sessions';
+    $pageTitle   = e($college) . ' — Interview Sessions';
+    $pageHeading = $college;
     $activeNav = 'interviews';
     include VIEWS_PATH . '/layouts/app.php';
     exit;

@@ -998,7 +998,7 @@ function showResUndoToast(msg, onCommit) {
     bar.style.cssText = 'position:absolute;bottom:0;left:0;height:3px;background:var(--accent);border-radius:0 0 var(--radius) var(--radius);width:100%;transition:width ' + DELAY + 'ms linear';
 
     toast.innerHTML = '<span style="flex:1">' + msg + '</span>'
-        + '<button id="res-undo-btn" style="background:none;border:1px solid var(--border);border-radius:var(--radius);padding:4px 14px;cursor:pointer;font-size:var(--text-sm);color:var(--text-primary);font-weight:500;white-space:nowrap">Undo</button>'
+        + '<button id="res-undo-btn" style="background:none;border:1px solid var(--border);border-radius:var(--radius);padding:4px 14px;cursor:pointer;font-size:var(--text-sm);color:var(--text-primary);font-weight:600;white-space:nowrap">Undo</button>'
         + '<button onclick="dismissResUndoToast()" style="background:none;border:none;cursor:pointer;color:var(--text-tertiary);font-size:16px;padding:0 4px">&times;</button>';
     toast.appendChild(bar);
     document.body.appendChild(toast);

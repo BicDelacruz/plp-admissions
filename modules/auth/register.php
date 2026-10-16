@@ -353,7 +353,6 @@ ob_start();
         <?php endif; ?>
         <div class="auth-header-text">
             <h1 class="auth-title">Create your account</h1>
-            <p class="auth-subtitle">Start your PLP admission application.</p>
         </div>
     </div>
 

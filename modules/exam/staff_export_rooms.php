@@ -358,7 +358,8 @@ if ($format === 'print') {
             ↓ CSV
         </a>
         <button class="btn btn-primary" onclick="window.print()">
-            🖨 Print / Save as PDF
+            <?= icon('printer', 14) ?>
+            Print / Save as PDF
         </button>
     </div>
 </div>

@@ -31,25 +31,6 @@ ob_start();
 ?>
 
 <style>
-@keyframes q-pulse-dot {
-    0%,100% { opacity: 1; transform: scale(1); }
-    50%     { opacity: .5; transform: scale(1.3); }
-}
-.q-sess-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: var(--space-4);
-}
-.q-sess-card {
-    display: flex; flex-direction: column;
-    gap: var(--space-3); padding: var(--space-5);
-    background: var(--bg-elevated); border: 1.5px solid var(--border);
-    border-radius: var(--radius);
-    text-decoration: none; color: var(--text-primary);
-    transition: border-color .15s, box-shadow .15s;
-    position: relative; cursor: pointer; min-height: 220px;
-}
-.q-sess-card:hover { border-color: var(--accent); box-shadow: var(--shadow-sm); }
 .q-sess-card.is-live { border-color: var(--accent); background: var(--accent-muted); }
 .q-sess-card-title {
     font-size: var(--text-base); font-weight: var(--weight-semibold);

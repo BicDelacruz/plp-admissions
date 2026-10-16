@@ -755,7 +755,7 @@ function showUndoToast(msg) {
     toast.id = 'undo-toast';
     toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:10000;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-lg);padding:12px 20px;display:flex;align-items:center;gap:12px;font-size:var(--text-sm);min-width:320px;animation:slideUp .25s ease';
     toast.innerHTML = '<span style="flex:1">' + msg + '</span>'
-        + '<button onclick="undoApproveAll()" style="background:none;border:1px solid var(--border);border-radius:var(--radius);padding:4px 14px;cursor:pointer;font-size:var(--text-sm);color:var(--text-primary);font-weight:500">Undo</button>'
+        + '<button onclick="undoApproveAll()" style="background:none;border:1px solid var(--border);border-radius:var(--radius);padding:4px 14px;cursor:pointer;font-size:var(--text-sm);color:var(--text-primary);font-weight:600">Undo</button>'
         + '<button onclick="dismissToast()" style="background:none;border:none;cursor:pointer;color:var(--text-tertiary);font-size:16px;padding:0 4px">&times;</button>';
     document.body.appendChild(toast);
 

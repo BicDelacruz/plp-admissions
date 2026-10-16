@@ -25,12 +25,7 @@ function _session_expired(string $date, ?string $endTime, string $today, string 
     <div class="alert alert-error" style="margin-bottom:var(--space-4)"><?= e($msg) ?></div>
 <?php endif; ?>
 
-<div class="page-header" style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-4);margin-bottom:var(--space-4)">
-    <div>
-        <h1 class="page-title" style="margin:0 0 var(--space-1) 0"><?= e($college) ?></h1>
-        <p class="page-subtitle">Interview Sessions</p>
-    </div>
-    <div style="display:flex;align-items:center;gap:var(--space-2)">
+<div data-page-actions>
         <?php if ($canManage): ?>
             <button type="button" class="btn btn-primary btn-sm" onclick="document.getElementById('add-session-modal').style.display='flex'">
                 <?= icon('ic_fluent_add_24_regular', 15) ?> Add Session
@@ -45,7 +40,6 @@ function _session_expired(string $date, ?string $endTime, string $today, string 
             <a href="<?= url('/staff/interviews') ?>" class="btn-icon" aria-label="Back to interviews" title="Back to interviews"><?= icon('ic_fluent_arrow_left_24_regular', 18) ?></a>
         <?php endif; ?>
     </div>
-</div>
 
 <?php
 // Build a date map for the toolbar filter dropdown. Mirrors the
@@ -90,30 +84,7 @@ $totalSessCount = array_sum(array_column($sessDateMap, 'count'));
 <?php endif; ?>
 
 <style>
-/* Mirrors .exam-dir-grid / .exam-dir-card from staff_manage.php so the
-   setup page reads as part of the same family. */
-.sess-dir-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: var(--space-4);
-    margin-top: var(--space-5);
-}
-.sess-dir-card {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-    padding: var(--space-5);
-    background: var(--bg-elevated);
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius);
-    text-decoration: none;
-    color: var(--text-primary);
-    transition: border-color .15s, box-shadow .15s;
-    position: relative;
-    cursor: pointer;
-    min-height: 220px;
-}
-.sess-dir-card:hover { border-color: var(--accent); box-shadow: var(--shadow-sm); }
+.sess-dir-grid { margin-top: var(--space-5); }
 .sess-dir-card.is-today  { border-color: var(--accent); background: var(--accent-muted); }
 .sess-dir-card.is-closed { opacity: .7; }
 

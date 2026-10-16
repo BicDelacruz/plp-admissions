@@ -73,7 +73,6 @@ ob_start();
             <?= icon('shield-check:fill', 26) ?>
         </div>
         <h1 class="auth-title">New password</h1>
-        <p class="auth-subtitle">Choose a strong password for your account</p>
     </div>
 
     <form method="POST" action="<?= url('/reset-password') ?>" id="reset-form" data-once novalidate>

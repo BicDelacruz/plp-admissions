@@ -460,7 +460,7 @@ ob_start();
             <div class="card-title" style="margin:0">Import Historical Records</div>
             <button class="btn btn-secondary" onclick="openLegacyImportModal()" style="display:flex;align-items:center;gap:6px">
                 <?= icon('arrow-circle-down', 14) ?>
-                Import with AI ✨
+                Import with AI
             </button>
         </div>
         <p style="font-size:var(--text-sm);color:var(--text-secondary);margin:0">
@@ -655,7 +655,7 @@ ob_start();
                         <span class="ai-file-tag">
                             <?= icon('file', 12, 'color:#fff') ?>
                             <span id="legacy-file-tag-name"></span>
-                            <button class="rm" onclick="event.stopPropagation();clearLegacyFile()" title="Remove">✕</button>
+                            <button class="rm" onclick="event.stopPropagation();clearLegacyFile()" title="Remove"><?= icon('x', 12) ?></button>
                         </span>
                     </div>
                     <input type="file" id="legacy-file-input"

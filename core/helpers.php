@@ -12,7 +12,11 @@ function url(string $path = ''): string
 
 function asset(string $path): string
 {
-    return url('assets/' . ltrim($path, '/'));
+    $path = ltrim($path, '/');
+    $href = url('assets/' . $path);
+    // Version by file time so a changed app.css / app.js is never served stale.
+    $file = dirname(__DIR__) . '/public/assets/' . $path;
+    return is_file($file) ? $href . '?v=' . filemtime($file) : $href;
 }
 
 function redirect(string $path): never

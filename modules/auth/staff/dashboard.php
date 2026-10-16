@@ -215,13 +215,6 @@ $pageTitle = 'Dashboard';
 ob_start();
 ?>
 
-<div class="page-header">
-    <h1 class="page-title">Dashboard</h1>
-    <p class="page-subtitle">
-        Academic Year <?= date('Y') ?>–<?= date('Y') + 1 ?> &middot; Admission overview
-    </p>
-</div>
-
 <!-- ── Stat cards ───────────────────────────────────────── -->
 <div class="stat-grid">
     <div class="stat-card">

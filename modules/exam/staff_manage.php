@@ -577,29 +577,7 @@ ob_start();
 }
 
 /* ── EXAM DIRECTORY ──────────────────────────────── */
-.exam-dir-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: var(--space-4);
-    margin-top: var(--space-5);
-}
-.exam-dir-card {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-    padding: var(--space-5);
-    background: var(--bg-elevated);
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius);
-    text-decoration: none;
-    color: var(--text-primary);
-    transition: border-color .15s, box-shadow .15s;
-    position: relative;
-}
-.exam-dir-card:hover {
-    border-color: var(--accent);
-    box-shadow: var(--shadow-sm);
-}
+.exam-dir-grid { margin-top: var(--space-5); }
 .exam-dir-card.is-active {
     border-color: var(--accent);
     background: var(--accent-muted);
@@ -1083,7 +1061,6 @@ elseif ($selectedExamId) $view = 'editor';
 
 <?php else: ?>
     <div class="card" style="padding:var(--space-16);text-align:left;color:var(--text-tertiary)">
-        <div style="font-size:var(--text-2xl);margin-bottom:var(--space-3)">📋</div>
         <p style="font-size:var(--text-sm)">Select an exam from the directory or create a new one.</p>
         <div style="margin-top:var(--space-4)">
             <a href="<?= url('/staff/exam') ?>?view=exams" class="btn btn-primary btn-sm">Go to Exam Builder</a>
@@ -2597,7 +2574,7 @@ function renderAiPreview(sections) {
                     const dot=ok
                         ? `<span style="width:14px;height:14px;border-radius:50%;background:#15803d;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center"><i class="ph-bold ph-check" aria-hidden="true" style="font-size:8px;color:#fff"></i></span>`
                         : `<span style="width:14px;height:14px;border-radius:50%;border:1.5px solid #d1d5db;flex-shrink:0;display:inline-block"></span>`;
-                    return`<div style="display:flex;align-items:center;gap:7px;padding:2px 0;font-size:13px;color:${ok?'#15803d':'#374151'};${ok?'font-weight:500':''}">${dot}${escHtml(c)}</div>`;
+                    return`<div style="display:flex;align-items:center;gap:8px;padding:var(--space-1) 0;font-size:var(--text-sm);color:${ok?'#15803d':'#374151'};${ok?'font-weight:600':''}">${dot}${escHtml(c)}</div>`;
                 }).join('')+'</div>';
             } else if(q.question_type==='short_answer'){
                 choices=`<div style="margin-top:6px;font-size:12px;color:#6b7280">${q.correct_answer?'Expected: <strong style=\'color:#111827\'">'+escHtml(q.correct_answer)+'</strong>':'Short answer — reviewed manually'}</div>`;

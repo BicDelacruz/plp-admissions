@@ -23,7 +23,6 @@ ob_start();
 
     <div class="auth-header">
         <h1 class="auth-title">Privacy Policy</h1>
-        <p class="auth-subtitle">How PLP Admissions handles your personal data.</p>
     </div>
 
     <div class="privacy-body">

@@ -77,6 +77,11 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
 
     <?= phosphor_head() ?>
 
+    <!-- Critical canvas colour: applies before app.css arrives so page switches never flash -->
+    <style>
+        html{background:#f7f7f5;color-scheme:light}
+        html[data-theme="dark"]{background:#111110;color-scheme:dark}
+    </style>
     <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
 
     <?php if ($schoolLogo): ?>

@@ -11,7 +11,7 @@
     .wrap{text-align:center;padding:2rem}
     h1{font-size:4rem;font-weight:600;letter-spacing:-0.04em;color:#b91c1c;margin:0}
     p{color:#5a5a54;margin:1rem 0 2rem}
-    a{background:#2d6a4f;color:#fff;padding:.6rem 1.4rem;border-radius:var(--radius);text-decoration:none;font-size:.875rem;font-weight:500}
+    a{background:#2d6a4f;color:#fff;padding:.6rem 1.4rem;border-radius:var(--radius);text-decoration:none;font-size:.875rem;font-weight:600}
 </style>
 </head>
 <body>

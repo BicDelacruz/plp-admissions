@@ -8,50 +8,11 @@
 $_isSSO_picker = (Auth::role() === ROLE_SSO);
 ?>
 
-<div class="page-header" style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-4);margin-bottom:var(--space-6)">
-    <div>
-        <h1 class="page-title" style="margin:0 0 var(--space-1) 0">Interview Setup</h1>
-        <p class="page-subtitle">Pick a college to manage its interview sessions.</p>
-    </div>
-    <?php if (!$_isSSO_picker): ?>
+<?php if (!$_isSSO_picker): ?>
+    <div data-page-actions>
         <a href="<?= url('/staff/interviews') ?>" class="btn-icon" aria-label="Back to interviews" title="Back to interviews"><?= icon('ic_fluent_arrow_left_24_regular', 18) ?></a>
-    <?php endif; ?>
-</div>
-
-<style>
-    .college-grid {
-        display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
-        gap:var(--space-4);max-width:900px;margin:0 auto;
-    }
-    .college-card {
-        display:flex;flex-direction:column;align-items:center;text-align:center;
-        gap:var(--space-3);padding:var(--space-8) var(--space-5);
-        background:var(--bg-elevated);border:1.5px solid var(--border);
-        border-radius:var(--radius);text-decoration:none;color:var(--text-primary);
-        transition:border-color .18s,box-shadow .18s,transform .15s;cursor:pointer;
-    }
-    .college-card:hover {
-        border-color:var(--accent);box-shadow:0 6px 20px rgba(0,0,0,.07);transform:translateY(-3px);
-    }
-    .college-card-icon {
-        width:50px;height:50px;border-radius:var(--radius);
-        background:var(--accent-muted);color:var(--accent);
-        display:flex;align-items:center;justify-content:center;
-    }
-    .college-card-name {
-        font-size:var(--text-sm);font-weight:var(--weight-semibold);
-        color:var(--text-primary);line-height:1.3;
-    }
-    .college-card-meta {
-        font-size:var(--text-xs);color:var(--text-tertiary);
-        display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap;justify-content:center;
-    }
-    .college-card-dot {
-        position:absolute;top:var(--space-3);right:var(--space-3);
-        width:8px;height:8px;border-radius:50%;background:var(--error);
-    }
-    .college-card { position:relative; }
-</style>
+    </div>
+<?php endif; ?>
 
 <?php if (empty($departments)): ?>
     <div style="text-align:center;padding:var(--space-16);color:var(--text-tertiary);font-size:var(--text-sm)">
@@ -73,12 +34,13 @@ $_isSSO_picker = (Auth::role() === ROLE_SSO);
                 </div>
                 <div class="college-card-name"><?= e($dept) ?></div>
                 <div class="college-card-meta">
-                    <?= icon('ic_fluent_calendar_ltr_24_regular', 12) ?>
-                    <?= $info['upcoming'] ?> upcoming
-                    <?php if ($info['sessions'] !== $info['upcoming']): ?>
-                        &nbsp;·&nbsp;
-                        <?= $info['sessions'] ?> total session<?= $info['sessions'] !== 1 ? 's' : '' ?>
-                    <?php endif; ?>
+                    <div class="college-card-meta-row">
+                        <?= icon('ic_fluent_calendar_ltr_24_regular', 12) ?>
+                        <?= (int)$info['upcoming'] ?> upcoming
+                        <?php if ($info['sessions'] !== $info['upcoming']): ?>
+                            &middot; <?= (int)$info['sessions'] ?> total
+                        <?php endif; ?>
+                    </div>
                 </div>
             </a>
         <?php endforeach; ?>
