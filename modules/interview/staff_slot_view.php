@@ -445,7 +445,7 @@ ob_start();
                 var toolH   = toolbar.getBoundingClientRect().height;
                 var rowH    = cssPx('--height-table-row', 56);
                 var headerH = cssPx('--height-table-header', 40);
-                var footerH = cssPx('--height-table-footer', 40);
+                var footerH = cssPx('--control-height', 36) + 8; // pagination bar + 8px gap
                 var rows    = Math.floor((avail - toolH - headerH - footerH - 2) / rowH);
                 return Math.max(3, Math.min(100, rows));
             }

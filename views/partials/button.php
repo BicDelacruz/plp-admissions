@@ -8,7 +8,7 @@
 //
 //   ui_button('Add Session', [
 //       'variant' => 'primary',          // primary|secondary|ghost|success|danger|outline-danger|'' (plain)
-//       'size'    => '',                 // ''=default 36px, 'sm'=32px, 'lg'=40px
+//       'size'    => '',                 // ''=default, 'sm', 'lg' (type/padding only; height is always --control-height)
 //       'icon'    => 'plus',             // any icon() name
 //       'icon_pos'=> 'before',           // before|after
 //       'href'    => url('/somewhere'),  // set => <a>, omitted => <button>

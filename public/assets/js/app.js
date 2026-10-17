@@ -494,8 +494,8 @@ window.FontSize = FontSize;
 //
 // Same math as the hook: the region measured is the WHOLE
 // .auto-table-wrap (card + the pagination bar under it), and the
-// pagination bar is always reserved (--height-table-footer, 40px =
-// 32px bar + 8px gap) whether or not it is showing:
+// pagination bar is always reserved (--height-table-footer, 44px =
+// 36px bar + 8px gap) whether or not it is showing:
 //
 //   rows = floor((wrap - toolbar - header - pagination - 2px card border) / row)
 //
@@ -514,7 +514,9 @@ const AutoPageSize = (() => {
     const MAX_ROWS = 100;
     const FALLBACK_ROW_HEIGHT = 56;
     const FALLBACK_HEADER_HEIGHT = 40;
-    const FALLBACK_FOOTER_HEIGHT = 40;
+    const FALLBACK_FOOTER_HEIGHT = 44;
+    // Gap between the card and the pagination bar (the wrap's 8px gap).
+    const FOOTER_GAP = 8;
     // The card's 1px top and bottom border (lakbay's CARD_BORDER).
     const CARD_BORDER = 2;
     const STORAGE_KEY_PREFIX = 'plp_auto_page_size:';
@@ -533,7 +535,9 @@ const AutoPageSize = (() => {
         const toolbarH = toolbar ? toolbar.getBoundingClientRect().height : 0;
         const rowH = cssVar('--height-table-row', FALLBACK_ROW_HEIGHT);
         const headerH = cssVar('--height-table-header', FALLBACK_HEADER_HEIGHT);
-        const footerH = cssVar('--height-table-footer', FALLBACK_FOOTER_HEIGHT);
+        // --height-table-footer is a calc() of the shared control height, which
+        // getPropertyValue returns unresolved, so build it from its parts.
+        const footerH = cssVar('--control-height', FALLBACK_FOOTER_HEIGHT - FOOTER_GAP) + FOOTER_GAP;
 
         const usable = availableH - toolbarH - headerH - footerH - CARD_BORDER;
         const rows = Math.floor(usable / rowH);
@@ -613,12 +617,241 @@ const AutoPageSize = (() => {
 window.AutoPageSize = AutoPageSize;
 
 // ============================================================
+// SelectMenu — one dropdown list for every <select>
+//
+// The closed <select> keeps its place in the page (layout, width, name,
+// value, form submit, onchange handlers, .value set by scripts all work
+// untouched). Opening it shows the shared list panel (.app-dropdown-panel,
+// the same look as the dashboard date-range menu) instead of the browser's
+// native list. Choosing an item sets the select and fires input + change.
+//
+// Opt out per select with data-native. Multi-selects and selects with a
+// size attribute stay native.
+// ============================================================
+const SelectMenu = (() => {
+    let panel = null;       // the floating list, created on first open
+    let current = null;     // the <select> it belongs to
+    let entries = [];       // [{ el, option }] for the rendered items
+    let active = -1;        // keyboard / hover highlight (index into entries)
+    let typed = '', typedTimer = null;
+
+    function eligible(el) {
+        return !!el && el.tagName === 'SELECT' && !el.multiple
+            && !el.hasAttribute('size') && !el.hasAttribute('data-native');
+    }
+
+    function isOpen() { return !!panel && panel.classList.contains('open'); }
+
+    function ensurePanel() {
+        if (panel) return panel;
+        panel = document.createElement('div');
+        panel.className = 'app-dropdown-panel select-menu';
+        panel.setAttribute('role', 'listbox');
+        // Keep focus on the select while clicking inside the list.
+        panel.addEventListener('mousedown', (e) => e.preventDefault());
+        panel.addEventListener('click', (e) => {
+            const item = e.target.closest('.app-dropdown-item');
+            if (!item || item.disabled) return;
+            choose(entries[+item.dataset.i]);
+        });
+        panel.addEventListener('mouseover', (e) => {
+            const item = e.target.closest('.app-dropdown-item');
+            if (item && !item.disabled) setActive(+item.dataset.i, false);
+        });
+        document.body.appendChild(panel);
+        return panel;
+    }
+
+    function build(sel) {
+        panel.textContent = '';
+        entries = [];
+        const addOption = (opt) => {
+            if (opt.hidden) return;
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.tabIndex = -1;
+            btn.className = 'app-dropdown-item' + (opt.selected ? ' active' : '');
+            btn.setAttribute('role', 'option');
+            btn.setAttribute('aria-selected', opt.selected ? 'true' : 'false');
+            btn.dataset.i = String(entries.length);
+            btn.disabled = opt.disabled;
+            btn.textContent = opt.textContent.trim() || ' ';
+            panel.appendChild(btn);
+            entries.push({ el: btn, option: opt });
+        };
+        Array.from(sel.children).forEach((node) => {
+            if (node.tagName === 'OPTGROUP') {
+                const label = document.createElement('div');
+                label.className = 'app-dropdown-label';
+                label.textContent = node.label;
+                panel.appendChild(label);
+                Array.from(node.children).forEach((o) => { if (o.tagName === 'OPTION') addOption(o); });
+            } else if (node.tagName === 'OPTION') {
+                addOption(node);
+            }
+        });
+    }
+
+    function position() {
+        const r = current.getBoundingClientRect();
+        const margin = 8, gap = 4;
+        panel.style.minWidth = r.width + 'px';
+        panel.style.maxHeight = '';
+        panel.style.left = '0px';
+        panel.style.top = '0px';
+        const pw = panel.offsetWidth;
+        const ph = panel.scrollHeight;
+        const below = window.innerHeight - r.bottom - margin - gap;
+        const above = r.top - margin - gap;
+        const openUp = ph > below && above > below;
+        const room = Math.max(120, openUp ? above : below);
+        const h = Math.min(ph, 288, room);
+        panel.style.maxHeight = Math.min(288, room) + 'px';
+        let left = r.left;
+        if (left + pw > window.innerWidth - margin) left = window.innerWidth - margin - pw;
+        panel.style.left = Math.max(margin, left) + 'px';
+        panel.style.top = (openUp ? r.top - gap - h : r.bottom + gap) + 'px';
+    }
+
+    function open(sel) {
+        if (sel.disabled) return;
+        if (isOpen()) close();
+        current = sel;
+        ensurePanel();
+        build(sel);
+        panel.classList.add('open');
+        position();
+        const sIdx = entries.findIndex((en) => en.option.selected);
+        setActive(sIdx >= 0 ? sIdx : entries.findIndex((en) => !en.option.disabled), true);
+        sel.classList.add('is-open');
+    }
+
+    function close() {
+        if (!panel) return;
+        panel.classList.remove('open');
+        if (current) current.classList.remove('is-open');
+        current = null;
+        active = -1;
+    }
+
+    function setActive(i, scroll) {
+        if (active >= 0 && entries[active]) entries[active].el.classList.remove('is-hover');
+        active = i;
+        if (i >= 0 && entries[i]) {
+            entries[i].el.classList.add('is-hover');
+            if (scroll) entries[i].el.scrollIntoView({ block: 'nearest' });
+        }
+    }
+
+    function move(step) {
+        if (!entries.length) return;
+        let i = active;
+        for (let n = 0; n < entries.length; n++) {
+            i = (i + step + entries.length) % entries.length;
+            if (!entries[i].option.disabled) { setActive(i, true); return; }
+        }
+    }
+
+    function choose(entry) {
+        if (!entry || !current) return;
+        const sel = current;
+        const changed = !entry.option.selected;
+        sel.selectedIndex = entry.option.index;
+        close();
+        sel.focus();
+        if (changed) {
+            sel.dispatchEvent(new Event('input',  { bubbles: true }));
+            sel.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+    }
+
+    function typeahead(key) {
+        typed += key.toLowerCase();
+        clearTimeout(typedTimer);
+        typedTimer = setTimeout(() => { typed = ''; }, 600);
+        const start = typed.length === 1 ? active + 1 : active;
+        for (let n = 0; n < entries.length; n++) {
+            const i = (start + n + entries.length) % entries.length;
+            if (!entries[i].option.disabled
+                && entries[i].el.textContent.trim().toLowerCase().startsWith(typed)) {
+                setActive(i, true);
+                return;
+            }
+        }
+    }
+
+    function init() {
+        // Capture phase, so this runs before any page handler and before
+        // the browser opens its own list.
+        document.addEventListener('mousedown', (e) => {
+            const sel = e.target.closest && e.target.closest('select');
+            if (eligible(sel)) {
+                if (e.button !== 0) return;
+                e.preventDefault();               // no native list
+                sel.focus();
+                if (isOpen() && current === sel) close(); else open(sel);
+                return;
+            }
+            if (isOpen() && !panel.contains(e.target)) close();
+        }, true);
+
+        document.addEventListener('keydown', (e) => {
+            if (isOpen()) {
+                switch (e.key) {
+                    case 'ArrowDown': e.preventDefault(); move(1); return;
+                    case 'ArrowUp':   e.preventDefault(); move(-1); return;
+                    case 'Home':      e.preventDefault(); setActive(entries.findIndex((en) => !en.option.disabled), true); return;
+                    case 'End': {
+                        e.preventDefault();
+                        for (let i = entries.length - 1; i >= 0; i--) {
+                            if (!entries[i].option.disabled) { setActive(i, true); break; }
+                        }
+                        return;
+                    }
+                    case 'Enter':
+                    case ' ':
+                        e.preventDefault();
+                        if (active >= 0) choose(entries[active]); else close();
+                        return;
+                    case 'Escape': e.preventDefault(); e.stopPropagation(); close(); return;
+                    case 'Tab': close(); return;
+                    default:
+                        if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                            e.preventDefault();
+                            typeahead(e.key);
+                        }
+                        return;
+                }
+            }
+            const sel = e.target;
+            if (eligible(sel) && !e.ctrlKey && !e.metaKey
+                && (e.key === 'Enter' || e.key === ' ' || e.key === 'F4'
+                    || (e.altKey && (e.key === 'ArrowDown' || e.key === 'ArrowUp')))) {
+                e.preventDefault();
+                open(sel);
+            }
+        }, true);
+
+        // A floating list must not drift away from its select.
+        window.addEventListener('resize', close);
+        window.addEventListener('scroll', (e) => {
+            if (isOpen() && !(panel && panel.contains(e.target))) close();
+        }, true);
+        window.addEventListener('blur', close);
+    }
+
+    return { init, close };
+})();
+window.SelectMenu = SelectMenu;
+
+// ============================================================
 // Bootstrap
 // ============================================================
 document.addEventListener('DOMContentLoaded', () => {
     Theme.init();
     FontSize.init();
     Dropdown.init();
+    SelectMenu.init();
     Sidebar.init();
     FileDropZone.init();
     initAlerts();

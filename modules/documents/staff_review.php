@@ -329,7 +329,7 @@ if ($allApproved && $applicant['overall_status'] === 'documents'):
             <!-- Prev -->
             <button id="fv-prev" onclick="fvNavigate(-1)" type="button" style="
                 display:flex;align-items:center;justify-content:center;
-                width:32px;height:32px;border-radius:var(--radius);
+                width:var(--control-height);height:var(--control-height);border-radius:var(--radius);
                 border:1px solid var(--border);background:var(--bg);
                 color:var(--text-secondary);cursor:pointer;flex-shrink:0;
                 transition:background var(--transition-fast),color var(--transition-fast);
@@ -346,7 +346,7 @@ if ($allApproved && $applicant['overall_status'] === 'documents'):
             <!-- Next -->
             <button id="fv-next" onclick="fvNavigate(1)" type="button" style="
                 display:flex;align-items:center;justify-content:center;
-                width:32px;height:32px;border-radius:var(--radius);
+                width:var(--control-height);height:var(--control-height);border-radius:var(--radius);
                 border:1px solid var(--border);background:var(--bg);
                 color:var(--text-secondary);cursor:pointer;flex-shrink:0;
                 transition:background var(--transition-fast),color var(--transition-fast);
@@ -493,7 +493,7 @@ if ($allApproved && $applicant['overall_status'] === 'documents'):
 <style>
 .fv-ctrl-btn {
     display:flex;align-items:center;justify-content:center;
-    width:30px;height:30px;border-radius:var(--radius);
+    width:var(--control-height);height:var(--control-height);border-radius:var(--radius);
     border:1px solid var(--border);background:var(--bg);
     color:var(--text-secondary);cursor:pointer;
     transition:background var(--transition-fast),color var(--transition-fast);

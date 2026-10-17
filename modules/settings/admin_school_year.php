@@ -336,7 +336,7 @@ ob_start();
             <?php elseif ($admissionsOpen || $admissionsClose): ?>
                 <span class="badge badge-pending">Closed</span>
             <?php else: ?>
-                <span class="badge" style="background:var(--bg-subtle);color:var(--text-tertiary)">Not set</span>
+                <span class="badge">Not set</span>
             <?php endif; ?>
         </div>
 
@@ -414,7 +414,7 @@ ob_start();
             <?php if ($enrollmentDate && $enrollmentTime && $enrollmentVenue): ?>
                 <span class="badge badge-approved">Set</span>
             <?php else: ?>
-                <span class="badge" style="background:var(--bg-subtle);color:var(--text-tertiary)">Not set</span>
+                <span class="badge">Not set</span>
             <?php endif; ?>
         </div>
 

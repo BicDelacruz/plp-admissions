@@ -397,7 +397,7 @@ ob_start();
                         <input type="text" name="reason" form="<?= $formId ?>" required maxlength="500"
                                placeholder="Reason shown to students (e.g. Typhoon Pepito)"
                                class="form-control"
-                               style="font-size:var(--text-xs);height:30px;min-height:30px;padding:0 var(--space-2)">
+                               style="font-size:var(--text-xs);height:var(--control-height);min-height:var(--control-height);padding:0 var(--space-2)">
                     </td>
                     <td>
                         <form id="<?= $formId ?>" method="POST" style="margin:0"
@@ -406,7 +406,7 @@ ob_start();
                             <input type="hidden" name="action" value="cancel_slot">
                             <input type="hidden" name="source_slot_id" value="<?= (int)$s['id'] ?>">
                             <button type="submit" class="btn btn-sm btn-primary"
-                                    style="height:30px;min-height:30px;padding:0 var(--space-3);font-size:var(--text-xs)">
+                                    style="height:var(--control-height);min-height:var(--control-height);padding:0 var(--space-3);font-size:var(--text-xs)">
                                 Cancel slot &amp; move all
                             </button>
                         </form>

@@ -560,7 +560,7 @@ ob_start();
                                title="Reason shown to the student if you deny"
                                maxlength="500"
                                class="form-control"
-                               style="font-size:var(--text-xs);height:30px;min-height:30px;padding:0 var(--space-2)">
+                               style="font-size:var(--text-xs);height:var(--control-height);min-height:var(--control-height);padding:0 var(--space-2)">
                     </td>
                     <td>
                         <div style="display:flex;gap:var(--space-2);align-items:center">
@@ -569,7 +569,7 @@ ob_start();
                                 <input type="hidden" name="action" value="approve_reschedule">
                                 <input type="hidden" name="request_id" value="<?= (int)$rr['id'] ?>">
                                 <button type="submit" class="btn btn-sm btn-primary"
-                                        style="height:30px;min-height:30px;padding:0 var(--space-3);font-size:var(--text-xs)"
+                                        style="height:var(--control-height);min-height:var(--control-height);padding:0 var(--space-3);font-size:var(--text-xs)"
                                         title="Approve and assign new slot">Approve</button>
                             </form>
                             <form id="<?= $denyFormId ?>" method="POST" style="margin:0"
@@ -578,7 +578,7 @@ ob_start();
                                 <input type="hidden" name="action" value="deny_reschedule">
                                 <input type="hidden" name="request_id" value="<?= (int)$rr['id'] ?>">
                                 <button type="submit" class="btn btn-sm btn-ghost"
-                                        style="height:30px;min-height:30px;padding:0 var(--space-3);font-size:var(--text-xs);color:var(--error)"
+                                        style="height:var(--control-height);min-height:var(--control-height);padding:0 var(--space-3);font-size:var(--text-xs);color:var(--error)"
                                         title="Deny request">Deny</button>
                             </form>
                         </div>

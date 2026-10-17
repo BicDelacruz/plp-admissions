@@ -358,7 +358,7 @@ ob_start();
 .dp-custom-row  { display:none; padding:var(--space-2) var(--space-3); gap:var(--space-2); align-items:center; }
 .dp-custom-row.show { display:flex; }
 .dp-date-in {
-    flex:1; padding:var(--space-1) var(--space-2); font-size:var(--text-sm);
+    flex:1; height:var(--control-height); padding:0 var(--space-2); font-size:var(--text-sm);
     font-family:var(--font-sans); border:1px solid var(--border);
     border-radius:var(--radius); background:var(--bg-subtle); color:var(--text-primary); min-width:0;
 }
@@ -403,7 +403,7 @@ ob_start();
             <div class="dp-wrap" id="dpWrap">
                 <button class="db-pill-btn" onclick="dpToggle(event)" type="button" style="
                     display:flex;align-items:center;gap:var(--space-2);
-                    height:32px;padding:0 var(--space-3);
+                    height:var(--control-height);padding:0 var(--space-3);
                     border:1px solid var(--border);border-radius:var(--radius);
                     background:var(--bg-elevated);color:var(--text-secondary);
                     font-size:var(--text-sm);cursor:pointer;white-space:nowrap;
@@ -436,7 +436,7 @@ ob_start();
 
             <a class="db-pill-btn" href="<?= $exportUrl ?>" style="
                 display:flex;align-items:center;gap:var(--space-2);
-                height:32px;padding:0 var(--space-3);
+                height:var(--control-height);padding:0 var(--space-3);
                 border:1px solid var(--border);border-radius:var(--radius);
                 background:var(--bg-elevated);color:var(--text-secondary);
                 font-size:var(--text-sm);cursor:pointer;white-space:nowrap;text-decoration:none;

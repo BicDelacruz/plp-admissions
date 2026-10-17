@@ -539,7 +539,7 @@ $sortParams = ['q' => $search, 'result' => $filterRes, 'per_page' => $perPage, '
                     <!-- Result column -->
                     <td>
                         <?php if ($bucket === 'withdrawn'): ?>
-                            <span class="badge" style="color:#6b7280;background:#f3f4f6">Withdrawn</span>
+                            <span class="badge">Withdrawn</span>
                         <?php elseif ($bucket === 'released'): ?>
                             <span class="badge badge-<?= $row['admission_result'] ?>"
                                   <?= $row['admission_remarks'] ? 'title="' . e($row['admission_remarks']) . '"' : '' ?>>

@@ -763,7 +763,7 @@ ob_start();
             <option value="transferee" <?= $applicant['applicant_type'] === 'transferee' ? 'selected' : '' ?>>Transferee</option>
             <option value="foreign" <?= $applicant['applicant_type'] === 'foreign' ? 'selected' : '' ?>>Foreign</option>
         </select>
-        <button type="submit" class="btn btn-ghost" style="min-height:36px;font-size:var(--text-sm)">Change</button>
+        <button type="submit" class="btn btn-ghost" style="font-size:var(--text-sm)">Change</button>
     </form>
 </div>
 <?php endif; ?>
@@ -1173,7 +1173,7 @@ function updateDropLabel(name) {
         ">
             <button id="fv-prev" onclick="fvNavigate(-1)" type="button" style="
                 display:flex;align-items:center;justify-content:center;
-                width:32px;height:32px;border-radius:var(--radius);
+                width:var(--control-height);height:var(--control-height);border-radius:var(--radius);
                 border:1px solid var(--border);background:var(--bg);
                 color:var(--text-secondary);cursor:pointer;flex-shrink:0;
                 transition:background var(--transition-fast),color var(--transition-fast);
@@ -1186,7 +1186,7 @@ function updateDropLabel(name) {
             </div>
             <button id="fv-next" onclick="fvNavigate(1)" type="button" style="
                 display:flex;align-items:center;justify-content:center;
-                width:32px;height:32px;border-radius:var(--radius);
+                width:var(--control-height);height:var(--control-height);border-radius:var(--radius);
                 border:1px solid var(--border);background:var(--bg);
                 color:var(--text-secondary);cursor:pointer;flex-shrink:0;
                 transition:background var(--transition-fast),color var(--transition-fast);
@@ -1241,7 +1241,7 @@ function updateDropLabel(name) {
 <style>
 .fv-ctrl-btn {
     display:flex;align-items:center;justify-content:center;
-    width:30px;height:30px;border-radius:var(--radius);
+    width:var(--control-height);height:var(--control-height);border-radius:var(--radius);
     border:1px solid var(--border);background:var(--bg);
     color:var(--text-secondary);cursor:pointer;
     transition:background var(--transition-fast),color var(--transition-fast);
