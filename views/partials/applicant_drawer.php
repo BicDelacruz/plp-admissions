@@ -23,10 +23,18 @@
        aria-labelledby="apDrawerTitle">
     <div class="ap-drawer-head">
         <span id="apDrawerTitle" class="ap-drawer-title">Applicant detail</span>
+        <div>
+        <?php if (Auth::isSSO() || Auth::isAdmin()): ?>
+        <a id="apDrawerPrint" class="ap-drawer-close" href="#" target="_blank" rel="noopener"
+           title="Print admission" aria-label="Print admission">
+            <?= icon('printer', 16) ?>
+        </a>
+        <?php endif; ?>
         <button type="button" class="ap-drawer-close"
                 onclick="closeApplicantPanel()" aria-label="Close panel">
             <?= icon('ic_fluent_dismiss_24_regular', 16) ?>
         </button>
+        </div>
     </div>
     <div class="ap-drawer-body" id="apDrawerBody">
         <div class="ap-drawer-loading">Loading…</div>
@@ -47,6 +55,8 @@
         drawer.setAttribute('aria-hidden', 'false');
         document.body.classList.add('ap-drawer-locked');
         body.innerHTML = '<div class="ap-drawer-loading">Loading…</div>';
+        // Runs on click, after jQuery has loaded. Link exists for SSO/Admin only.
+        $('#apDrawerPrint').attr('href', '<?= e(url('/print/admission?id=')) ?>' + encodeURIComponent(id));
 
         fetch('<?= e(url('/api/applicant-panel')) ?>?id=' + encodeURIComponent(id), {
             credentials: 'same-origin',
