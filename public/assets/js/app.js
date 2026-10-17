@@ -23,6 +23,8 @@ const Theme = (() => {
     }
 
     function init() {
+        // Auth pages stay light and never touch the saved preference.
+        if (window.PLP_FORCE_LIGHT) { document.documentElement.dataset.theme = 'light'; return; }
         const saved = localStorage.getItem(KEY) || 'light';
         apply(saved);
     }
@@ -191,6 +193,20 @@ const Sidebar = (() => {
         });
         wrapper.addEventListener('focusout', hideTooltip);
         wrapper.addEventListener('click', hideTooltip); // e.g. opening the account menu
+
+        // Tablet widths (769-1100px): start on the icon rail so the content has
+        // room — unless the person already chose (the cookie exists). Not saved.
+        const TABLET_QUERY = '(min-width: 769px) and (max-width: 1100px)';
+        const hasChoice = () => document.cookie.split('; ').some((c) => c.indexOf(COOKIE_NAME + '=') === 0);
+        const applyTablet = (q) => {
+            if (hasChoice()) return;
+            open = !q.matches;
+            wrapper.dataset.state       = open ? 'expanded' : 'collapsed';
+            wrapper.dataset.collapsible = open ? '' : 'icon';
+        };
+        const tabletMql = window.matchMedia(TABLET_QUERY);
+        applyTablet(tabletMql);
+        tabletMql.addEventListener('change', applyTablet);
 
         // Resized from a phone width up to desktop with the drawer open:
         // close it, the desktop rail takes over.
@@ -478,8 +494,8 @@ window.FontSize = FontSize;
 //
 // Same math as the hook: the region measured is the WHOLE
 // .auto-table-wrap (card + the pagination bar under it), and the
-// pagination bar is always reserved (--height-table-footer, 40px =
-// 32px bar + 8px gap) whether or not it is showing:
+// pagination bar is always reserved (--height-table-footer, 44px =
+// 36px bar + 8px gap) whether or not it is showing:
 //
 //   rows = floor((wrap - toolbar - header - pagination - 2px card border) / row)
 //
@@ -498,7 +514,9 @@ const AutoPageSize = (() => {
     const MAX_ROWS = 100;
     const FALLBACK_ROW_HEIGHT = 56;
     const FALLBACK_HEADER_HEIGHT = 40;
-    const FALLBACK_FOOTER_HEIGHT = 40;
+    const FALLBACK_FOOTER_HEIGHT = 44;
+    // Gap between the card and the pagination bar (the wrap's 8px gap).
+    const FOOTER_GAP = 8;
     // The card's 1px top and bottom border (lakbay's CARD_BORDER).
     const CARD_BORDER = 2;
     const STORAGE_KEY_PREFIX = 'plp_auto_page_size:';
@@ -517,7 +535,9 @@ const AutoPageSize = (() => {
         const toolbarH = toolbar ? toolbar.getBoundingClientRect().height : 0;
         const rowH = cssVar('--height-table-row', FALLBACK_ROW_HEIGHT);
         const headerH = cssVar('--height-table-header', FALLBACK_HEADER_HEIGHT);
-        const footerH = cssVar('--height-table-footer', FALLBACK_FOOTER_HEIGHT);
+        // --height-table-footer is a calc() of the shared control height, which
+        // getPropertyValue returns unresolved, so build it from its parts.
+        const footerH = cssVar('--control-height', FALLBACK_FOOTER_HEIGHT - FOOTER_GAP) + FOOTER_GAP;
 
         const usable = availableH - toolbarH - headerH - footerH - CARD_BORDER;
         const rows = Math.floor(usable / rowH);
@@ -597,22 +617,480 @@ const AutoPageSize = (() => {
 window.AutoPageSize = AutoPageSize;
 
 // ============================================================
+// FilterBar — toolbar forms have no Filter button.
+//
+// Selects and date inputs submit the form themselves (onchange). The
+// search box submits on Enter. A form with no submit button only does that
+// natively when it has a single text-like field, and several toolbars pair
+// the search box with a date input, so Enter is handled here for all of them.
+// ============================================================
+const FilterBar = (() => {
+    const TEXT_TYPES = ['text', 'search'];
+
+    function init() {
+        document.querySelectorAll('form.auto-table-toolbar').forEach((form) => {
+            form.addEventListener('keydown', (e) => {
+                if (e.key !== 'Enter' || e.isComposing) return;
+                const el = e.target;
+                if (!el || el.tagName !== 'INPUT' || !TEXT_TYPES.includes(el.type)) return;
+                e.preventDefault();
+                form.requestSubmit ? form.requestSubmit() : form.submit();
+            });
+        });
+    }
+
+    return { init };
+})();
+window.FilterBar = FilterBar;
+
+// ============================================================
+// ScrollTable — a table card that scrolls instead of paginating.
+//
+// Same card / toolbar / table look as the auto-paginated tables, but no
+// AutoPageSize and no server paging: every row is in the page, the card is
+// height-capped (.auto-table-card--scroll) and scrolls inside, and the first
+// `data-limit` matching rows show with a "Show more" bar at the end of the
+// scrolling body that reveals `data-batch` more each click.
+//
+// Markup (see modules/settings/admin_courses.php):
+//   [data-scroll-table data-limit="10" data-batch="10"]   the card
+//     [data-st-search]                       search input (lowercased text in
+//                                            each row's data-search)
+//     [data-st-filter="strand"]              select; matches the row's
+//                                            data-strand (values split by |)
+//     [data-st-clear]                        Clear button (start it display:none),
+//                                            shown while filtering
+//     tr[data-st-row]                        rows
+//     [data-st-empty]                        "nothing matches" state
+//     [data-st-more] [data-st-count] [data-st-more-btn]   the Show more bar
+//
+// Filtering is live (no Filter button). A row with .is-editing stays visible.
+// Dispatch "st:refresh" on the card to re-run after changing rows.
+// ============================================================
+const ScrollTable = (() => {
+    function setup(card) {
+        const limit   = Math.max(1, parseInt(card.dataset.limit || '10', 10));
+        const batch   = Math.max(1, parseInt(card.dataset.batch || String(limit), 10));
+        const rows    = Array.from(card.querySelectorAll('tr[data-st-row]'));
+        const search  = card.querySelector('[data-st-search]');
+        const filters = Array.from(card.querySelectorAll('[data-st-filter]'));
+        const clear   = card.querySelector('[data-st-clear]');
+        const empty   = card.querySelector('[data-st-empty]');
+        const more    = card.querySelector('[data-st-more]');
+        const count   = card.querySelector('[data-st-count]');
+        const moreBtn = card.querySelector('[data-st-more-btn]');
+        let shown = limit;
+
+        function query() { return search ? search.value.trim().toLowerCase() : ''; }
+
+        function isFiltering() {
+            return query() !== '' || filters.some((f) => f.value !== '');
+        }
+
+        function matches(row) {
+            const q = query();
+            if (q && !(row.getAttribute('data-search') || '').includes(q)) return false;
+            return filters.every((f) => {
+                if (f.value === '') return true;
+                const have = (row.getAttribute('data-' + f.dataset.stFilter) || '').split('|');
+                return have.includes(f.value);
+            });
+        }
+
+        function render() {
+            let matched = 0;
+            let visible = 0;
+            let last = null;
+            rows.forEach((row) => {
+                const editing = row.classList.contains('is-editing');
+                const ok = editing || matches(row);
+                if (ok) matched++;
+                const show = ok && (editing || visible < shown);
+                row.hidden = !show;
+                row.removeAttribute('data-st-last');
+                if (show) { visible++; last = row; }
+            });
+            if (last) last.setAttribute('data-st-last', '');
+            if (empty) empty.hidden = rows.length === 0 || matched > 0;
+            if (more) {
+                more.hidden = visible >= matched;
+                if (count) count.innerHTML = 'Showing <strong>' + visible + '</strong> of <strong>' + matched + '</strong>';
+            }
+            // .btn sets its own display, so toggle the inline style, not [hidden].
+            if (clear) clear.style.display = isFiltering() ? '' : 'none';
+        }
+
+        function reset() { shown = limit; render(); }
+
+        if (search) search.addEventListener('input', reset);
+        filters.forEach((f) => f.addEventListener('change', reset));
+        if (clear) {
+            clear.addEventListener('click', () => {
+                if (search) search.value = '';
+                filters.forEach((f) => { f.value = ''; });
+                reset();
+            });
+        }
+        if (moreBtn) moreBtn.addEventListener('click', () => { shown += batch; render(); });
+        card.addEventListener('st:refresh', render);
+
+        render();
+    }
+
+    function init() {
+        document.querySelectorAll('[data-scroll-table]').forEach(setup);
+    }
+
+    return { init };
+})();
+window.ScrollTable = ScrollTable;
+
+// ============================================================
+// SelectMenu — one dropdown list for every <select>
+//
+// The closed <select> keeps its place in the page (layout, width, name,
+// value, form submit, onchange handlers, .value set by scripts all work
+// untouched). Opening it shows the shared list panel (.app-dropdown-panel,
+// the same look as the dashboard date-range menu) instead of the browser's
+// native list. Choosing an item sets the select and fires input + change.
+//
+// Opt out per select with data-native. Multi-selects and selects with a
+// size attribute stay native.
+// ============================================================
+const SelectMenu = (() => {
+    let panel = null;       // the floating list, created on first open
+    let current = null;     // the <select> it belongs to
+    let entries = [];       // [{ el, option }] for the rendered items
+    let active = -1;        // keyboard / hover highlight (index into entries)
+    let typed = '', typedTimer = null;
+
+    function eligible(el) {
+        return !!el && el.tagName === 'SELECT' && !el.multiple
+            && !el.hasAttribute('size') && !el.hasAttribute('data-native');
+    }
+
+    function isOpen() { return !!panel && panel.classList.contains('open'); }
+
+    function ensurePanel() {
+        if (panel) return panel;
+        panel = document.createElement('div');
+        panel.className = 'app-dropdown-panel select-menu';
+        panel.setAttribute('role', 'listbox');
+        // Keep focus on the select while clicking inside the list.
+        panel.addEventListener('mousedown', (e) => e.preventDefault());
+        panel.addEventListener('click', (e) => {
+            const item = e.target.closest('.app-dropdown-item');
+            if (!item || item.disabled) return;
+            choose(entries[+item.dataset.i]);
+        });
+        panel.addEventListener('mouseover', (e) => {
+            const item = e.target.closest('.app-dropdown-item');
+            if (item && !item.disabled) setActive(+item.dataset.i, false);
+        });
+        document.body.appendChild(panel);
+        return panel;
+    }
+
+    function build(sel) {
+        panel.textContent = '';
+        entries = [];
+        const addOption = (opt) => {
+            if (opt.hidden) return;
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.tabIndex = -1;
+            btn.className = 'app-dropdown-item' + (opt.selected ? ' active' : '');
+            btn.setAttribute('role', 'option');
+            btn.setAttribute('aria-selected', opt.selected ? 'true' : 'false');
+            btn.dataset.i = String(entries.length);
+            btn.disabled = opt.disabled;
+            btn.textContent = opt.textContent.trim() || ' ';
+            panel.appendChild(btn);
+            entries.push({ el: btn, option: opt });
+        };
+        Array.from(sel.children).forEach((node) => {
+            if (node.tagName === 'OPTGROUP') {
+                const label = document.createElement('div');
+                label.className = 'app-dropdown-label';
+                label.textContent = node.label;
+                panel.appendChild(label);
+                Array.from(node.children).forEach((o) => { if (o.tagName === 'OPTION') addOption(o); });
+            } else if (node.tagName === 'OPTION') {
+                addOption(node);
+            }
+        });
+    }
+
+    function position() {
+        const r = current.getBoundingClientRect();
+        const margin = 8, gap = 4;
+        panel.style.minWidth = r.width + 'px';
+        panel.style.maxHeight = '';
+        panel.style.left = '0px';
+        panel.style.top = '0px';
+        const pw = panel.offsetWidth;
+        const ph = panel.scrollHeight;
+        const below = window.innerHeight - r.bottom - margin - gap;
+        const above = r.top - margin - gap;
+        const openUp = ph > below && above > below;
+        const room = Math.max(120, openUp ? above : below);
+        const h = Math.min(ph, 288, room);
+        panel.style.maxHeight = Math.min(288, room) + 'px';
+        let left = r.left;
+        if (left + pw > window.innerWidth - margin) left = window.innerWidth - margin - pw;
+        panel.style.left = Math.max(margin, left) + 'px';
+        panel.style.top = (openUp ? r.top - gap - h : r.bottom + gap) + 'px';
+    }
+
+    function open(sel) {
+        if (sel.disabled) return;
+        if (isOpen()) close();
+        current = sel;
+        ensurePanel();
+        build(sel);
+        panel.classList.add('open');
+        position();
+        const sIdx = entries.findIndex((en) => en.option.selected);
+        setActive(sIdx >= 0 ? sIdx : entries.findIndex((en) => !en.option.disabled), true);
+        sel.classList.add('is-open');
+    }
+
+    function close() {
+        if (!panel) return;
+        panel.classList.remove('open');
+        if (current) current.classList.remove('is-open');
+        current = null;
+        active = -1;
+    }
+
+    function setActive(i, scroll) {
+        if (active >= 0 && entries[active]) entries[active].el.classList.remove('is-hover');
+        active = i;
+        if (i >= 0 && entries[i]) {
+            entries[i].el.classList.add('is-hover');
+            if (scroll) entries[i].el.scrollIntoView({ block: 'nearest' });
+        }
+    }
+
+    function move(step) {
+        if (!entries.length) return;
+        let i = active;
+        for (let n = 0; n < entries.length; n++) {
+            i = (i + step + entries.length) % entries.length;
+            if (!entries[i].option.disabled) { setActive(i, true); return; }
+        }
+    }
+
+    function choose(entry) {
+        if (!entry || !current) return;
+        const sel = current;
+        const changed = !entry.option.selected;
+        sel.selectedIndex = entry.option.index;
+        close();
+        sel.focus();
+        if (changed) {
+            sel.dispatchEvent(new Event('input',  { bubbles: true }));
+            sel.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+    }
+
+    function typeahead(key) {
+        typed += key.toLowerCase();
+        clearTimeout(typedTimer);
+        typedTimer = setTimeout(() => { typed = ''; }, 600);
+        const start = typed.length === 1 ? active + 1 : active;
+        for (let n = 0; n < entries.length; n++) {
+            const i = (start + n + entries.length) % entries.length;
+            if (!entries[i].option.disabled
+                && entries[i].el.textContent.trim().toLowerCase().startsWith(typed)) {
+                setActive(i, true);
+                return;
+            }
+        }
+    }
+
+    function init() {
+        // Capture phase, so this runs before any page handler and before
+        // the browser opens its own list.
+        document.addEventListener('mousedown', (e) => {
+            const sel = e.target.closest && e.target.closest('select');
+            if (eligible(sel)) {
+                if (e.button !== 0) return;
+                e.preventDefault();               // no native list
+                sel.focus();
+                if (isOpen() && current === sel) close(); else open(sel);
+                return;
+            }
+            if (isOpen() && !panel.contains(e.target)) close();
+        }, true);
+
+        document.addEventListener('keydown', (e) => {
+            if (isOpen()) {
+                switch (e.key) {
+                    case 'ArrowDown': e.preventDefault(); move(1); return;
+                    case 'ArrowUp':   e.preventDefault(); move(-1); return;
+                    case 'Home':      e.preventDefault(); setActive(entries.findIndex((en) => !en.option.disabled), true); return;
+                    case 'End': {
+                        e.preventDefault();
+                        for (let i = entries.length - 1; i >= 0; i--) {
+                            if (!entries[i].option.disabled) { setActive(i, true); break; }
+                        }
+                        return;
+                    }
+                    case 'Enter':
+                    case ' ':
+                        e.preventDefault();
+                        if (active >= 0) choose(entries[active]); else close();
+                        return;
+                    case 'Escape': e.preventDefault(); e.stopPropagation(); close(); return;
+                    case 'Tab': close(); return;
+                    default:
+                        if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                            e.preventDefault();
+                            typeahead(e.key);
+                        }
+                        return;
+                }
+            }
+            const sel = e.target;
+            if (eligible(sel) && !e.ctrlKey && !e.metaKey
+                && (e.key === 'Enter' || e.key === ' ' || e.key === 'F4'
+                    || (e.altKey && (e.key === 'ArrowDown' || e.key === 'ArrowUp')))) {
+                e.preventDefault();
+                open(sel);
+            }
+        }, true);
+
+        // A floating list must not drift away from its select.
+        window.addEventListener('resize', close);
+        window.addEventListener('scroll', (e) => {
+            if (isOpen() && !(panel && panel.contains(e.target))) close();
+        }, true);
+        window.addEventListener('blur', close);
+    }
+
+    return { init, close };
+})();
+window.SelectMenu = SelectMenu;
+
+// ============================================================
+// SettingsModal — Settings in a modal
+//
+// The modal (views/partials/settings_modal.php) holds a section list and an
+// iframe. The iframe loads the role's settings page with ?embed=1&section=<key>
+// (the layout then draws only that page's content, and only that card).
+// Open it from any [data-settings-open] link, or with ?settings=1 in the URL
+// (settings URLs redirect to the home page with it). The embedded page tells
+// us when something was saved; the page behind reloads on close so the name,
+// branding and theme shown there are current.
+// ============================================================
+const SettingsModal = (() => {
+    let modal, frame, dirty = false, section = null;
+
+    function frameUrl(key) {
+        return frame.dataset.base + '?embed=1&section=' + encodeURIComponent(key);
+    }
+
+    function show(key) {
+        section = key;
+        modal.querySelectorAll('[data-settings-nav]').forEach((b) => {
+            const on = b.dataset.settingsNav === key;
+            b.classList.toggle('active', on);
+            if (on) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current');
+        });
+        frame.src = frameUrl(key);
+    }
+
+    function open(key) {
+        key = key || frame.dataset.first;
+        document.querySelectorAll('.dropdown.open').forEach((d) => d.classList.remove('open'));
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        if (section !== key || !frame.getAttribute('src')) show(key);
+    }
+
+    function isOpen() { return modal.style.display === 'flex'; }
+
+    function close() {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+        if (dirty) { dirty = false; window.location.reload(); }
+    }
+
+    function init() {
+        modal = document.getElementById('settings-modal');
+        if (!modal) return;
+        frame = document.getElementById('settings-modal-frame');
+
+        document.addEventListener('click', (e) => {
+            const link = e.target.closest('[data-settings-open]');
+            if (!link) return;
+            e.preventDefault();
+            open();
+        });
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal || e.target.closest('[data-settings-close]')) { close(); return; }
+            const nav = e.target.closest('[data-settings-nav]');
+            if (nav) show(nav.dataset.settingsNav);
+        });
+        // Capture phase: runs before the global Escape-to-close, which would
+        // hide the modal without the reload-on-save step in close().
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && isOpen()) { e.stopPropagation(); close(); }
+        }, true);
+        window.addEventListener('message', (e) => {
+            if (e.origin !== window.location.origin || e.source !== frame.contentWindow) return;
+            if (e.data && e.data.type === 'settings:saved') dirty = true;
+            if (e.data && e.data.type === 'settings:close' && isOpen()) close();
+        });
+
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('settings')) {
+            params.delete('settings');
+            const qs = params.toString();
+            history.replaceState(null, '', window.location.pathname + (qs ? '?' + qs : '') + window.location.hash);
+            open();
+        }
+    }
+
+    return { init, open, close };
+})();
+window.SettingsModal = SettingsModal;
+
+// ============================================================
 // Bootstrap
 // ============================================================
 document.addEventListener('DOMContentLoaded', () => {
     Theme.init();
     FontSize.init();
     Dropdown.init();
+    SelectMenu.init();
+    SettingsModal.init();
     Sidebar.init();
     FileDropZone.init();
     initAlerts();
     initForms();
     initConfirm();
     AutoPageSize.init();
+    FilterBar.init();
+    ScrollTable.init();
 
     // Poll for new notifications every 30 seconds
     if (document.getElementById('notif-dropdown')) {
         setInterval(pollNotifications, 30000);
+    }
+});
+
+// The settings modal's iframe changes theme / text size in its own document.
+// localStorage writes there fire 'storage' here, so the page behind follows
+// (this also keeps other open tabs in step).
+window.addEventListener('storage', (e) => {
+    if (window.PLP_FORCE_LIGHT || !e.newValue) return;
+    if (e.key === 'plp_theme') {
+        document.documentElement.dataset.theme = e.newValue;
+        document.querySelectorAll('.theme-pill').forEach((p) => { p.dataset.theme = e.newValue; });
+    } else if (e.key === 'plp_font_size') {
+        FontSize.apply(e.newValue);
     }
 });
 

@@ -25,25 +25,11 @@ function _session_expired(string $date, ?string $endTime, string $today, string 
     <div class="alert alert-error" style="margin-bottom:var(--space-4)"><?= e($msg) ?></div>
 <?php endif; ?>
 
-<!-- Header -->
-<div style="margin-bottom:var(--space-3);display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap">
-    <?php if ($canManage): ?>
-        <a href="<?= url('/staff/interviews/setup') ?>" class="btn btn-ghost btn-sm">← Back</a>
-    <?php else: ?>
-        <a href="<?= url('/staff/interviews') ?>" class="btn btn-ghost btn-sm">← Back</a>
-    <?php endif; ?>
-    <?php if ($canManage && !empty($byDate)): ?>
-        <button type="button" id="sess-select-toggle" class="btn btn-ghost btn-sm"
-                style="margin-left:auto" onclick="toggleSessSelectMode()">
-            Select
-        </button>
-    <?php endif; ?>
-</div>
-
-<div class="page-header" style="text-align:center;margin-bottom:var(--space-4)">
-    <h1 class="page-title" style="margin:0 0 var(--space-1) 0"><?= e($college) ?></h1>
-    <p class="page-subtitle" style="text-align:center">Interview Sessions</p>
-</div>
+<div data-page-actions>
+        <?php if ($canManage && !empty($byDate)): ?>
+            <?= ui_button('Select', ['variant' => 'ghost', 'attrs' => ['id' => 'sess-select-toggle', 'onclick' => 'toggleSessSelectMode()']]) ?>
+        <?php endif; ?>
+    </div>
 
 <?php
 // Build a date map for the toolbar filter dropdown. Mirrors the
@@ -64,13 +50,8 @@ usort($sessDateMap, fn($a, $b) => $a['date'] <=> $b['date']);
 $totalSessCount = array_sum(array_column($sessDateMap, 'count'));
 ?>
 <?php if (count($sessDateMap) > 1): ?>
-<div style="display:flex;align-items:center;justify-content:center;gap:var(--space-3);
-            margin-bottom:var(--space-3);flex-wrap:wrap">
-    <select id="sess-date-filter" class="form-control"
-            title="Filter by session date"
-            style="height:32px;min-height:32px;font-size:var(--text-xs);max-width:280px;
-                   border:1px solid var(--border);border-radius:var(--radius-sm);
-                   padding:0 var(--space-2);background:var(--bg-elevated);color:var(--text-primary)">
+<div class="select-toolbar">
+    <select id="sess-date-filter" class="form-control" title="Filter by session date">
         <option value="" data-count="<?= (int)$totalSessCount ?>">
             All dates · <?= (int)$totalSessCount ?> session<?= (int)$totalSessCount === 1 ? '' : 's' ?>
         </option>
@@ -81,81 +62,16 @@ $totalSessCount = array_sum(array_column($sessDateMap, 'count'));
             </option>
         <?php endforeach; ?>
     </select>
-    <span id="sess-count" style="font-size:var(--text-xs);color:var(--text-tertiary)">
+    <span id="sess-count">
         <?= (int)$totalSessCount ?> session<?= (int)$totalSessCount === 1 ? '' : 's' ?>
     </span>
 </div>
 <?php endif; ?>
 
 <style>
-/* Mirrors .exam-dir-grid / .exam-dir-card from staff_manage.php so the
-   setup page reads as part of the same family. */
-.sess-dir-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: var(--space-4);
-    margin-top: var(--space-5);
-}
-.sess-dir-card {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-    padding: var(--space-5);
-    background: var(--bg-elevated);
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius-lg);
-    text-decoration: none;
-    color: var(--text-primary);
-    transition: border-color .15s, box-shadow .15s;
-    position: relative;
-    cursor: pointer;
-    min-height: 220px;
-}
-.sess-dir-card:hover { border-color: var(--accent); box-shadow: var(--shadow-sm); }
-.sess-dir-card.is-today  { border-color: var(--accent); background: var(--accent-muted); }
-.sess-dir-card.is-closed { opacity: .7; }
+/* Card layout comes from the shared selector-card rules in app.css. */
 
-.sess-dir-title {
-    font-size: var(--text-base);
-    font-weight: var(--weight-semibold);
-    color: var(--text-primary);
-    line-height: 1.35;
-    padding-right: 70px; /* leave room for the absolute status badge */
-}
-.sess-dir-meta {
-    display: flex; flex-direction: column; gap: 4px;
-    font-size: var(--text-xs); color: var(--text-tertiary);
-}
-.sess-dir-meta-row { display: flex; align-items: center; gap: 5px; }
-.sess-dir-footer {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-top: auto; padding-top: var(--space-3);
-    border-top: 1px solid var(--border);
-}
-
-/* ── Bulk-select mode: checkboxes + selected highlight ──────── */
-.sess-select-checkbox {
-    position:absolute;top:var(--space-3);left:var(--space-3);
-    width:18px;height:18px;accent-color:var(--accent);
-    cursor:pointer;z-index:2;display:none;
-}
-.sess-dir-grid.is-selecting .sess-select-checkbox { display:inline-block; }
-.sess-dir-grid.is-selecting .sess-dir-card.is-selected {
-    border-color:var(--accent);background:var(--accent-muted);
-}
-.sess-dir-grid.is-selecting .sess-dir-card.is-undeletable {
-    opacity:.55;
-}
-/* Floating bulk-delete bar that pins to the bottom while in select mode. */
-.sess-bulk-bar {
-    position:fixed;left:50%;bottom:24px;transform:translateX(-50%);
-    background:var(--bg-elevated);border:1px solid var(--border);
-    border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);
-    padding:var(--space-3) var(--space-4);
-    display:none;align-items:center;gap:var(--space-3);z-index:50;
-    font-size:var(--text-sm);
-}
-.sess-bulk-bar.is-visible { display:flex; }
+/* Bulk-select checkboxes, highlight and bar come from app.css (.select-*). */
 </style>
 
 <?php
@@ -168,7 +84,7 @@ foreach ($byDate as $date => $dateSlots) {
 }
 ?>
 
-<div class="sess-dir-grid">
+<div class="select-grid sess-dir-grid">
 
     <?php /* ── Existing sessions (upcoming only) ────────────────── */ ?>
     <?php foreach ($flatSlots as $slot):
@@ -185,9 +101,9 @@ foreach ($byDate as $date => $dateSlots) {
             if ($slot['end_time']) $timeLabel .= ' – ' . format_time($slot['end_time']);
         }
 
-        $cardClasses = 'sess-dir-card';
+        $cardClasses = 'select-card sess-dir-card';
         if ($date === $today)             $cardClasses .= ' is-today';
-        if ($slot['status'] === 'closed') $cardClasses .= ' is-closed';
+        if ($slot['status'] === 'closed' || $isExpired) $cardClasses .= ' is-muted';
 
         $editPayload = json_encode([
             'id'             => (int)$slot['id'],
@@ -210,87 +126,79 @@ foreach ($byDate as $date => $dateSlots) {
              data-date="<?= e($date) ?>"
              onclick='handleSessCardClick(event, <?= $editPayload ?>)'>
             <?php if ($canManage): ?>
-                <input type="checkbox" class="sess-select-checkbox"
+                <input type="checkbox" class="select-card-check sess-select-checkbox"
                        value="<?= (int)$slot['id'] ?>"
                        <?= $undeletable ? 'disabled title="Has bookings — cannot remove"' : '' ?>
                        onclick="event.stopPropagation();onSessCheckboxChange(this)">
             <?php endif; ?>
 
             <!-- Status badge top-right -->
-            <div style="position:absolute;top:var(--space-4);right:var(--space-4)">
+            <div class="select-card-badge">
                 <?php if ($isExpired && $slot['status'] !== 'closed'): ?>
-                    <span class="badge badge-neutral" style="font-size:10px">Ended</span>
+                    <span class="badge badge-neutral">Ended</span>
                 <?php elseif ($isClosed): ?>
-                    <span class="badge badge-neutral" style="font-size:10px">Closed</span>
+                    <span class="badge badge-neutral">Closed</span>
                 <?php elseif ($isFull): ?>
-                    <span class="badge badge-review" style="font-size:10px">Full</span>
+                    <span class="badge badge-review">Full</span>
                 <?php elseif ($date === $today): ?>
-                    <span class="badge badge-info" style="font-size:10px">Today</span>
+                    <span class="badge badge-info">Today</span>
                 <?php else: ?>
-                    <span class="badge badge-approved" style="font-size:10px">Open</span>
+                    <span class="badge badge-approved">Open</span>
                 <?php endif; ?>
             </div>
 
+
             <!-- Title: interviewer name -->
-            <div class="sess-dir-title"><?= e($slot['interviewer_name'] ?? 'Unassigned') ?></div>
+            <div class="select-card-title"><?= e($slot['interviewer_name'] ?? 'Unassigned') ?></div>
 
             <!-- Meta: date · time · location · capacity -->
-            <div class="sess-dir-meta">
-                <div class="sess-dir-meta-row">
-                    <?= icon('calendar-blank', 12) ?>
+            <div class="select-card-meta">
+                <div class="select-card-meta-row">
                     <?= e(format_date($date, 'D, M j')) ?>
                 </div>
-                <div class="sess-dir-meta-row">
-                    <?= icon('clock', 12) ?>
+                <div class="select-card-meta-row">
                     <?= e($timeLabel) ?>
                 </div>
                 <?php if (!empty($slot['location_label'])): ?>
-                    <div class="sess-dir-meta-row">
-                        <?= icon('map-pin', 12) ?>
+                    <div class="select-card-meta-row">
                         <?= e($slot['location_label']) ?>
                     </div>
                 <?php endif; ?>
-                <div class="sess-dir-meta-row">
-                    <?= icon('users', 12) ?>
+                <div class="select-card-meta-row">
                     <?= $booked ?> / <?= $capacity ?> booked
                 </div>
             </div>
 
             <!-- Footer: notes (or empty) on left, "Edit →" on right -->
-            <div class="sess-dir-footer">
-                <span style="font-size:var(--text-xs);color:var(--text-tertiary);
-                             overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60%">
+            <div class="select-card-footer">
+                <span>
                     <?= !empty($slot['location_notes'])
                         ? e($slot['location_notes'])
                         : '<span style="opacity:.5">No notes</span>' ?>
                 </span>
-                <span style="font-size:var(--text-xs);font-weight:var(--weight-medium);
-                             color:var(--accent);display:flex;align-items:center;gap:4px">
+                <span class="select-card-action">
                     Edit
-                    <?= icon('arrow-right', 12) ?>
                 </span>
             </div>
         </div>
     <?php endforeach; ?>
 
     <?php /* ── Add Session card (always last in grid; opens the modal) ─── */ ?>
-    <div class="sess-dir-card sess-add-card"
+    <?php if ($canManage): ?>
+    <div class="select-card select-card--add sess-dir-card sess-add-card"
          onclick="document.getElementById('add-session-modal').style.display='flex'"
          role="button" tabindex="0"
-         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}"
-         style="align-items:center;justify-content:center;min-height:200px;border-style:dashed;cursor:pointer">
-        <div style="width:48px;height:48px;border-radius:50%;background:var(--accent-muted);
-                    display:flex;align-items:center;justify-content:center;color:var(--accent)">
-            <?= icon('plus:fill', 24) ?>
-        </div>
-        <div style="font-size:var(--text-sm);font-weight:var(--weight-medium);color:var(--accent);margin-top:var(--space-2)">Add Session</div>
+         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+        <div class="select-card-title">Add Session</div>
+        <div class="select-card-desc">Schedule a new interview session</div>
     </div>
+    <?php endif; ?>
 
 </div>
 
 <?php if ($canManage && !empty($byDate)): ?>
 <!-- Floating bar for bulk delete (visible while in select mode). -->
-<div id="sess-bulk-bar" class="sess-bulk-bar">
+<div id="sess-bulk-bar" class="select-bulk-bar sess-bulk-bar">
     <span id="sess-bulk-count" style="font-weight:var(--weight-medium)">0 selected</span>
     <form method="POST" action="<?= url('/staff/interviews/setup') ?>" id="sess-bulk-form"
           style="display:flex;gap:var(--space-2);align-items:center;margin:0">

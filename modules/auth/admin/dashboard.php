@@ -73,20 +73,34 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
             a.overall_status,
             a.school_year,
             COALESCE(ar.result, 'pending')                                                   AS result,
+            ar.remarks,
             ar.released_at,
+            er.score,
+            er.total_items,
             a.created_at
         FROM applicants a
         JOIN  users u              ON u.id = a.user_id
         LEFT JOIN admission_results ar ON ar.applicant_id = a.id
+        LEFT JOIN LATERAL (
+            SELECT score, total_items
+            FROM exam_results
+            WHERE applicant_id = a.id
+            ORDER BY submitted_at DESC, id DESC
+            LIMIT 1
+        ) er ON true
         WHERE a.school_year = ? $dateFilter $deptFilter
         ORDER BY a.created_at DESC
     ");
     $csvStmt->execute(array_merge([$schoolYear], $dateExtra, $deptParams));
     $rows = $csvStmt->fetchAll(PDO::FETCH_ASSOC);
+    // The file follows the dashboard: same school year, same date range (on the
+    // date the applicant applied), same college scope. The range is in the name.
+    $rangeSlug = ($range === 'custom' && $fromDate && $toDate) ? $fromDate . '_to_' . $toDate : $range;
     header('Content-Type: text/csv; charset=utf-8');
-    header('Content-Disposition: attachment; filename="plp-admissions-' . $schoolYear . '.csv"');
+    header('Content-Disposition: attachment; filename="plp-admissions-' . $schoolYear . '-' . $rangeSlug . '.csv"');
     $out = fopen('php://output', 'w');
-    fputcsv($out, ['Name','Email','Sex','Age','Barangay','Type','Course','Stage','School Year','Result','Released At','Applied At']);
+    fprintf($out, chr(0xEF) . chr(0xBB) . chr(0xBF)); // UTF-8 BOM so Excel reads names with ñ / accents
+    fputcsv($out, ['Name','Email','Sex','Age','Barangay','Type','Course','Stage','School Year','Result','Remarks','Released At','Exam Score','Total Items','Applied At']);
     foreach ($rows as $r) fputcsv($out, array_values($r));
     fclose($out);
     exit;
@@ -152,8 +166,22 @@ $courseCountsMap = array_column($courseCountsStmt->fetchAll(PDO::FETCH_ASSOC), '
 // Dean still gets dept-scoped counts (zeros for other colleges' courses)
 // from the dept-filtered query above, but the chart context stays
 // complete so they can see the full catalog at a glance.
-$courseLabels = PLP_COURSES;
-$courseData   = array_map(fn($c) => (int)($courseCountsMap[$c] ?? 0), $courseLabels);
+$courseFull   = PLP_COURSES;
+$courseData   = array_map(fn($c) => (int)($courseCountsMap[$c] ?? 0), $courseFull);
+// Axis shows only the acronym (the text in the last parentheses, e.g.
+// "BS Information Technology (BSIT)" -> "BSIT"); the full name is shown in the
+// chart tooltip on hover.
+$courseLabels = array_map(function ($c) {
+    return preg_match('/\(([^()]+)\)\s*$/', $c, $m) ? $m[1] : $c;
+}, $courseFull);
+
+// Biggest first, so the chart reads as a ranking. Ties keep their config order.
+$courseRows = [];
+foreach ($courseFull as $i => $c) { $courseRows[] = [$c, $courseLabels[$i], $courseData[$i]]; }
+usort($courseRows, fn($a, $b) => $b[2] <=> $a[2]);
+$courseFull   = array_column($courseRows, 0);
+$courseLabels = array_column($courseRows, 1);
+$courseData   = array_column($courseRows, 2);
 
 // ── SHS Strand — all strands from config, 0 if no data ────────────
 $strandCountsStmt = $pdo->prepare("
@@ -167,12 +195,20 @@ $strandCountsStmt->execute(array_merge([$schoolYear], $dateExtra, $deptParams));
 $strandCountsMap = array_column($strandCountsStmt->fetchAll(PDO::FETCH_ASSOC), 'cnt', 'label');
 
 // Use full labels from config; keys are the DB values
-$strandLabels = [];
+$strandLabels = [];   // acronyms (axis)
+$strandFull   = [];   // full names (tooltip)
 $strandData   = [];
 foreach (SHS_STRANDS as $key => $label) {
-    $strandLabels[] = $label;
+    $strandLabels[] = $key;
+    $strandFull[]   = $label;
     $strandData[]   = (int)($strandCountsMap[$key] ?? 0);
 }
+$strandRows = [];
+foreach ($strandLabels as $i => $l) { $strandRows[] = [$l, $strandFull[$i], $strandData[$i]]; }
+usort($strandRows, fn($a, $b) => $b[2] <=> $a[2]);
+$strandLabels = array_column($strandRows, 0);
+$strandFull   = array_column($strandRows, 1);
+$strandData   = array_column($strandRows, 2);
 
 // ── Sex ────────────────────────────────────────────────────────────
 $sexStmt = $pdo->prepare("
@@ -205,7 +241,7 @@ $exportUrl   = url('/admin/dashboard').'?'.http_build_query(array_filter([
 $circ    = round(2 * M_PI * 24, 2); // ≈ 150.80
 $dashOff = round($circ * (1 - $completionPct / 100), 2);
 
-$courseCount = count($courseLabels);
+$courseCount = count($courseFull);
 
 ob_start();
 ?>
@@ -221,7 +257,9 @@ ob_start();
     font-size:var(--text-xl); font-weight:var(--weight-semibold);
     color:var(--text-primary); margin:0 0 var(--space-1); letter-spacing:-0.2px;
 }
-.db-sub      { font-size:var(--text-xs); color:var(--text-tertiary); margin:0; }
+.db-sub      { font-size:var(--text-sm); color:var(--text-tertiary); margin:0; }
+.db-header:not(:has(*)), .db-header:not(:has(.db-controls)) { display:none; }
+.page-head-actions .dp-menu { left:auto; right:0; }
 .db-controls { display:flex; align-items:center; gap:var(--space-2); flex-wrap:wrap; }
 
 /* ── 3-column grid: 30% | 40% | 30%
@@ -229,14 +267,17 @@ ob_start();
    ───────────────────────────────────── */
 .db-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    /* minmax(0, 1fr), not 1fr: a bare 1fr can't shrink below its content, so
+       after the sidebar collapsed and re-expanded the charts' old pixel width
+       held the columns open and the cards ran off to the right. */
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-template-rows: auto 1fr;
     gap: var(--space-4);
     align-items: stretch;
     min-height: 0;
     flex: 1;
 }
-.db-grid > .card { display: flex; flex-direction: column; }
+.db-grid > .card { display: flex; flex-direction: column; min-width: 0; }
 
 /* Make the dashboard fill the .page so the bottom gap matches the
    left/right gap (var(--space-8) = 32px from .page padding). */
@@ -246,14 +287,14 @@ ob_start();
 /* KPI cards — 4 equal squares, single accent color */
 .db-kpi-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: var(--space-3);
     margin-top: var(--space-4);
     flex: 1;
 }
 .db-kpi-item {
     background: var(--bg-subtle);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius);
     padding: var(--space-5) var(--space-4);
     display: flex;
     flex-direction: column;
@@ -277,7 +318,20 @@ ob_start();
     text-transform: none;
     margin-top: var(--space-1);
 }
-.db-kpi-sub { display: none; }
+.db-kpi-sub {
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+    margin-top: calc(var(--space-1) * -1);
+}
+.db-kpi-bar {
+    height: 4px;
+    margin-top: auto;
+    background: var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+.db-kpi-bar > span { display: block; height: 100%; background: var(--accent-light); border-radius: var(--radius); }
+.db-empty { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 120px; color: var(--text-tertiary); font-size: var(--text-sm); }
 
 /* Pipeline donut (SVG) */
 .db-donut-wrap { position:relative; width:110px; height:110px; flex-shrink:0; }
@@ -285,17 +339,17 @@ ob_start();
 .db-donut-bg   { stroke:var(--bg-subtle); }
 .db-donut-fill { stroke:var(--accent); stroke-linecap:round; transition:stroke-dashoffset .5s ease; }
 .db-donut-lbl  { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1; gap:2px; }
-.db-donut-pct  { font-size:18px; font-weight:var(--weight-semibold); color:var(--text-primary); }
-.db-donut-sub  { font-size:10px; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:.05em; }
+.db-donut-pct  { font-size:22px; font-weight:var(--weight-semibold); color:var(--text-primary); }
+.db-donut-sub  { font-size:var(--text-xs); color:var(--text-tertiary); text-transform:uppercase; letter-spacing:.05em; }
 
 /* Card chart header */
 .db-ch     { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:var(--space-4); }
-.db-ch-sub { font-size:var(--text-xs); color:var(--text-secondary); font-weight:var(--weight-medium); }
+.db-ch-sub { font-size:var(--text-sm); color:var(--text-secondary); font-weight:var(--weight-medium); }
 
 /* Legend */
 .db-legend      { display:flex; flex-wrap:wrap; gap:var(--space-3); margin-top:var(--space-3); justify-content:center; }
-.db-legend-item { display:flex; align-items:center; gap:var(--space-2); font-size:var(--text-xs); color:var(--text-secondary); }
-.db-legend-dot  { width:8px; height:8px; border-radius:2px; flex-shrink:0; }
+.db-legend-item { display:flex; align-items:center; gap:var(--space-2); font-size:var(--text-sm); color:var(--text-secondary); }
+.db-legend-dot  { width:8px; height:8px; border-radius:var(--radius); flex-shrink:0; }
 
 
 /* Dashboard card titles */
@@ -306,7 +360,7 @@ ob_start();
 .dp-menu {
     display:none; position:absolute; left:0; top:calc(100% + var(--space-1));
     min-width:176px; background:var(--bg-elevated); border:1px solid var(--border);
-    border-radius:var(--radius-md); box-shadow:var(--shadow-md);
+    border-radius:var(--radius); box-shadow:var(--shadow-md);
     padding:var(--space-1) 0; z-index:200;
 }
 .dp-menu.open { display:block; }
@@ -321,16 +375,20 @@ ob_start();
 .dp-custom-row  { display:none; padding:var(--space-2) var(--space-3); gap:var(--space-2); align-items:center; }
 .dp-custom-row.show { display:flex; }
 .dp-date-in {
-    flex:1; padding:var(--space-1) var(--space-2); font-size:var(--text-xs);
+    flex:1; height:var(--control-height); padding:0 var(--space-2); font-size:var(--text-sm);
     font-family:var(--font-sans); border:1px solid var(--border);
-    border-radius:var(--radius-sm); background:var(--bg-subtle); color:var(--text-primary); min-width:0;
+    border-radius:var(--radius); background:var(--bg-subtle); color:var(--text-primary); min-width:0;
 }
 
 @media (max-width:960px) {
-    .db-grid { grid-template-columns:1fr; }
+    .db-grid { grid-template-columns:minmax(0, 1fr); }
 }
 @media (max-width:560px) {
-    .db-grid { grid-template-columns:1fr; }
+    .db-grid { grid-template-columns:minmax(0, 1fr); }
+}
+@media (max-width:768px) {
+    .db-kpi-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .db-kpi-item { min-width:0;padding:var(--space-4) var(--space-3); }
 }
 </style>
 
@@ -338,17 +396,12 @@ ob_start();
 
     <!-- ── Header ───────────────────────────────────────────────── -->
     <div class="db-header">
-        <div class="db-controls">
+        <div class="db-controls" data-page-actions>
 
             <?php if (count($allSYs) > 1): ?>
             <div style="display:flex;align-items:center;gap:var(--space-2);">
                 <label style="font-size:var(--text-sm);color:var(--text-secondary);white-space:nowrap;">School Year</label>
-                <select onchange="location.href=this.value" style="
-                    height:32px;padding:0 var(--space-3);
-                    border:1px solid var(--border);border-radius:var(--radius-sm);
-                    background:var(--bg-elevated);color:var(--text-primary);
-                    font-size:var(--text-sm);cursor:pointer;
-                ">
+                <select onchange="location.href=this.value" aria-label="School year">
                     <?php foreach ($allSYs as $sy): ?>
                         <?php
                         $params = $_GET;
@@ -367,17 +420,16 @@ ob_start();
             <div class="dp-wrap" id="dpWrap">
                 <button class="db-pill-btn" onclick="dpToggle(event)" type="button" style="
                     display:flex;align-items:center;gap:var(--space-2);
-                    height:32px;padding:0 var(--space-3);
-                    border:1px solid var(--border);border-radius:var(--radius-sm);
+                    height:var(--control-height);padding:0 var(--space-3);
+                    border:1px solid var(--border);border-radius:var(--radius);
                     background:var(--bg-elevated);color:var(--text-secondary);
                     font-size:var(--text-sm);cursor:pointer;white-space:nowrap;
                     transition:border-color var(--transition-fast),color var(--transition-fast);
                 ">
-                    <?= icon('calendar-blank', 14) ?>
                     <span id="dpLabel"><?= e($rangeLabel) ?></span>
                     <?= icon('caret-down', 10) ?>
                 </button>
-                <div class="dp-menu" id="dpMenu">
+                <div class="dp-menu app-dropdown-panel" id="dpMenu">
                     <button class="dp-item <?= $range==='today'      ?'active':''?>" onclick="dpSet('today')">Today</button>
                     <button class="dp-item <?= $range==='yesterday'  ?'active':''?>" onclick="dpSet('yesterday')">Yesterday</button>
                     <div class="dp-divider"></div>
@@ -394,15 +446,15 @@ ob_start();
                     <div class="dp-custom-row <?= $range==='custom'?'show':''?>" id="dpCustomRow">
                         <input type="date" class="dp-date-in" id="dpFrom" value="<?= e($fromDate ?? '') ?>">
                         <input type="date" class="dp-date-in" id="dpTo"   value="<?= e($toDate   ?? '') ?>">
-                        <button class="btn btn-primary" style="padding:var(--space-1) var(--space-3);font-size:var(--text-xs)" onclick="dpApply()">Go</button>
+                        <button class="btn btn-primary" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)" onclick="dpApply()">Go</button>
                     </div>
                 </div>
             </div>
 
             <a class="db-pill-btn" href="<?= $exportUrl ?>" style="
                 display:flex;align-items:center;gap:var(--space-2);
-                height:32px;padding:0 var(--space-3);
-                border:1px solid var(--border);border-radius:var(--radius-sm);
+                height:var(--control-height);padding:0 var(--space-3);
+                border:1px solid var(--border);border-radius:var(--radius);
                 background:var(--bg-elevated);color:var(--text-secondary);
                 font-size:var(--text-sm);cursor:pointer;white-space:nowrap;text-decoration:none;
                 transition:border-color var(--transition-fast),color var(--transition-fast);
@@ -421,7 +473,7 @@ ob_start();
         <div class="card db-c-kpi" style="padding:var(--space-5);">
             <div style="display:flex;align-items:baseline;justify-content:space-between;">
                 <span class="card-title">Key metrics</span>
-                <span style="font-size:var(--text-xs);color:var(--text-tertiary);"><?= e($rangeLabel) ?></span>
+                <span style="font-size:var(--text-sm);color:var(--text-tertiary);"><?= e($rangeLabel) ?></span>
             </div>
             <div class="db-kpi-grid">
                 <div class="db-kpi-item">
@@ -433,16 +485,19 @@ ob_start();
                     <div class="db-kpi-val db-kpi-val--success"><?= number_format($accepted) ?></div>
                     <div class="db-kpi-lbl">Accepted</div>
                     <div class="db-kpi-sub"><?= $acceptedPct ?>% of total</div>
+                    <div class="db-kpi-bar"><span style="width:<?= min(100, $acceptedPct) ?>%"></span></div>
                 </div>
                 <div class="db-kpi-item">
                     <div class="db-kpi-val db-kpi-val--error"><?= number_format($rejected) ?></div>
                     <div class="db-kpi-lbl">Declined</div>
                     <div class="db-kpi-sub"><?= $rejectedPct ?>% of total</div>
+                    <div class="db-kpi-bar"><span style="width:<?= min(100, $rejectedPct) ?>%"></span></div>
                 </div>
                 <div class="db-kpi-item">
                     <div class="db-kpi-val"><?= number_format($withdrawn) ?></div>
                     <div class="db-kpi-lbl">Withdrawn</div>
                     <div class="db-kpi-sub"><?= $withdrawnPct ?>% of total</div>
+                    <div class="db-kpi-bar"><span style="width:<?= min(100, $withdrawnPct) ?>%"></span></div>
                 </div>
             </div>
         </div>
@@ -456,9 +511,13 @@ ob_start();
             <div style="display:flex;gap:0;align-items:center;flex:1;">
                 <!-- Chart -->
                 <div style="flex:1;min-width:0;padding-right:var(--space-4);">
+                    <?php if ($total === 0): ?>
+                        <div class="db-empty">No applicants in this range.</div>
+                    <?php else: ?>
                     <div style="position:relative;width:100%;height:<?= count($pipelineOrder) * 30 + 56 ?>px;">
                         <canvas id="chartPipeline"></canvas>
                     </div>
+                    <?php endif; ?>
                 </div>
                 <!-- Divider -->
                 <div style="width:1px;background:var(--border);flex-shrink:0;align-self:stretch;"></div>
@@ -487,9 +546,13 @@ ob_start();
                 <span class="card-title">Course</span>
                 <span class="db-ch-sub"><?= $courseCount ?> courses</span>
             </div>
+            <?php if ($total === 0): ?>
+                <div class="db-empty">No applicants in this range.</div>
+            <?php else: ?>
             <div style="position:relative;width:100%;flex:1;min-height:200px;">
                 <canvas id="chartCourse"></canvas>
             </div>
+            <?php endif; ?>
         </div>
 
         <!-- Cell 4 — SHS Strand -->
@@ -498,9 +561,13 @@ ob_start();
                 <span class="card-title">SHS Strand</span>
                 <span class="db-ch-sub">by strand</span>
             </div>
+            <?php if ($total === 0): ?>
+                <div class="db-empty">No applicants in this range.</div>
+            <?php else: ?>
             <div style="position:relative;width:100%;flex:1;min-height:200px;">
                 <canvas id="chartStrand"></canvas>
             </div>
+            <?php endif; ?>
             <div class="db-legend" id="strandLegend"></div>
         </div>
 
@@ -517,8 +584,8 @@ ob_start();
 
     var DATA = {
         pipeline: { labels: <?= json_encode($pipelineLabels) ?>, data: <?= json_encode($pipelineData) ?> },
-        course:   { labels: <?= json_encode($courseLabels)   ?>, data: <?= json_encode($courseData)   ?> },
-        strand:   { labels: <?= json_encode($strandLabels)   ?>, data: <?= json_encode($strandData)   ?> }
+        course:   { labels: <?= json_encode($courseLabels)   ?>, full: <?= json_encode($courseFull) ?>, data: <?= json_encode($courseData)   ?> },
+        strand:   { labels: <?= json_encode($strandLabels)   ?>, full: <?= json_encode($strandFull) ?>, data: <?= json_encode($strandData)   ?> }
     };
 
     function v(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
@@ -529,28 +596,55 @@ ob_start();
         Object.values(charts).forEach(function(c) { if (c) c.destroy(); });
         charts = {};
 
+        var radius      = parseInt(v('--radius'), 10) || 8;   // shared radius token
         var accent      = v('--accent');
         var accentLight = v('--accent-light');
         var textPrimary = v('--text-primary');
         var textSecond  = v('--text-secondary');
         var border      = v('--border');
+        var radius      = parseFloat(v('--radius')) || 8;
         // Single accent color family for all charts — no rainbow
         var barColor    = accentLight || accent;
 
-        Chart.defaults.font  = { family: v('--font-sans') || 'DM Sans,sans-serif', size: 12 };
+        Chart.defaults.font  = { family: v('--font-sans') || 'DM Sans,sans-serif', size: 14 };
         Chart.defaults.color = textSecond;
 
+        // Print the count at the end of every bar so nobody has to hover to read it.
+        var valueLabels = { id: 'valueLabels', afterDatasetsDraw: function (chart) {
+            var ctx = chart.ctx;
+            ctx.save();
+            ctx.fillStyle    = textPrimary;
+            ctx.font         = '600 14px ' + (v('--font-sans') || 'DM Sans,sans-serif');
+            ctx.textBaseline = 'middle';
+            ctx.textAlign    = 'left';
+            chart.getDatasetMeta(0).data.forEach(function (bar, i) {
+                ctx.fillText(String(chart.data.datasets[0].data[i]), bar.x + 8, bar.y);
+            });
+            ctx.restore();
+        } };
+        function mk(id, cfg) {
+            var el = document.getElementById(id);
+            if (!el) return null;
+            cfg.plugins = [valueLabels];
+            cfg.options.layout = { padding: { right: 32 } };
+            return new Chart(el, cfg);
+        }
+
         var xGrid = { grid:{color:border}, border:{display:false}, ticks:{color:textSecond, precision:0} };
-        var yFlat  = { grid:{display:false}, border:{display:false}, ticks:{color:textPrimary, font:{size:12}} };
-    var yWide  = { grid:{display:false}, border:{display:false}, ticks:{color:textPrimary, font:{size:12}}, afterFit:function(axis){ axis.width = axis.chart.width * 0.58; } };
-        var tip   = { callbacks:{ label:function(c){ return ' '+c.raw+' applicants'; } } };
+        var yFlat  = { grid:{display:false}, border:{display:false}, ticks:{color:textPrimary, font:{size:14}} };
+        var tip   = { titleFont:{size:14}, bodyFont:{size:14}, callbacks:{ label:function(c){ return ' '+c.raw+' applicants'; } } };
+        function fullTip(key){
+            return { titleFont:{size:14}, bodyFont:{size:14}, callbacks:{
+                title:function(items){ return DATA[key].full[items[0].dataIndex]; },
+                label:function(c){ return ' '+c.raw+' applicants'; } } };
+        }
 
         // Pipeline — horizontal bar (same accent, different opacity per stage)
-        charts.pipeline = new Chart(document.getElementById('chartPipeline'), {
+        charts.pipeline = mk('chartPipeline', {
             type: 'bar',
             data: {
                 labels: DATA.pipeline.labels,
-                datasets: [{ data: DATA.pipeline.data, borderRadius:5, borderSkipped:false,
+                datasets: [{ data: DATA.pipeline.data, borderRadius:radius, borderSkipped:false,
                     backgroundColor: DATA.pipeline.data.map(function(){ return barColor; }) }]
             },
             options: { indexAxis:'y', responsive:true, maintainAspectRatio:false,
@@ -559,25 +653,23 @@ ob_start();
         });
 
         // Course — horizontal bar
-        charts.course = new Chart(document.getElementById('chartCourse'), {
+        charts.course = mk('chartCourse', {
             type: 'bar',
             data: { labels:DATA.course.labels,
-                datasets:[{ data:DATA.course.data, backgroundColor:barColor, borderRadius:4, borderSkipped:false, barThickness:10, maxBarThickness:12 }] },
+                datasets:[{ data:DATA.course.data, backgroundColor:barColor, borderRadius:radius, borderSkipped:false, barThickness:14, maxBarThickness:16 }] },
             options: { indexAxis:'y', responsive:true, maintainAspectRatio:false,
-                plugins:{ legend:{display:false}, tooltip:tip },
-                scales:{ x:xGrid, y:yWide } }
+                plugins:{ legend:{display:false}, tooltip:fullTip('course') },
+                scales:{ x:xGrid, y:yFlat } }
         });
 
         // SHS Strand — same single color
-        charts.strand = new Chart(document.getElementById('chartStrand'), {
+        charts.strand = mk('chartStrand', {
             type: 'bar',
             data: { labels:DATA.strand.labels,
-                datasets:[{ data:DATA.strand.data, backgroundColor:barColor, borderRadius:5, borderSkipped:false }] },
+                datasets:[{ data:DATA.strand.data, backgroundColor:barColor, borderRadius:radius, borderSkipped:false }] },
             options: { indexAxis:'y', responsive:true, maintainAspectRatio:false,
-                plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:function(c){
-                    return ' '+c.raw+' applicants';
-                }}}},
-                scales:{ x:xGrid, y:yWide } }
+                plugins:{ legend:{display:false}, tooltip:fullTip('strand') },
+                scales:{ x:xGrid, y:yFlat } }
         });
         var sl=document.getElementById('strandLegend');
         if(sl) sl.innerHTML='';
@@ -592,12 +684,14 @@ ob_start();
 
     // Date picker
     var BASE='<?= url('/admin/dashboard') ?>';
+    var SY='<?= $schoolYear !== $currentSY ? rawurlencode($schoolYear) : '' ?>';
+    var SYQ=SY ? '&sy='+SY : '';
     window.dpToggle=function(e){ e.stopPropagation(); document.getElementById('dpMenu').classList.toggle('open'); };
-    window.dpSet   =function(r){ window.location.href=BASE+'?range='+r; };
+    window.dpSet   =function(r){ window.location.href=BASE+'?range='+r+SYQ; };
     window.dpCustom=function() { document.getElementById('dpCustomRow').classList.add('show'); };
     window.dpApply =function() {
         var f=document.getElementById('dpFrom').value, t=document.getElementById('dpTo').value;
-        if(f&&t) window.location.href=BASE+'?range=custom&from='+encodeURIComponent(f)+'&to='+encodeURIComponent(t);
+        if(f&&t) window.location.href=BASE+'?range=custom&from='+encodeURIComponent(f)+'&to='+encodeURIComponent(t)+SYQ;
     };
     document.addEventListener('click',function(e){
         var w=document.getElementById('dpWrap');

@@ -6,7 +6,31 @@
                1 accent color, content over chrome
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap');
+/* DM Sans / DM Mono are loaded by a <link> in the layout heads (views/layouts),
+   in parallel with this file. An @import here would only start after this file
+   arrived, so the text swapped fonts on every page load. */
+
+/* Page-to-page navigation without the blank flash: the browser keeps the old
+   page on screen until the new one can paint, then cross-fades the content.
+   The sidebar / student header are named, so they are carried over in place
+   instead of being faded out and back in. (Chromium 126+; other browsers
+   navigate as before.) */
+@view-transition { navigation: auto; }
+.sidebar        { view-transition-name: app-sidebar; }
+.student-header { view-transition-name: app-header; }
+::view-transition-old(root),
+::view-transition-new(root) { animation-duration: 120ms; }
+::view-transition-old(app-sidebar),
+::view-transition-old(app-header) { display: none; }
+::view-transition-group(app-sidebar),
+::view-transition-group(app-header),
+::view-transition-new(app-sidebar),
+::view-transition-new(app-header) { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) { animation: none !important; }
+}
 
 /* ============================================================
    1. CSS VARIABLES — DESIGN TOKENS
@@ -29,9 +53,9 @@
     --border-strong:  #c8c8c2;
 
     --text-primary:   #1a1a18;
-    --text-secondary: #5a5a54;
-    --text-tertiary:  #9a9a92;
-    --text-placeholder:#b0b0a8;
+    --text-secondary: #2e2e2a;
+    --text-tertiary:  #45453f;
+    --text-placeholder:#5e5e57;
 
     /* Semantic */
     --success:        #2d6a4f;
@@ -92,13 +116,41 @@
     --leading-normal: 1.5;
     --leading-relaxed:1.65;
 
-    /* Border radius — 8px for components, 16px for modals and feature panels.
-       sm and md are 8px, lg and xl are 16px, so older rules land on the two values. */
-    --radius-sm:  8px;
-    --radius-md:  8px;
-    --radius-lg:  16px;
-    --radius-xl:  16px;
-    --radius-full:9999px;
+    /* Border radius — ONE shared token. Every component uses 8px.
+       The older sm/md/lg/xl/full names are aliases so existing rules keep working;
+       change --radius here to restyle every corner in the app. */
+    --radius:     8px;
+    --radius-sm: var(--radius);
+    --radius-md: var(--radius);
+    --radius-lg: var(--radius);
+    --radius-xl: var(--radius);
+    --radius-full: var(--radius);
+    /* Second permitted radius: 16px for modals and large feature panels only. */
+    --radius-panel: 16px;
+    /* Selector cards (college / session / slot / exam pickers) */
+    --select-card-min: 260px;
+
+    /* Shared control height. The toolbar search input is the basis (36px,
+       lakbay's h-9); buttons, dropdowns, filters, date inputs, pagination
+       buttons and the segmented control all read this one token. */
+    --control-height:      36px;
+    /* Shared pill height: status badges and every other small label pill. */
+    --badge-height:        24px;
+    /* Page heading (the <h1> of every page): staff .page-heading, student .page-title.
+       24px at the default text size (the root is 18px there), and it still scales
+       with the Text Size setting like the rest of the type. */
+    --text-heading:        calc(24rem / 18);
+
+    /* Shared dropdown (<select>) tokens — the dashboard School Year
+       dropdown is the reference. Every select in the app reads these. */
+    --select-height:       var(--control-height);
+    --select-border-width: 1px;
+    --select-radius:       var(--radius);
+    --select-font-size:    var(--text-sm);
+    --select-pad-x:        var(--space-3);
+    --select-pad-right:    calc(var(--space-3) + 20px);
+    --select-bg:           var(--bg-elevated);
+    --select-chevron:      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M6 9l6 6 6-6' stroke='%2345453f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 
     /* Shadows — minimal, functional */
     --shadow-xs:  0 1px 2px rgba(0,0,0,0.06);
@@ -119,13 +171,13 @@
        viewport can be computed from the container height alone, without
        measuring a live row — see AutoPageSize in app.js.
        Same values as lakbay-pasig's index.css: 56px row, 40px header.
-       --height-table-footer is the pagination bar (32px buttons) plus the
-       8px gap above it, the same 40px lakbay's use-auto-page-size.ts
-       reserves (PAGINATION_BAR_HEIGHT). It is reserved whether or not the
+       --height-table-footer is the pagination bar (--control-height buttons)
+       plus the 8px gap above it, 44px (lakbay's use-auto-page-size.ts
+       reserves a bar + gap, PAGINATION_BAR_HEIGHT). It is reserved whether or not the
        bar is showing, so the row count never depends on it. */
     --height-table-row:    56px;
     --height-table-header: 40px;
-    --height-table-footer: 40px;
+    --height-table-footer: calc(var(--control-height) + 8px);
 
     /* Transitions */
     --transition-fast:   150ms ease;
@@ -153,9 +205,10 @@
     --border-strong:  #444440;
 
     --text-primary:   #f0f0ec;
-    --text-secondary: #a0a09a;
-    --text-tertiary:  #686862;
-    --text-placeholder:#50504a;
+    --text-secondary: #d8d8d2;
+    --text-tertiary:  #bdbdb6;
+    --text-placeholder:#9a9a93;
+    --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M6 9l6 6 6-6' stroke='%23bdbdb6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 
     --accent-muted:   #1b4332;
 
@@ -201,7 +254,12 @@ html {
     font-size: 18px;
     -webkit-text-size-adjust: 100%;
     scroll-behavior: smooth;
+    /* Paint the themed colour on the canvas itself so there is never a
+       default (white/black) frame between page loads. */
+    background-color: var(--bg);
+    color-scheme: light;
 }
+html[data-theme="dark"] { color-scheme: dark; }
 
 body {
     font-family: var(--font-sans);
@@ -212,7 +270,6 @@ body {
     background-color: var(--bg);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    transition: background-color var(--transition-slow), color var(--transition-slow);
 }
 
 a {
@@ -326,18 +383,17 @@ button { cursor: pointer; }
 
 .sidebar-brand-link:hover { opacity: 1; }
 
-/* School names are long ("Pamantasan ng Lungsod ng Pasig"), so the name may
-   wrap to two lines; 2 x 15px still fits inside the 32px row. */
+/* One line, 18px at the default text size. Capped at 18px so the larger Text
+   Size presets don't push "PLP Admissions" past the 32px row / the rail width. */
 .sidebar-brand-name {
     min-width: 0;
-    font-size: var(--text-xs);
+    font-size: min(var(--text-base), 18px);
     font-weight: var(--weight-semibold);
-    line-height: 1.15;
+    line-height: 1.2;
     color: var(--text-primary);
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+    white-space: nowrap;
     overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .sidebar-header .sidebar-logo,
@@ -358,7 +414,7 @@ button { cursor: pointer; }
     height: 32px;
     padding: 0;
     border: 0;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius);
     background: transparent;
     color: var(--text-secondary);
     transition: color var(--transition-fast), background-color var(--transition-fast);
@@ -384,7 +440,7 @@ button { cursor: pointer; }
     height: 32px;
     padding: 0;
     border: 0;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius);
     background: transparent;
     color: var(--text-secondary);
     transition: color var(--transition-fast), background-color var(--transition-fast);
@@ -442,7 +498,7 @@ button { cursor: pointer; }
     color: var(--text-primary);
     background: var(--bg-elevated);
     border: 1px solid var(--border);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius);
     box-shadow: var(--shadow-md);
     pointer-events: none;
 }
@@ -561,7 +617,7 @@ button { cursor: pointer; }
 .sidebar-logo {
     width: 40px;
     height: 40px;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius);
     object-fit: contain;
     flex-shrink: 0;
 }
@@ -569,7 +625,7 @@ button { cursor: pointer; }
 .sidebar-logo-placeholder {
     width: 40px;
     height: 40px;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius);
     background: var(--accent);
     display: flex;
     align-items: center;
@@ -601,15 +657,6 @@ button { cursor: pointer; }
     overflow-y: auto;
 }
 
-.nav-section-label {
-    font-size: var(--text-xs);
-    font-weight: var(--weight-medium);
-    color: var(--text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    padding: var(--space-5) var(--space-5) var(--space-2);
-}
-
 .nav-item {
     display: flex;
     align-items: center;
@@ -620,10 +667,10 @@ button { cursor: pointer; }
     overflow: hidden;
     position: relative;
     font-size: var(--text-sm);
-    font-weight: var(--weight-medium);
+    font-weight: var(--weight-regular);
     line-height: 1.4;
-    color: var(--text-secondary);
-    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    border-radius: var(--radius);
     text-decoration: none;
     transition: width var(--transition-fast), height var(--transition-fast), padding var(--transition-fast),
                 color var(--transition-fast), background-color var(--transition-fast);
@@ -643,6 +690,7 @@ button { cursor: pointer; }
 
 .nav-item.active {
     color: var(--text-primary);
+    font-weight: 500;
     background: var(--accent-muted);
 }
 
@@ -673,49 +721,6 @@ button { cursor: pointer; }
 
 /* Sidebar footer — profile menu. Padding + column live with .sidebar-header above. */
 
-/* Nav item row wrapper — enables inline action button */
-.nav-item-wrap {
-    display: flex;
-    align-items: center;
-    position: relative;
-}
-
-.nav-item-wrap .nav-item {
-    flex: 1;
-}
-
-/* Inline + action button that appears on hover of the row */
-.nav-item-action {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 20px;
-    height: 20px;
-    margin-right: var(--space-3);
-    border-radius: var(--radius-sm);
-    background: transparent;
-    border: none;
-    color: var(--text-tertiary);
-    font-size: 16px;
-    line-height: 1;
-    cursor: pointer;
-    opacity: 0;
-    transition: opacity var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast);
-    flex-shrink: 0;
-}
-
-.nav-item-wrap:hover .nav-item-action,
-.nav-item-wrap:focus-within .nav-item-action,
-.nav-item-action:focus,
-.nav-item-action.visible {
-    opacity: 1;
-}
-
-.nav-item-action:hover {
-    background: var(--bg-overlay);
-    color: var(--text-primary);
-}
-
 .sidebar-user {
     display: flex;
     align-items: center;
@@ -723,7 +728,7 @@ button { cursor: pointer; }
     height: 40px;
     padding: 0 var(--space-2) 0 0;
     overflow: hidden;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius);
     cursor: pointer;
     transition: background-color var(--transition-fast);
     text-decoration: none;
@@ -744,14 +749,14 @@ button { cursor: pointer; }
 .user-avatar {
     width: 32px;
     height: 32px;
-    border-radius: var(--radius-full);
+    border-radius: var(--radius);
     background: var(--accent-muted);
     color: var(--accent);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: var(--text-sm);
-    font-weight: var(--weight-semibold);
+    font-weight: 500;
     flex-shrink: 0;
 }
 
@@ -762,7 +767,7 @@ button { cursor: pointer; }
 
 .user-name {
     font-size: var(--text-sm);
-    font-weight: var(--weight-medium);
+    font-weight: 500;
     color: var(--text-primary);
     white-space: nowrap;
     overflow: hidden;
@@ -771,7 +776,7 @@ button { cursor: pointer; }
 
 .user-role {
     font-size: var(--text-xs);
-    color: var(--text-tertiary);
+    color: var(--text-secondary);
     text-transform: capitalize;
 }
 
@@ -785,32 +790,6 @@ button { cursor: pointer; }
 }
 
 /* Top header bar */
-.topbar {
-    height: var(--header-height);
-    background: var(--bg-elevated);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    padding: 0 var(--space-8);
-    gap: var(--space-4);
-    position: sticky;
-    top: 0;
-    z-index: 40;
-}
-
-.topbar-title {
-    flex: 1;
-    font-size: var(--text-base);
-    font-weight: var(--weight-semibold);
-    color: var(--text-primary);
-    letter-spacing: -0.01em;
-}
-
-.topbar-actions {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-}
 
 /* Page content */
 .page {
@@ -819,6 +798,7 @@ button { cursor: pointer; }
     max-width: var(--content-max-width);
     width: 100%;
     margin: 0 auto;
+    min-width:0;
 }
 
 /* Full-width page — for tables and data-heavy pages */
@@ -830,8 +810,23 @@ button { cursor: pointer; }
     margin-bottom: var(--space-8);
 }
 
+.page-header-generated {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:var(--space-4);
+}
+
+.page-header-actions {
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:var(--space-2);
+    flex-wrap:wrap;
+}
+
 .page-title {
-    font-size: var(--text-2xl);
+    font-size: var(--text-heading);
     font-weight: var(--weight-semibold);
     color: var(--text-primary);
     letter-spacing: -0.02em;
@@ -886,29 +881,37 @@ button { cursor: pointer; }
 .step-dot {
     width: 24px;
     height: 24px;
-    border-radius: var(--radius-full);
+    border-radius: var(--radius);
     border: 2px solid var(--border-strong);
     background: var(--bg);
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    transition: all var(--transition-normal);
+    transition-property: background-color, border-color, color, opacity;
+    transition-duration: 200ms;
+    transition-timing-function: ease-out;
 }
 
-.step-dot svg { width: 12px; height: 12px; color: var(--text-tertiary); }
+.step-dot {
+    /* Step number, no icons: 1 to 4 reads the same in every state. */
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    line-height: 1;
+    color: var(--text-tertiary);
+}
 
 .step.done .step-dot {
     background: var(--accent);
     border-color: var(--accent);
+    color: #fff;
 }
-.step.done .step-dot svg { color: white; }
 
 .step.active .step-dot {
     border-color: var(--accent);
     background: var(--accent-muted);
+    color: var(--accent);
 }
-.step.active .step-dot svg { color: var(--accent); }
 
 .step.locked .step-dot { opacity: 0.4; }
 
@@ -942,15 +945,8 @@ a.step-dot:hover { opacity: 0.8; transform: scale(1.12); }
 .card {
     background: var(--bg-elevated);
     border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius);
     padding: var(--space-6);
-}
-
-.card-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: var(--space-5);
 }
 
 .card-title {
@@ -999,7 +995,7 @@ a.step-dot:hover { opacity: 0.8; transform: scale(1.12); }
     padding: 10px var(--space-4);
     background: var(--bg-elevated);
     border: 1.5px solid var(--border);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius);
     color: var(--text-primary);
     font-size: var(--text-sm);
     font-family: var(--font-sans);
@@ -1101,17 +1097,6 @@ textarea:-ms-input-placeholder {
     border-color: var(--success);
 }
 
-/* ── Select — custom chevron ───────────────────────────────── */
-.form-select,
-select.form-control {
-    cursor: pointer;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M6 9l6 6 6-6' stroke='%239a9a92' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right var(--space-3) center;
-    background-size: 16px 16px;
-    padding-right: calc(var(--space-3) + 24px);
-}
-
 /* ── Exam take — short answer & paragraph inputs ────────────── */
 .short-answer-input,
 .paragraph-input {
@@ -1119,7 +1104,7 @@ select.form-control {
     padding: 10px var(--space-4);
     background: var(--bg-elevated);
     border: 1.5px solid var(--border);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius);
     color: var(--text-primary);
     font-size: var(--text-sm);
     font-family: var(--font-sans);
@@ -1187,7 +1172,6 @@ select.form-control {
     top: 0;
 }
 
-.input-prefix-icon { left: 0; }
 .input-suffix-icon { right: 0; pointer-events: auto; }
 
 .input-prefix-icon svg,
@@ -1215,17 +1199,6 @@ select.form-control {
 .btn-pw-toggle svg   { width: 16px; height: 16px; pointer-events: none; }
 
 /* ── Form row — side-by-side fields ───────────────────────── */
-.form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-4);
-}
-
-.form-row-3 {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--space-4);
-}
 
 @media (max-width: 600px) {
     .form-row,
@@ -1269,24 +1242,11 @@ select.form-control {
 }
 
 /* ── Field counter (textarea char count) ───────────────────── */
-.form-group-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: var(--space-2);
-}
-
-.char-count {
-    font-size: var(--text-xs);
-    color: var(--text-tertiary);
-    margin-left: auto;
-    font-variant-numeric: tabular-nums;
-}
 
 /* File upload */
 .file-drop {
     border: 2px dashed var(--border);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius);
     padding: var(--space-8);
     text-align: center;
     cursor: pointer;
@@ -1313,12 +1273,16 @@ select.form-control {
     justify-content: center;
     gap: var(--space-2);
     padding: var(--space-2) var(--space-4);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius);
     font-size: var(--text-sm);
     font-weight: var(--weight-medium);
     line-height: 1;
+    height: var(--control-height);
+    min-height: var(--control-height);
     border: 1px solid transparent;
-    transition: all var(--transition-fast);
+    transition-property: background-color, border-color, color, box-shadow, opacity, scale;
+    transition-duration: 150ms;
+    transition-timing-function: ease-out;
     text-decoration: none;
     white-space: nowrap;
     cursor: pointer;
@@ -1397,8 +1361,14 @@ select.form-control {
 }
 
 /* Sizes */
-.btn-sm { padding: var(--space-1) var(--space-3); font-size: var(--text-xs); }
-.btn-lg { padding: var(--space-3) var(--space-6); font-size: var(--text-base); }
+/* Size classes change type and padding only; every button is --control-height tall. */
+.btn-sm { padding: 0 var(--space-3); font-size: var(--text-xs); height: var(--control-height); min-height: var(--control-height); }
+.btn-lg { padding: 0 var(--space-6); font-size: var(--text-base); height: var(--control-height); min-height: var(--control-height); }
+
+/* Outline danger (e.g. Close Admissions) */
+.btn-outline-danger { background: transparent; color: var(--error); border-color: var(--error); }
+.btn-outline-danger:hover,
+.btn-outline-danger:focus-visible { background: var(--error-bg, #fee2e2); }
 
 /* Focus ring for all buttons */
 .btn:focus-visible {
@@ -1427,33 +1397,46 @@ select.form-control {
    8. STATUS BADGES
    ============================================================ */
 
-.badge {
+/* One size for every pill: .badge and the page-level label pills share this
+   rule, so height, padding and type never differ from page to page. Sizes must
+   not be overridden inline; only margins and flex rules belong on a pill. */
+.badge,
+.stat-badge,
+.type-pill,
+.pts-badge,
+.iq-type-badge,
+.es-card-code-badge {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    padding: 2px var(--space-2);
-    border-radius: var(--radius-full);
+    box-sizing: border-box;
+    height: var(--badge-height);
+    padding: 0 var(--space-2);
+    border-radius: var(--radius);
     font-size: var(--text-xs);
     font-weight: var(--weight-medium);
+    line-height: 1;
     white-space: nowrap;
 }
 
-.badge::before {
-    content: '';
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: currentColor;
-    flex-shrink: 0;
+/* Status pills: no dot, neutral text, and the status shows in the background. */
+.badge {
+    color: var(--text-primary);
+    background: var(--bg-subtle);
 }
 
-.badge-pending   { color: var(--status-pending);   background: var(--status-pending-bg);   }
-.badge-uploaded  { color: var(--status-uploaded);  background: var(--status-uploaded-bg);  }
-.badge-review    { color: var(--status-review);    background: var(--status-review-bg);    }
-.badge-approved  { color: var(--status-approved);  background: var(--status-approved-bg);  }
-.badge-rejected  { color: var(--status-rejected);  background: var(--status-rejected-bg);  }
-.badge-accepted  { color: var(--status-approved);  background: var(--status-approved-bg);  }
-.badge-waitlisted{ color: var(--status-review);    background: var(--status-review-bg);    }
+.badge-pending,
+.badge-neutral   { color: var(--text-primary); background: var(--status-pending-bg); }
+.badge-uploaded,
+.badge-info      { color: var(--text-primary); background: var(--status-uploaded-bg); }
+.badge-review,
+.badge-waitlisted,
+.badge-warning   { color: var(--text-primary); background: var(--status-review-bg); }
+.badge-approved,
+.badge-accepted,
+.badge-success   { color: var(--text-primary); background: var(--status-approved-bg); }
+.badge-rejected,
+.badge-error     { color: var(--text-primary); background: var(--status-rejected-bg); }
 
 /* ============================================================
    9. ALERTS / FLASH MESSAGES
@@ -1463,7 +1446,7 @@ select.form-control {
     display: flex;
     gap: var(--space-3);
     padding: var(--space-3) var(--space-4);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius);
     font-size: var(--text-sm);
     line-height: var(--leading-relaxed);
     border: 1px solid transparent;
@@ -1483,7 +1466,7 @@ select.form-control {
 .table-wrap {
     overflow-x: auto;
     border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius);
 }
 
 table {
@@ -1502,9 +1485,7 @@ th {
     text-align: left;
     font-size: var(--text-xs);
     font-weight: var(--weight-semibold);
-    color: var(--text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+    color: var(--text-secondary);
     white-space: nowrap;
 }
 
@@ -1521,178 +1502,213 @@ tbody tr { transition: background-color var(--transition-fast); }
 tbody tr:hover { background: var(--bg-overlay); }
 
 /* Alias — modules that use .data-table get identical styles to .table */
-.data-table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
-.data-table thead { background: var(--bg-subtle); border-bottom: 1px solid var(--border); }
-.data-table th {
-    padding: var(--space-3) var(--space-4);
-    text-align: left;
-    font-size: var(--text-xs);
-    font-weight: var(--weight-semibold);
-    color: var(--text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    white-space: nowrap;
-}
-.data-table td {
-    padding: var(--space-3) var(--space-4);
-    color: var(--text-primary);
-    border-bottom: 1px solid var(--border);
-    vertical-align: middle;
-}
-.data-table tr:last-child td { border-bottom: none; }
-.data-table tbody tr { transition: background-color var(--transition-fast); }
-.data-table tbody tr:hover { background: var(--bg-overlay); }
 
 /* ============================================================
-   11. AUTH PAGES (login / register)
+   11. AUTH PAGES (login / register / forgot / reset / verify / privacy)
    ============================================================ */
 
+/* Split layout, light only: campus photo panel on the left (brand and a
+   short summary), plain form on the right. No card chrome around the form.
+   Every auth page uses it except register, which uses .auth-page--wide:
+   a slim top bar and a wide two column card, so a long form gets the room. */
 .auth-page {
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    background: #0c2a1a;
-}
-
-/* Top bar (matches the login page) */
-.auth-bar {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 12px clamp(16px, 8vw, 150px);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     background: #fff;
     color: #1a2420;
 }
-.auth-bar-logo { width: 52px; height: 52px; object-fit: contain; flex: none; }
-.auth-bar-title { margin: 0; font-size: 1.5rem; font-weight: var(--weight-semibold); line-height: 1.1; color: var(--accent); }
-.auth-bar-sub { margin: 2px 0 0; font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; color: #5d6b63; }
-
-/* Campus photo under a green wash, card centered on top */
-.auth-main {
-    flex: 1;
-    display: grid;
-    place-items: center;
-    padding: clamp(24px, 5vw, 64px) var(--space-4);
-    background:
-        var(--auth-photo) center / cover no-repeat,
-        #0c2a1a;
+.auth-aside {
     position: relative;
     isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: var(--space-8);
+    padding: clamp(32px, 5vw, 64px);
+    color: #fff;
+    background: var(--auth-photo) center / cover no-repeat, #0c2a1a;
+    /* Stays put while a long page (privacy) scrolls on the right. */
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    align-self: start;
+    overflow-y: auto;
 }
-
 /* One flat green wash over the photo (no gradient) */
-.auth-main::before {
+.auth-aside::before {
     content: '';
     position: absolute;
     inset: 0;
-    background: rgba(10,38,22,.72);
+    background: rgba(10, 38, 22, .8);
     z-index: -1;
 }
+.auth-brand { display: flex; align-items: center; gap: var(--space-4); }
+.auth-brand-logo { width: 48px; height: 48px; object-fit: contain; flex: none; background: #fff; padding: 4px; }
+.auth-brand-title { margin: 0; font-size: var(--text-base); font-weight: var(--weight-semibold); line-height: 1.2; }
+.auth-brand-sub { margin: 2px 0 0; font-size: var(--text-xs); letter-spacing: .06em; text-transform: uppercase; color: rgba(255,255,255,.72); }
+.auth-aside-copy { max-width: 440px; }
+.auth-aside-copy h2 {
+    margin: 0 0 var(--space-4);
+    font-size: clamp(2rem, 3.2vw, 2.75rem);
+    font-weight: var(--weight-semibold);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+}
+.auth-aside-copy p { margin: 0; color: rgba(255,255,255,.82); line-height: 1.6; text-wrap: pretty; }
+.auth-points { list-style: none; margin: var(--space-4) 0 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-3); }
+.auth-points li { display: flex; align-items: center; gap: var(--space-3); font-size: var(--text-sm); color: rgba(255,255,255,.9); }
+.auth-points li::before { content: ''; width: 6px; height: 6px; flex: none; background: #6fcf97; border-radius: 50% !important; }
+.auth-aside-foot { margin: 0; font-size: var(--text-xs); color: rgba(255,255,255,.6); }
 
+.auth-pane {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding: clamp(24px, 5vw, 64px);
+    background: #fff;
+}
+.auth-main { flex: 1; display: flex; align-items: center; justify-content: center; }
 .auth-card {
     width: 100%;
-    max-width: 440px;
-    background: var(--bg-elevated);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 34px 32px 28px;
-    box-shadow: 0 24px 60px rgba(0,0,0,.38);
+    max-width: 400px;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
     position: relative;
 }
-.auth-card-wide { max-width: 580px; }
+/* Readable long-text card (privacy policy) */
+.auth-card-read { max-width: 680px; }
+.privacy-body { font-size: var(--text-sm); line-height: 1.65; color: var(--text-primary); }
+.privacy-body h2 { margin: var(--space-6) 0 var(--space-2); font-size: var(--text-base); font-weight: var(--weight-semibold); color: var(--text-primary); }
+.privacy-body p, .privacy-body ul { margin: 0 0 var(--space-3); }
+.privacy-body ul { padding-left: 1.2em; }
+.privacy-body li { margin-bottom: var(--space-2); }
+.privacy-body a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+.privacy-meta { color: var(--text-secondary); }
+.privacy-todo { background: #fff3bf; color: #5c4400; padding: 0 var(--space-1); border-radius: var(--radius); font-weight: var(--weight-semibold); }
+.auth-legal { padding-top: var(--space-6); text-align: center; font-size: var(--text-xs); }
+.auth-legal a { color: var(--text-tertiary); text-decoration: underline; text-underline-offset: 3px; }
+.auth-legal a:hover { color: var(--text-primary); opacity: 1; }
 
-/* Card heading: the bar already carries logo and school name */
-.auth-header .auth-logo,
-.auth-header .auth-logo-img { display: none; }
-.auth-header { margin-bottom: var(--space-6); padding-right: 32px; }
-.auth-header .auth-title { color: var(--accent); font-size: 1.3rem; font-weight: var(--weight-semibold); letter-spacing: 0; }
+/* Wide variant (register): no photo panel. Slim top bar, then a wide card. */
+.auth-page--wide { display: flex; flex-direction: column; }
+.auth-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    padding: var(--space-4) clamp(16px, 4vw, 48px);
+    border-bottom: 1px solid var(--border);
+    border-radius: 0 !important;
+}
+.auth-brand--bar { color: inherit; }
+.auth-brand--bar:hover { opacity: 1; }
+.auth-brand--bar .auth-brand-title,
+.auth-brand--bar .auth-brand-sub { display: block; }
+.auth-brand--bar .auth-brand-title { color: var(--text-primary); }
+.auth-brand--bar .auth-brand-sub { color: var(--text-secondary); }
+.auth-topbar-link { margin: 0; font-size: var(--text-sm); color: var(--text-secondary); }
+.auth-page--wide .auth-main { align-items: flex-start; padding: var(--space-8) clamp(16px, 4vw, 48px); }
+.auth-page--wide .auth-legal { padding: 0 0 var(--space-6); }
+.auth-card-wide { max-width: 920px; }
+
+/* Card heading: same on every page (title, optional one line subtitle) */
+.auth-header { margin-bottom: var(--space-6); }
+.auth-title {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    font-weight: var(--weight-semibold);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    text-wrap: balance;
+}
+.auth-subtitle {
+    margin: var(--space-1) 0 0;
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    line-height: var(--leading-normal);
+    text-wrap: pretty;
+}
+
+/* Form parts shared by every auth page */
+.auth-card .form-input, .auth-card .form-select, .auth-card .form-control { min-height: 44px; }
+.auth-card .btn { min-height: 44px; }
+.auth-card .form-group { margin-bottom: var(--space-4); }
+.auth-card .alert { margin-bottom: var(--space-4); }
+.auth-card .cf-turnstile { margin-bottom: var(--space-4); }
+.auth-card .form-hint.ok  { color: var(--success); }
+.auth-card .form-hint.bad { color: var(--error); }
+/* 6 digit code boxes (verify email, reset password) */
+.auth-code { font-family: var(--font-mono); font-size: var(--text-xl); letter-spacing: .4em; text-align: center; }
+/* Remember me on the left, Forgot password on the right */
+.auth-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); margin: 0 0 var(--space-4); }
+
+/* Links: one look for every text link and link-styled button on auth pages */
+.auth-link, .auth-link-btn {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+.auth-link-btn { background: none; border: 0; padding: 0; font-family: inherit; cursor: pointer; }
+.auth-link-btn:hover { opacity: .75; }
+.auth-link-btn:disabled { opacity: .5; cursor: not-allowed; text-decoration: none; }
+.auth-inline-form { display: inline; }
+/* Back link: same label + arrow and same spot (bottom of the card) everywhere */
+.auth-back {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    color: var(--text-secondary);
+}
+.auth-back:hover { color: var(--accent); opacity: 1; }
+
+/* "Continue with Google" / "Sign up with Google" (login and register) */
+.auth-card a.auth-google {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    height: 44px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    text-decoration: none;
+}
+.auth-card a.auth-google:hover { background: var(--bg-subtle); opacity: 1; }
+
+@media (max-width: 900px) {
+    .auth-page { grid-template-columns: minmax(0, 1fr); }
+    .auth-aside { position: static; height: auto; padding: var(--space-4) var(--space-6); gap: 0; overflow: visible; }
+    .auth-aside-copy, .auth-aside-foot { display: none; }
+    .auth-pane { min-height: 0; padding: var(--space-8) var(--space-6); }
+    .auth-page--wide .auth-main { padding: var(--space-6) var(--space-4); }
+}
 
 /* Show-password button injected by jQuery */
 .auth-pw { position: relative; }
 .auth-pw .form-input { padding-right: 46px; }
 .auth-pw-eye {
     position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
-    width: 34px; height: 34px; border: 0; background: none; border-radius: 6px;
+    width: 34px; height: 34px; border: 0; background: none; border-radius: var(--radius);
     display: grid; place-items: center; cursor: pointer; color: var(--text-tertiary);
 }
 .auth-pw-eye:hover { background: var(--bg-overlay); }
 .auth-pw-eye:focus-visible { outline: 2px solid var(--accent); }
 .auth-pw-eye.on { color: var(--accent); }
-
-/* Tiny blurred theme toggle inside the auth card */
-.auth-theme-toggle {
-    position: absolute;
-    top: var(--space-8);
-    right: var(--space-8);
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    border: none;
-    background: transparent;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: var(--text-tertiary);
-    transition: color 0.2s;
-    z-index: 10;
-    padding: 0;
-}
-.auth-theme-toggle:hover {
-    color: var(--text-secondary);
-}
-.auth-theme-toggle svg { width: 14px; height: 14px; }
-
-.auth-header {
-    display: flex;
-    align-items: center;
-    gap: var(--space-4);
-    margin-bottom: var(--space-8);
-    text-align: left;
-}
-
-.auth-logo {
-    width: 52px;
-    height: 52px;
-    border-radius: var(--radius-lg);
-    background: var(--accent);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.auth-logo svg { width: 26px; height: 26px; color: white; }
-
-.auth-logo-img {
-    height: 52px;
-    width: auto;
-    object-fit: contain;
-    flex-shrink: 0;
-    border-radius: var(--radius-sm);
-}
-
-.auth-header-text {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.auth-title {
-    font-size: var(--text-xl);
-    font-weight: var(--weight-semibold);
-    color: var(--text-primary);
-    letter-spacing: -0.02em;
-    line-height: 1.2;
-    margin: 0;
-}
-
-.auth-subtitle {
-    font-size: var(--text-sm);
-    color: var(--text-secondary);
-    margin: 0;
-    line-height: 1.3;
-}
 
 .auth-divider {
     display: flex;
@@ -1717,6 +1733,7 @@ tbody tr:hover { background: var(--bg-overlay); }
     font-size: var(--text-sm);
     color: var(--text-secondary);
 }
+.auth-footer + .auth-footer { margin-top: var(--space-2); }
 
 /* ============================================================
    12. DOCUMENT CHECKLIST
@@ -1728,51 +1745,10 @@ tbody tr:hover { background: var(--bg-overlay); }
     gap: var(--space-3);
 }
 
-.doc-item {
-    display: flex;
-    align-items: center;
-    gap: var(--space-4);
-    padding: var(--space-4);
-    background: var(--bg-elevated);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    transition: border-color var(--transition-fast);
-}
-
-.doc-item.approved { border-color: rgba(45,106,79,0.3); }
-.doc-item.rejected { border-color: rgba(185,28,28,0.3); }
-
-.doc-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: var(--radius-sm);
-    background: var(--bg-subtle);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.doc-icon svg { width: 18px; height: 18px; color: var(--text-secondary); }
-
-.doc-info { flex: 1; min-width: 0; }
-
 .doc-name {
     font-size: var(--text-sm);
     font-weight: var(--weight-medium);
     color: var(--text-primary);
-}
-
-.doc-remark {
-    font-size: var(--text-xs);
-    color: var(--text-secondary);
-    margin-top: 2px;
-}
-
-.doc-rejected-remark {
-    font-size: var(--text-xs);
-    color: var(--error);
-    margin-top: 2px;
 }
 
 /* ============================================================
@@ -1780,9 +1756,9 @@ tbody tr:hover { background: var(--bg-overlay); }
    ============================================================ */
 
 .theme-toggle {
-    width: 36px;
-    height: 36px;
-    border-radius: var(--radius-md);
+    width: var(--control-height);
+    height: var(--control-height);
+    border-radius: var(--radius);
     background: transparent;
     border: 1px solid var(--border);
     display: flex;
@@ -1825,15 +1801,43 @@ tbody tr:hover { background: var(--bg-overlay); }
     min-width: 180px;
     background: var(--bg-elevated);
     border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius);
     box-shadow: var(--shadow-lg);
     padding: var(--space-2) 0;
     z-index: 100;
     opacity: 0;
     visibility: hidden;
     transform: translateY(-4px);
-    transition: all var(--transition-fast);
+    transition-property: opacity, visibility, transform;
+    transition-duration: 150ms;
+    transition-timing-function: ease-out;
 }
+
+/* All interface elements use the single shared corner token. */
+:where(*) { border-radius:var(--radius) !important; }
+
+/* Table rows and cells stay square; only the table / .table-wrap keeps its corners. */
+tr, th, td, thead, tbody, tfoot { border-radius: 0 !important; }
+
+/* Inside a table card everything is square: the search / filter row (so its
+   bottom edge is a straight line against the header), the scroll body, the
+   empty state, and the links / clip wrappers inside header and body cells.
+   The outline (.auto-table-card, .table-card, .table-wrap, table) keeps its
+   corners; inputs, selects and buttons in the toolbar keep theirs too. */
+.auto-table-toolbar, .results-toolbar, .filter-bar,
+.auto-table-body, .auto-table-empty,
+.auto-table th a, .auto-table-clip,
+.data-table th *, .results-table th *,
+.table-wrap thead *, .table-wrap tbody td > .auto-table-clip { border-radius: 0 !important; }
+
+/* Sidebar outline is straight: the rail and its panels have no rounded corners.
+   (Nav rows, avatar and the account row inside keep their own radius.) */
+.sidebar-wrapper, .sidebar-gap, .sidebar, .sidebar-inner,
+.sidebar-header, .sidebar-footer, .sidebar-nav, .sidebar-group { border-radius: 0 !important; }
+
+/* Horizontal lines stay square. */
+hr, .divider, .dropdown-separator, .dp-divider, .step-connector, .auth-topbar,
+.auth-divider::before, .auth-divider::after { border-radius: 0 !important; }
 
 .dropdown.open .sidebar-footer .dropdown-menu { bottom: calc(100% + var(--space-2)); top: auto; }
 
@@ -1864,6 +1868,52 @@ tbody tr:hover { background: var(--bg-overlay); }
 
 .dropdown-item svg { width: 15px; height: 15px; flex-shrink: 0; }
 
+.segmented-control {
+    display:inline-flex;
+    align-items:stretch;
+    box-sizing:border-box;
+    height:var(--control-height);
+    gap:2px;
+    padding:3px;
+    border:1px solid var(--border);
+    background:var(--bg-subtle);
+}
+
+.segmented-control > a,
+.segmented-control > button {
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:var(--space-1);
+    padding:0 var(--space-3);
+    border:0;
+    background:transparent;
+    color:var(--text-secondary);
+    font:inherit;
+    font-size:var(--text-sm);
+    font-weight:var(--weight-medium);
+    line-height:1.2;
+    text-decoration:none;
+    white-space:nowrap;
+    cursor:pointer;
+}
+
+.segmented-control > .is-active {
+    background:var(--bg-elevated);
+    color:var(--text-primary);
+    box-shadow:var(--shadow-xs);
+}
+
+.segmented-control > a:hover,
+.segmented-control > button:hover { color:var(--text-primary); opacity:1; }
+
+@media (max-width:760px) {
+    .results-toolbar { align-items:stretch;flex-wrap:wrap; }
+    .results-toolbar .segmented-control { flex:1 0 100%; }
+    .results-toolbar-search { flex:1 1 100%; }
+    .results-toolbar-search input { width:100% !important; }
+}
+
 .dropdown-separator {
     height: 1px;
     background: var(--border);
@@ -1877,108 +1927,9 @@ tbody tr:hover { background: var(--bg-overlay); }
    15. METRICS ROW (staff / admin dashboards)
    ============================================================ */
 
-.metrics-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: var(--space-4);
-    margin-bottom: var(--space-8);
-}
-
-.metric-card {
-    background: var(--bg-elevated);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: var(--space-5);
-}
-
-.metric-label {
-    font-size: var(--text-xs);
-    font-weight: var(--weight-medium);
-    color: var(--text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    margin-bottom: var(--space-2);
-}
-
-.metric-value {
-    font-size: var(--text-3xl);
-    font-weight: var(--weight-semibold);
-    color: var(--text-primary);
-    letter-spacing: -0.03em;
-    line-height: 1;
-}
-
-.metric-sub {
-    font-size: var(--text-xs);
-    color: var(--text-tertiary);
-    margin-top: var(--space-1);
-}
-
 /* ============================================================
    16. UTILITY CLASSES
    ============================================================ */
-
-/* Metric card semantic variants */
-.metric-card--success .metric-value { color: var(--success); }
-.metric-card--warning .metric-value { color: var(--warning); }
-.metric-card--error   .metric-value { color: var(--error); }
-.metric-card--info    .metric-value { color: var(--info); }
-
-/* Quick actions grid */
-.quick-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-4);
-    margin-bottom: var(--space-6);
-}
-
-.quick-action-card {
-    background: var(--bg-elevated);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: var(--space-6);
-    border-left-width: 3px;
-}
-
-.quick-action-card--users    { border-left-color: var(--info); }
-.quick-action-card--year     { border-left-color: var(--warning); }
-.quick-action-card--export   { border-left-color: var(--success); }
-.quick-action-card--settings { border-left-color: var(--border-strong); }
-
-/* Pipeline row */
-.pipeline-row {
-    display: flex;
-    gap: 0;
-    margin-bottom: var(--space-8);
-    background: var(--bg-elevated);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-}
-
-.pipeline-stage {
-    flex: 1;
-    padding: var(--space-4) var(--space-4);
-    text-align: center;
-    min-width: 0;
-}
-
-.pipeline-stage-count {
-    font-size: var(--text-xl);
-    font-weight: var(--weight-semibold);
-    color: var(--text-primary);
-    letter-spacing: -0.02em;
-    line-height: 1;
-}
-
-.pipeline-stage-label {
-    font-size: var(--text-xs);
-    color: var(--text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    margin-top: var(--space-1);
-    white-space: nowrap;
-}
 
 /* Admin form stack */
 .admin-form-stack {
@@ -1990,34 +1941,13 @@ tbody tr:hover { background: var(--bg-overlay); }
 }
 
 /* Danger card */
-.card-danger {
-    border-color: var(--error);
-    border-width: 1px;
-    background: var(--error-bg);
-}
 
 .flex          { display: flex; }
-.flex-col      { flex-direction: column; }
-.items-center  { align-items: center; }
-.justify-between{ justify-content: space-between; }
-.gap-2         { gap: var(--space-2); }
-.gap-3         { gap: var(--space-3); }
-.gap-4         { gap: var(--space-4); }
-.gap-6         { gap: var(--space-6); }
-
-.mt-4  { margin-top: var(--space-4); }
-.mt-6  { margin-top: var(--space-6); }
-.mt-8  { margin-top: var(--space-8); }
-.mb-4  { margin-bottom: var(--space-4); }
-.mb-6  { margin-bottom: var(--space-6); }
-.mb-8  { margin-bottom: var(--space-8); }
 
 .text-sm       { font-size: var(--text-sm); }
 .text-xs       { font-size: var(--text-xs); }
 .text-secondary{ color: var(--text-secondary); }
 .text-tertiary { color: var(--text-tertiary); }
-.font-medium   { font-weight: var(--weight-medium); }
-.font-semibold { font-weight: var(--weight-semibold); }
 
 .truncate {
     overflow: hidden;
@@ -2106,10 +2036,10 @@ textarea:focus-visible {
     --space-3:       12px;
     --space-5:       20px;
     --weight-medium: 500;
-    --radius-sm:     6px;
-    --radius-md:     10px;
-    --radius-lg:     14px;
-    --radius-xl:     20px;
+    --radius-sm: var(--radius);
+    --radius-md: var(--radius);
+    --radius-lg: var(--radius);
+    --radius-xl: var(--radius);
     --text-lg:       1.125rem;
     --text-2xl:      1.5rem;
     --text-3xl:      1.875rem;
@@ -2129,13 +2059,6 @@ textarea:focus-visible {
 }
 
 /* Center page title */
-.student-header-title {
-    font-size: var(--text-sm);
-    font-weight: var(--weight-semibold);
-    color: var(--text-primary);
-    white-space: nowrap;
-    text-align: center;
-}
 
 /* Right slot — avatar button */
 .student-header-profile {
@@ -2150,7 +2073,7 @@ textarea:focus-visible {
     background: none;
     border: none;
     padding: var(--space-1);
-    border-radius: var(--radius-full);
+    border-radius: var(--radius);
     cursor: pointer;
     transition: background-color var(--transition-fast);
 }
@@ -2219,11 +2142,7 @@ textarea:focus-visible {
 }
 
 @media (max-width: 480px) {
-    .auth-card {
-        padding: var(--space-6) var(--space-5);
-        border-radius: var(--radius-lg);
-    }
-    .auth-bar-title { font-size: 1.2rem; }
+    .auth-pane { padding: var(--space-6) var(--space-4); }
 
     .metrics-row {
         grid-template-columns: 1fr 1fr;
@@ -2249,7 +2168,7 @@ textarea:focus-visible {
 .modal {
     background: var(--bg-elevated);
     border: 1px solid var(--border);
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-panel);
     box-shadow: var(--shadow-lg);
     width: 100%;
     max-width: 460px;
@@ -2289,7 +2208,7 @@ textarea:focus-visible {
 
 .file-drop-zone {
     border: 2px dashed var(--border);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius);
     padding: var(--space-8) var(--space-4);
     text-align: center;
     cursor: pointer;
@@ -2321,9 +2240,9 @@ textarea:focus-visible {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: var(--radius-md);
+    width: var(--control-height);
+    height: var(--control-height);
+    border-radius: var(--radius);
     border: none;
     background: transparent;
     color: var(--text-tertiary);
@@ -2373,13 +2292,6 @@ textarea:focus-visible {
     --color-pending-text: #185FA5;
 }
 
-/* ── SHARED: page subtitle ──────────────────────────────── */
-.page-subtitle {
-    font-size: var(--text-xs);
-    color: var(--text-secondary);
-    margin: 0;
-}
-
 /* (Exam header read/edit-state CSS now lives inline in modules/exam/staff_manage.php
     so it isn't blocked by an aggressive browser cache on app.css.) */
 
@@ -2398,7 +2310,7 @@ textarea:focus-visible {
 .stat-card {
     background: var(--bg-elevated);
     border: 0.5px solid var(--border);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius);
     padding: var(--space-4) var(--space-4);
 }
 
@@ -2415,10 +2327,6 @@ textarea:focus-visible {
 }
 
 .stat-badge {
-    display: inline-block;
-    font-size: var(--text-xs);
-    padding: var(--space-1) var(--space-1);
-    border-radius: 99px;
     margin-top: var(--space-1);
 }
 
@@ -2449,7 +2357,7 @@ textarea:focus-visible {
 .chart-card {
     background: var(--bg-elevated);
     border: 0.5px solid var(--border);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius);
     padding: var(--space-4) var(--space-4);
 }
 
@@ -2486,13 +2394,13 @@ textarea:focus-visible {
     min-width: 0;         /* prevents overflow in narrow containers */
     height: 8px;
     background: var(--bg-subtle);
-    border-radius: 99px;
+    border-radius: var(--radius);
     overflow: hidden;
 }
 
 .bar-fill {
     height: 100%;
-    border-radius: 99px;
+    border-radius: var(--radius);
     transition: width 0.35s ease;
 }
 
@@ -2527,7 +2435,7 @@ textarea:focus-visible {
 .step-card {
     background: var(--bg-elevated);
     border: 0.5px solid var(--border);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius);
     padding: var(--space-3);
     text-align: center;
 }
@@ -2547,167 +2455,23 @@ textarea:focus-visible {
 .step-bar {
     height: 4px;
     background: var(--bg-subtle);
-    border-radius: 99px;
+    border-radius: var(--radius);
     margin-top: var(--space-2);
     overflow: hidden;
 }
 
 .step-bar-fill {
     height: 100%;
-    border-radius: 99px;
+    border-radius: var(--radius);
 }
 
 /* ── RESULTS: filter bar ────────────────────────────────── */
-.filter-bar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.375rem;
-    margin-bottom: var(--space-3);
-}
-
-.filter-group {
-    display: flex;
-    align-items: center;
-    gap: var(--space-1);
-    flex-wrap: wrap;
-}
-
-.filter-sep {
-    width: 1px;
-    height: 20px;
-    background: var(--border);
-    flex-shrink: 0;
-    margin: 0 0.125rem;
-}
-
-/* Base pill */
-.filter-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-1);
-    padding: var(--space-1) var(--space-2);
-    border-radius: 99px;
-    border: 0.5px solid var(--border);
-    background: var(--bg-elevated);
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    text-decoration: none;
-    white-space: nowrap;
-    transition: background 0.15s, border-color 0.15s;
-}
-
-.filter-pill:hover { background: var(--bg-subtle); color: var(--text-primary); }
-
-.pill-count {
-    font-size: 0.625rem;
-    font-weight: var(--weight-medium);
-    padding: 0.0625rem 0.3125rem;
-    border-radius: 99px;
-    background: var(--bg-subtle);
-    color: var(--text-secondary);
-}
-
-/* Score-tier active states */
-.filter-pill.pill-tier-high.active {
-    background: var(--color-high-bg);
-    border-color: var(--color-high);
-    color: var(--color-high-text);
-    font-weight: var(--weight-medium);
-}
-.filter-pill.pill-tier-high.active .pill-count {
-    background: var(--color-high);
-    color: #fff;
-}
-
-.filter-pill.pill-tier-avg.active {
-    background: var(--color-avg-bg);
-    border-color: var(--color-avg);
-    color: var(--color-avg-text);
-    font-weight: var(--weight-medium);
-}
-.filter-pill.pill-tier-avg.active .pill-count {
-    background: var(--color-avg);
-    color: #fff;
-}
-
-.filter-pill.pill-tier-low.active {
-    background: var(--color-low-bg);
-    border-color: var(--color-low);
-    color: var(--color-low-text);
-    font-weight: var(--weight-medium);
-}
-.filter-pill.pill-tier-low.active .pill-count {
-    background: var(--color-low);
-    color: #fff;
-}
 
 /* Status active states */
-.filter-pill.pill-status-pending.active,
-.filter-pill.active {
-    background: #E6F1FB;
-    border-color: #185FA5;
-    color: #185FA5;
-    font-weight: var(--weight-medium);
-}
-
-.filter-pill.pill-status-accepted.active {
-    background: var(--color-accepted-bg);
-    border-color: var(--color-high);
-    color: var(--color-accepted-text);
-    font-weight: var(--weight-medium);
-}
-
-.filter-pill.pill-status-waitlisted.active {
-    background: var(--color-waitlisted-bg);
-    border-color: var(--color-avg);
-    color: var(--color-waitlisted-text);
-    font-weight: var(--weight-medium);
-}
-
-.filter-pill.pill-status-rejected.active {
-    background: var(--color-rejected-bg);
-    border-color: var(--color-low);
-    color: var(--color-rejected-text);
-    font-weight: var(--weight-medium);
-}
 
 /* Search input in filter bar */
-.filter-search {
-    padding: var(--space-1) var(--space-2);
-    border-radius: var(--radius-sm);
-    border: 0.5px solid var(--border);
-    background: var(--bg-elevated);
-    color: var(--text-primary);
-    font-size: 0.75rem;
-    width: 180px;
-}
-
-.filter-search:focus {
-    outline: 1px solid var(--accent);
-    outline-offset: 0;
-    border-color: var(--accent);
-}
-
-.sort-btn {
-    font-size: 0.75rem;
-    padding: var(--space-1) var(--space-2);
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-1);
-}
-
-.sort-btn svg { width: 14px; height: 14px; }
 
 /* ── RESULTS: score legend ──────────────────────────────── */
-.score-legend {
-    display: flex;
-    gap: var(--space-4);
-    align-items: center;
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    margin-bottom: var(--space-3);
-}
 
 .legend-item { display: flex; align-items: center; gap: var(--space-1); }
 
@@ -2717,10 +2481,6 @@ textarea:focus-visible {
     border-radius: 50%;
     flex-shrink: 0;
 }
-
-.dot-high { background: var(--color-high); }
-.dot-avg  { background: var(--color-avg);  }
-.dot-low  { background: var(--color-low);  }
 
 /* ── RESULTS: auto waitlist button ─────────────────────── */
 .btn-outline-warning {
@@ -2740,51 +2500,18 @@ textarea:focus-visible {
     padding: var(--space-2) var(--space-4);
     background: var(--info-bg);
     border: 0.5px solid var(--info);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius);
     margin-bottom: var(--space-2);
     font-size: var(--text-xs);
     color: var(--info);
     flex-wrap: wrap;
 }
 
-.bulk-btn-accept {
-    border: 0.5px solid var(--color-high);
-    background: var(--color-high-bg);
-    color: var(--color-high-text);
-    padding: var(--space-1) var(--space-2);
-    border-radius: var(--radius-sm);
-    font-size: 0.75rem;
-    cursor: pointer;
-    font-weight: var(--weight-medium);
-}
-
-.bulk-btn-waitlist {
-    border: 0.5px solid var(--color-avg);
-    background: var(--color-avg-bg);
-    color: var(--color-avg-text);
-    padding: var(--space-1) var(--space-2);
-    border-radius: var(--radius-sm);
-    font-size: 0.75rem;
-    cursor: pointer;
-    font-weight: var(--weight-medium);
-}
-
-.bulk-btn-reject {
-    border: 0.5px solid var(--color-low);
-    background: var(--color-low-bg);
-    color: var(--color-low-text);
-    padding: var(--space-1) var(--space-2);
-    border-radius: var(--radius-sm);
-    font-size: 0.75rem;
-    cursor: pointer;
-    font-weight: var(--weight-medium);
-}
-
 /* ── RESULTS: table ─────────────────────────────────────── */
 .table-card {
     background: var(--bg-elevated);
     border: 0.5px solid var(--border);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius);
     overflow: hidden;
 }
 
@@ -2815,202 +2542,96 @@ textarea:focus-visible {
 .results-table tbody tr:hover td { background: var(--bg-subtle); }
 
 /* Column widths */
-.col-cb     { width: 32px; }
-.col-app    { width: 100px; }
-.col-name   { width: auto; }
-.col-type   { width: 90px; }
-.col-score  { width: 70px; }
-.col-rank   { width: 48px; }
-.col-status { width: 90px; }
-.col-action { width: 90px; }
 
-.text-muted { color: var(--text-secondary) !important; }
 .mono       { font-family: var(--font-mono); font-size: var(--text-xs); }
 
 /* Score badges */
-.score-badge {
-    display: inline-block;
-    padding: var(--space-1) var(--space-2);
-    border-radius: 99px;
-    font-size: var(--text-xs);
-    font-weight: var(--weight-medium);
-}
 
 .badge-high { background: var(--color-high-bg); color: var(--color-high-text); }
 .badge-avg  { background: var(--color-avg-bg);  color: var(--color-avg-text);  }
 .badge-low  { background: var(--color-low-bg);  color: var(--color-low-text);  }
 
 /* Result pills */
-.result-pill {
-    display: inline-block;
-    padding: var(--space-1) var(--space-2);
-    border-radius: 99px;
-    font-size: var(--text-xs);
-    font-weight: var(--weight-medium);
-}
-
-.pill-accepted   { background: var(--color-accepted-bg);   color: var(--color-accepted-text);   }
-.pill-waitlisted { background: var(--color-waitlisted-bg); color: var(--color-waitlisted-text); }
-.pill-rejected   { background: var(--color-rejected-bg);   color: var(--color-rejected-text);   }
-.pill-pending    { background: var(--color-pending-bg);    color: var(--color-pending-text);    }
-
-/* Per-row status dropdown */
-.status-select {
-    font-size: var(--text-xs);
-    padding: var(--space-1) var(--space-1);
-    border-radius: var(--radius-sm);
-    border: 0.5px solid var(--border);
-    background: var(--bg-elevated);
-    color: var(--text-primary);
-    width: 100%;
-    cursor: pointer;
-}
-
-.status-select:focus {
-    outline: 1px solid var(--accent);
-    outline-offset: 0;
-    border-color: var(--accent);
-}
-
-/* Empty state */
-.empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-2);
-    padding: var(--space-10) var(--space-4);
-    color: var(--text-secondary);
-    font-size: 0.875rem;
-}
-
-.empty-state svg { width: 32px; height: 32px; opacity: 0.4; }
 
 /* ============================================================
    MISSING BADGE ALIASES
    Map generic semantic names to the existing status tokens
    ============================================================ */
 
-/* These aliases allow modules to use badge-info, badge-warning etc.
-   without creating new token definitions */
-.badge-info      { color: var(--status-uploaded);  background: var(--status-uploaded-bg);  }
-.badge-warning   { color: var(--status-review);    background: var(--status-review-bg);    }
-.badge-success   { color: var(--status-approved);  background: var(--status-approved-bg);  }
-.badge-error     { color: var(--status-rejected);  background: var(--status-rejected-bg);  }
-.badge-neutral   { color: var(--status-pending);   background: var(--status-pending-bg);   }
+/* badge-info / -warning / -success / -error / -neutral are defined together
+   with the status pills in section 8, so modules can use either name. */
 
 /* ============================================================
    TAB STRIP — reusable filter tabs
    Used in: staff_review, results/staff_manage, staff_queue
    ============================================================ */
 
-.tab-strip {
-    display: flex;
-    align-items: center;
-    gap: var(--space-1);
-    flex-wrap: wrap;
-}
-
-.tab-strip-item {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-1);
-    padding: var(--space-1) var(--space-3);
-    border-radius: var(--radius-full);
-    border: 1px solid transparent;
-    background: transparent;
-    font-size: var(--text-xs);
-    font-weight: var(--weight-regular);
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
-    text-decoration: none;
-    white-space: nowrap;
-}
-
-.tab-strip-item:hover,
-.tab-strip-item:focus-visible {
-    background: var(--bg-overlay);
-    color: var(--text-primary);
-    opacity: 1;
-}
-
-.tab-strip-item:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: -2px;
-}
-
-.tab-strip-item.active {
-    background: var(--bg-subtle);
-    border-color: var(--border);
-    color: var(--text-primary);
-    font-weight: var(--weight-semibold);
-}
-
-.tab-strip-count {
-    font-size: var(--text-xs);
-    padding: 1px var(--space-1);
-    border-radius: var(--radius-full);
-    background: var(--bg-overlay);
-    color: var(--text-tertiary);
-    min-width: 18px;
-    text-align: center;
-}
-
-.tab-strip-item.active .tab-strip-count {
-    background: var(--border);
-    color: var(--text-secondary);
-}
-
 /* ============================================================
-   SEGMENTED CONTROL — interview/exam tab strip
-   Replaces inline-styled tab bars with a consistent component
+   SEGMENTED CONTROL — page tabs and mode toggles
+   Sits as the first item in a table toolbar (left of the search box).
+   Items can be <a>, <button> — one shared look.
    ============================================================ */
 
 .seg-control {
     display: inline-flex;
-    gap: 0;
+    align-items: stretch;
+    gap: 2px;
+    padding: 3px;
+    box-sizing: border-box;
+    height: var(--control-height);
+    flex-shrink: 0;
+    background: var(--bg-subtle);
     border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    overflow: hidden;
-    background: var(--bg-elevated);
+    border-radius: var(--radius);
 }
 
 .seg-control-item {
-    padding: var(--space-2) var(--space-4);
-    font-size: var(--text-sm);
-    text-decoration: none;
-    color: var(--text-secondary);
-    border-right: 1px solid var(--border);
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: var(--space-2);
-    white-space: nowrap;
-    transition: background var(--transition-fast), color var(--transition-fast);
-    cursor: pointer;
+    padding: 0 var(--space-4);
+    border: 0;
+    border-radius: var(--radius);
     background: transparent;
-    border-top: none;
-    border-bottom: none;
-    border-left: none;
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-regular);
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background var(--transition-fast), color var(--transition-fast);
 }
 
-.seg-control-item:last-child { border-right: none; }
-
-.seg-control-item:hover,
-.seg-control-item:focus-visible {
-    color: var(--text-primary);
-    background: var(--bg-overlay);
-    opacity: 1;
-}
+.seg-control-item:hover { color: var(--text-primary); }
 
 .seg-control-item:focus-visible {
     outline: 2px solid var(--accent);
-    outline-offset: -2px;
+    outline-offset: 1px;
 }
 
 .seg-control-item.active {
-    background: var(--bg-subtle);
+    background: var(--bg-elevated);
     color: var(--text-primary);
-    font-weight: var(--weight-medium);
+    font-weight: var(--weight-semibold);
+    box-shadow: var(--shadow-xs);
+}
+
+.seg-control-count {
+    min-width: 20px;
+    padding: 1px var(--space-1);
+    border-radius: var(--radius);
+    background: var(--bg-overlay);
+    color: var(--text-secondary);
+    font-size: var(--text-xs);
+    text-align: center;
+}
+.seg-control-count--warning { background: var(--warning-bg); color: var(--warning); }
+.seg-control-item.active .seg-control-count { background: var(--bg-subtle); }
+
+@media (max-width: 640px) {
+    .auto-table-toolbar .seg-control { width: 100%; }
+    .auto-table-toolbar .seg-control-item { flex: 1; justify-content: center; }
 }
 
 /* ============================================================
@@ -3031,12 +2652,12 @@ textarea:focus-visible {
 .session-modal {
     background: var(--bg-elevated);
     border: 1px solid var(--border);
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-panel);
     padding: var(--space-8);
     max-width: 360px;
     width: 90%;
     text-align: center;
-    box-shadow: 0 24px 48px rgba(0,0,0,.3);
+    box-shadow: var(--shadow-lg);
 }
 
 .session-modal-icon {
@@ -3075,14 +2696,6 @@ textarea:focus-visible {
     margin: 0 auto var(--space-6);
 }
 
-.result-info-grid {
-    background: var(--bg-subtle);
-    border-radius: var(--radius-md);
-    padding: var(--space-5);
-    text-align: left;
-    margin-bottom: var(--space-6);
-}
-
 /* step-card-label: used in dashboard step strip (renamed from .step-label to avoid collision) */
 .step-card-label {
     font-size: var(--text-xs);
@@ -3104,7 +2717,7 @@ textarea:focus-visible {
     text-align: center;
     color: #fff;
     background: var(--error);
-    border-radius: 999px;
+    border-radius: var(--radius);
     pointer-events: none;
 }
 
@@ -3116,7 +2729,7 @@ textarea:focus-visible {
     padding: var(--space-3) var(--space-4);
     background: var(--warning-bg);
     border: 1px solid var(--warning);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius);
     font-size: var(--text-sm);
 }
 .idle-alert-count {
@@ -3187,7 +2800,7 @@ body.ap-drawer-locked { overflow: hidden; }
     color: var(--text-secondary);
     cursor: pointer;
     padding: 4px;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius);
     line-height: 0;
 }
 .ap-drawer-close:hover {
@@ -3305,7 +2918,7 @@ body.ap-drawer-locked { overflow: hidden; }
     flex-direction: column;
     gap: 4px;
     background: var(--bg-subtle);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius);
     padding: var(--space-3);
 }
 .ap-doc-row {
@@ -3326,7 +2939,7 @@ body.ap-drawer-locked { overflow: hidden; }
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius);
     color: var(--text-secondary);
     text-decoration: none;
 }
@@ -3340,7 +2953,7 @@ body.ap-drawer-locked { overflow: hidden; }
     margin-top: var(--space-3);
     padding: var(--space-3);
     border: 1px solid var(--border);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius);
     background: var(--bg-subtle);
     display: flex;
     flex-direction: column;
@@ -3422,7 +3035,7 @@ body.ap-drawer-locked { overflow: hidden; }
     text-align: left;
     padding: 4px 6px;
     margin: -4px -6px;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius);
     cursor: pointer;
     color: inherit;
     font: inherit;
@@ -3490,7 +3103,7 @@ body.ap-drawer-locked { overflow: hidden; }
     flex-direction: column;
     background: var(--bg-elevated);
     border: 1px solid var(--border);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius);
     overflow: hidden;
 }
 
@@ -3571,7 +3184,7 @@ body.ap-drawer-locked { overflow: hidden; }
     vertical-align: middle;
     font-size: var(--text-xs);
     font-weight: var(--weight-semibold);
-    color: var(--text-tertiary);
+    color: var(--text-secondary);
     white-space: nowrap;
     background: var(--bg-elevated);
     border-bottom: 1px solid var(--border);
@@ -3618,15 +3231,15 @@ body.ap-drawer-locked { overflow: hidden; }
 }
 
 /* Pagination bar — below the card, "Showing X–Y of Z" left, Prev /
-   Page N of M / Next right. 32px tall (the buttons) plus the wrap's 8px
-   gap = the 40px AutoPageSize reserves (--height-table-footer). */
+   Page N of M / Next right. --control-height tall (the buttons) plus the
+   wrap's 8px gap = what AutoPageSize reserves (--height-table-footer). */
 .auto-table-pagination {
     flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: var(--space-3);
-    height: 32px;
+    height: var(--control-height);
     padding: 0 var(--space-1);
 }
 
@@ -3654,9 +3267,9 @@ body.ap-drawer-locked { overflow: hidden; }
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: var(--radius-sm);
+    width: var(--control-height);
+    height: var(--control-height);
+    border-radius: var(--radius);
     color: var(--text-secondary);
     background: transparent;
     border: 1px solid transparent;
@@ -3680,22 +3293,54 @@ body.ap-drawer-locked { overflow: hidden; }
 .auto-table td .btn-sm { white-space: nowrap; }
 .auto-table tbody tr.bulk-selected td { background: var(--accent-muted); }
 .auto-table-toolbar .toolbar-spacer { flex: 1 1 auto; }
-/* Toolbar controls are 36px, lakbay's h-9 Input / SelectTrigger. The
-   Filter / Clear buttons match so the row lines up. */
+/* The toolbar search input defines --control-height; selects, date inputs and
+   the Filter / Clear buttons read the same token so the row lines up. */
 .auto-table-toolbar .form-input {
-    height: 36px;
-    min-height: 36px;
+    box-sizing: border-box;
+    height: var(--control-height);
+    min-height: var(--control-height);
     padding-top: 0;
     padding-bottom: 0;
     line-height: 1.2;
 }
-.auto-table-toolbar .btn { height: 36px; }
+.auto-table-toolbar .btn { height: var(--control-height); }
 .auto-table-toolbar .auto-table-search .form-input { padding-left: 32px; }
+
+/* Centered column (numbers, counts) */
+.auto-table th.col-center, .auto-table td.col-center { text-align: center; }
+
+/* Scrolling table (Courses & Strands): same card, toolbar and table as the
+   auto-paginated ones, but no AutoPageSize. The card is capped in height, the
+   body scrolls, and a "Show more" bar sits at the end of the scrolling body
+   (ScrollTable in app.js). It is NOT inside .auto-table-wrap, so the page
+   itself is not pinned to the viewport. */
+.auto-table-card--scroll {
+    flex: none;
+    max-height: min(70vh, 640px);
+    margin-bottom: var(--space-6);
+}
+/* A cell that may wrap (strand chips) instead of clipping to one line. */
+.auto-table td.cell-wrap { white-space: normal; }
+.auto-table tbody tr[data-st-last] td { border-bottom: none; }
+.auto-table-more {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    padding: var(--space-2);
+    border-top: 1px solid var(--border);
+    font-size: var(--text-sm);
+    color: var(--text-tertiary);
+}
+.auto-table-more[hidden],
+.auto-table-empty[hidden] { display: none; }
+.auto-table-more strong { color: var(--text-primary); font-weight: var(--weight-semibold); }
 
 /* Font size presets (Settings > Appearance) */
 /* Table row / header heights scale with the text; medium (the default)
-   is lakbay-pasig's 56px row / 40px header. The pagination bar is a fixed
-   32px of buttons, so --height-table-footer stays 40px in every preset. */
+   is lakbay-pasig's 56px row / 40px header. The pagination bar is one row of
+   --control-height buttons, so --height-table-footer is the same in every preset. */
 html[data-font-size="small"]  { font-size: 16px; --height-table-row: 52px; --height-table-header: 36px; }
 html[data-font-size="medium"] { font-size: 18px; --height-table-row: 56px; --height-table-header: 40px; }
 html[data-font-size="large"]  { font-size: 20px; --height-table-row: 62px; --height-table-header: 44px; }
@@ -3750,19 +3395,13 @@ html[data-font-size="xlarge"] { font-size: 22px; --height-table-row: 68px; --hei
 .font-size-slider:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 4px;
-    border-radius: var(--radius-full);
+    border-radius: var(--radius);
 }
 
 .font-size-slider::-webkit-slider-runnable-track {
     height: 8px;
-    border-radius: var(--radius-full);
-    background: linear-gradient(
-        to right,
-        var(--accent) 0,
-        var(--accent) var(--font-slider-progress),
-        var(--bg-subtle) var(--font-slider-progress),
-        var(--bg-subtle) 100%
-    );
+    border-radius: var(--radius);
+    background: var(--bg-subtle);
 }
 
 .font-size-slider::-webkit-slider-thumb {
@@ -3770,7 +3409,7 @@ html[data-font-size="xlarge"] { font-size: 22px; --height-table-row: 68px; --hei
     height: 24px;
     margin-top: -8px;
     border: 2px solid var(--bg-elevated);
-    border-radius: var(--radius-full);
+    border-radius: var(--radius);
     background: var(--accent);
     box-shadow: var(--shadow-sm);
     appearance: none;
@@ -3779,13 +3418,13 @@ html[data-font-size="xlarge"] { font-size: 22px; --height-table-row: 68px; --hei
 
 .font-size-slider::-moz-range-track {
     height: 8px;
-    border-radius: var(--radius-full);
+    border-radius: var(--radius);
     background: var(--bg-subtle);
 }
 
 .font-size-slider::-moz-range-progress {
     height: 8px;
-    border-radius: var(--radius-full);
+    border-radius: var(--radius);
     background: var(--accent);
 }
 
@@ -3793,7 +3432,7 @@ html[data-font-size="xlarge"] { font-size: 22px; --height-table-row: 68px; --hei
     width: 22px;
     height: 22px;
     border: 2px solid var(--bg-elevated);
-    border-radius: var(--radius-full);
+    border-radius: var(--radius);
     background: var(--accent);
     box-shadow: var(--shadow-sm);
 }
@@ -3812,7 +3451,7 @@ html[data-font-size="xlarge"] { font-size: 22px; --height-table-row: 68px; --hei
 .font-size-ticks span {
     width: 4px;
     height: 4px;
-    border-radius: var(--radius-full);
+    border-radius: var(--radius);
     background: color-mix(in srgb, var(--text-tertiary) 45%, transparent);
     box-shadow: 0 0 0 2px var(--bg-elevated);
 }
@@ -3844,11 +3483,9 @@ html[data-font-size="xlarge"] { font-size: 22px; --height-table-row: 68px; --hei
 .alert i, .input-prefix-icon i, .input-suffix-icon i, .btn-pw-toggle i,
 .theme-toggle i, .auto-table-page-btn i { font-size: 16px !important; }
 .alert i { margin-top: 1px; }
-.auth-theme-toggle i, .sort-btn i { font-size: 14px !important; }
-.doc-icon i { font-size: 18px !important; color: var(--text-secondary); }
-.auth-logo i { font-size: 26px !important; color: white; }
+
 .session-modal-icon i { font-size: 24px !important; }
-.empty-state i { font-size: 32px !important; opacity: 0.4; }
+
 .sidebar-logo-placeholder i { color: white; }
 .btn-pw-toggle i { pointer-events: none; }
 .step-dot i { font-size: 12px !important; color: var(--text-tertiary); }
@@ -3860,29 +3497,690 @@ html[data-font-size="xlarge"] { font-size: 22px; --height-table-row: 68px; --hei
 }
 
 /* ── School Year: one card, fits the viewport ─────────────────
-   Same pinning trick as .auto-table-card. Two columns of sections
-   separated by hairlines; Applicant History scrolls inside itself. */
+   Two equal columns (so the single vertical divider sits dead centre).
+   No horizontal dividers between sections; each column scrolls on its own. */
 .main:has(.sy-card) { height: 100vh; overflow: hidden; }
 .page:has(.sy-card) { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
 .sy-card {
     flex: 1; min-height: 0;
-    display: grid; grid-template-columns: 1.15fr 1fr;
+    display: grid; grid-template-columns: 1fr 1fr;
     background: var(--bg-elevated);
     border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
+    border-radius: 0;
     overflow: hidden;
 }
-.sy-col { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
-.sy-col + .sy-col { border-left: 1px solid var(--border); }
+.sy-col { display: flex; flex-direction: column; min-height: 0; min-width: 0; overflow-y: auto; }
+/* One straight, subtle divider, inset so it never touches the card edges. */
+.sy-card { position: relative; }
+.sy-card::before {
+    content: "";
+    position: absolute;
+    top: var(--space-6);
+    bottom: var(--space-6);
+    left: 50%;
+    width: 1px;
+    background: var(--border);
+    pointer-events: none;
+}
 .sy-sec { padding: var(--space-5) var(--space-6); flex-shrink: 0; }
-.sy-sec + .sy-sec { border-top: 1px solid var(--border); }
-.sy-sec.sy-grow { flex: 1 1 0; min-height: 0; overflow-y: auto; }
-.sy-sec.sy-danger { margin-top: auto; }
+.sy-sec.sy-grow { flex: 1 1 auto; }
 .sy-sec.sy-danger .card-title { color: var(--error); }
 @media (max-width: 960px) {
     .main:has(.sy-card) { height: auto; overflow: visible; }
     .page:has(.sy-card) { overflow: visible; }
     .sy-card { grid-template-columns: 1fr; overflow: visible; }
-    .sy-col + .sy-col { border-left: 0; border-top: 1px solid var(--border); }
-    .sy-sec.sy-grow { overflow: visible; }
+    .sy-col { overflow: visible; }
+    .sy-card::before { display: none; }
 }
+
+/* ============================================================
+   SHARED DROPDOWN (<select>) — one look for every dropdown, taken
+   from the dashboard's School Year dropdown and driven entirely by
+   the --select-* tokens in :root. The `html` prefix lifts the
+   specificity above .form-input / .form-control / .form-select,
+   .status-select, .select-toolbar select and the toolbar / auth
+   overrides, so no per-page rule or inline size is needed.
+   Width stays a layout decision and is left to each page.
+   ============================================================ */
+
+html select:not([multiple]):not([size]) {
+    appearance: none;
+    -webkit-appearance: none;
+    box-sizing: border-box;
+    height: var(--select-height);
+    min-height: var(--select-height);
+    padding: 0 var(--select-pad-right) 0 var(--select-pad-x);
+    background-color: var(--select-bg);
+    background-image: var(--select-chevron);
+    background-repeat: no-repeat;
+    background-position: right var(--space-2) center;
+    background-size: 16px 16px;
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: var(--select-font-size);
+    line-height: 1.2;
+    border: var(--select-border-width) solid var(--border);
+    border-radius: var(--select-radius);
+    cursor: pointer;
+    text-overflow: ellipsis;
+}
+html select:not([multiple]):not([size]),
+html select:not([multiple]):not([size]) option {
+    text-transform: none !important;
+}
+html select:not([multiple]):not([size]):hover:not(:disabled):not(:focus) { border-color: var(--border-strong); }
+html select:not([multiple]):not([size]):focus {
+    border-color: var(--accent);
+    outline: 1px solid var(--accent);
+    outline-offset: 0;
+}
+html select.error:not([multiple]):not([size]) { border-color: var(--error); }
+html select.success:not([multiple]):not([size]) { border-color: var(--success); }
+html select:not([multiple]):not([size]):disabled { opacity: .6; cursor: not-allowed; }
+
+/* ============================================================
+   SHARED DROPDOWN LIST PANEL — the list every dropdown opens.
+   Look taken from the dashboard date-range menu (.dp-menu). Used by
+   SelectMenu in app.js for every <select> (the closed select stays
+   in the page; this panel replaces the browser's native list), and
+   available to any custom menu as .app-dropdown-panel.
+   ============================================================ */
+.app-dropdown-panel {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    padding: var(--space-1) 0;
+}
+.select-menu {
+    display: none;
+    position: fixed;
+    z-index: 10001;
+    box-sizing: border-box;
+    max-width: calc(100vw - 16px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+.select-menu.open { display: block; }
+
+.app-dropdown-item {
+    display: block;
+    width: 100%;
+    padding: var(--space-2) var(--space-4);
+    border: 0;
+    background: none;
+    text-align: left;
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    line-height: 1.3;
+    text-transform: none;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+}
+.app-dropdown-item:hover:not(:disabled),
+.app-dropdown-item.is-hover:not(:disabled) { background: var(--bg-subtle); color: var(--text-primary); }
+.app-dropdown-item.active { color: var(--accent); font-weight: var(--weight-medium); }
+.app-dropdown-item:disabled { opacity: .45; cursor: not-allowed; }
+.app-dropdown-label {
+    padding: var(--space-2) var(--space-4) var(--space-1);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    color: var(--text-tertiary);
+}
+
+/* ============================================================
+   SETTINGS MODAL — the Settings pages inside a modal (section list on
+   the left, the page on the right). Built on the shared .modal /
+   .modal-backdrop and .nav-item. Markup: views/partials/settings_modal.php.
+   The page itself is the unchanged settings page, loaded embedded.
+   ============================================================ */
+.settings-modal {
+    display: flex;
+    max-width: 1040px;
+    height: min(760px, calc(100vh - 2 * var(--space-4)));
+    overflow: hidden;
+}
+.settings-modal-nav {
+    flex: 0 0 220px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: var(--space-4) var(--space-3);
+    background: var(--bg-subtle);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+}
+.settings-modal-nav-label {
+    padding: var(--space-2);
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+}
+.settings-modal-nav .nav-item {
+    border: 0;
+    background: transparent;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+.settings-modal-nav .nav-item:hover,
+.settings-modal-nav .nav-item:focus-visible { background: var(--bg-overlay); }
+.settings-modal-nav .nav-item.active { background: var(--accent-muted); }
+.settings-modal-body {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    background: var(--bg);
+}
+.settings-modal-frame {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+.settings-modal-close {
+    position: absolute;
+    top: var(--space-3);
+    right: var(--space-3);
+    z-index: 1;
+}
+@media (max-width: 720px) {
+    .settings-modal { flex-direction: column; }
+    .settings-modal-nav {
+        flex: 0 0 auto;
+        flex-direction: row;
+        align-items: center;
+        padding: var(--space-2) var(--space-3);
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
+        overflow-x: auto;
+    }
+    .settings-modal-nav-label { display: none; }
+    .settings-modal-nav .nav-item { width: auto; flex-shrink: 0; }
+}
+
+/* A page shown inside the settings modal: just its content. */
+body.is-embed { background: var(--bg); }
+body.is-embed .layout,
+body.is-embed .main { min-height: 0; }
+
+html select:not([multiple]):not([size]).is-open {
+    border-color: var(--accent);
+    outline: 1px solid var(--accent);
+    outline-offset: 0;
+}
+
+/* ============================================================
+   PAGE HEADER — heading on the left, page buttons on the right.
+   Rendered by views/layouts/app.php. A page can put buttons here
+   with $pageActions, or mark an element data-page-action /
+   data-page-actions (see app.js) to have it moved up here.
+   ============================================================ */
+
+.page-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    margin-bottom: var(--space-6);
+}
+.page-heading {
+    margin: 0;
+    font-size: var(--text-heading);
+    font-weight: var(--weight-semibold);
+    letter-spacing: -0.02em;
+    line-height: var(--leading-tight);
+    color: var(--text-primary);
+}
+.page-head-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-left: auto;
+}
+.page-head-actions:empty { display: none; }
+/* Every button in a heading row is the same size, whatever markup a page used
+   (data-page-action(s) elements are moved in here as-is). */
+.page-head-actions .btn,
+.page-header-actions .btn {
+    height: var(--control-height);
+    min-height: var(--control-height);
+    padding: 0 var(--space-4);
+    font-size: var(--text-sm);
+}
+
+/* Breadcrumb trail: "Previous Page > Current Page" (views/partials/page_header.php).
+   Ported from lakbay-pasig's AdminPageHeader: small muted ancestors that
+   underline on hover, caret separators, current page at full heading size. */
+.page-crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1);
+    min-width: 0;
+    min-height: 32px;
+}
+.page-crumb-item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+.page-crumb {
+    font-size: var(--text-base);
+    font-weight: var(--weight-medium, 500);
+    color: var(--text-secondary);
+    text-decoration: none;
+}
+.page-crumb:hover {
+    color: var(--text-primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+.page-crumb:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+.page-crumb-sep {
+    flex-shrink: 0;
+    color: var(--text-secondary);
+}
+.page-crumbs .page-crumb-current {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+@media (max-width: 640px) {
+    .page-head { align-items: flex-start; }
+    .page-head-actions { width: 100%; margin-left: 0; justify-content: flex-start; }
+}
+
+/* Links that carry an arrow icon (Back / Next) line up like buttons */
+.page a:not(.btn):has(> svg),
+.auth-card a:has(> svg),
+.ap-section-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+/* ============================================================
+   RESPONSIVE — tablet: tighter page padding. (The sidebar also
+   auto-collapses to its icon rail on tablets; see Sidebar in app.js.)
+   ============================================================ */
+@media (max-width: 1100px) {
+    .page { padding: var(--space-6); }
+}
+@media (max-width: 640px) {
+    .page { padding: var(--space-4); }
+    .mobile-bar { padding: 0 var(--space-4); }
+}
+
+/* ============================================================
+   SELECTOR CARDS — ONE layout for every picker page (college,
+   session, slot, exam, landing). Same anatomy everywhere:
+
+     .select-toolbar            optional filter row, left aligned
+     .select-grid               grid, flush under the page heading
+       .select-card             the card (a / div)
+         .select-card-badge     status chip, top-right
+         .select-card-title     name
+         .select-card-desc      optional one-liner
+         .select-card-meta      rows of plain text (no icons on pickers)
+         .select-card-footer    optional: left note, right action
+       .select-card--add        dashed "+ Add" card
+
+   States: is-live / is-today / is-active (accent), is-muted
+   (past / closed), is-full (error border), is-disabled.
+   Legacy hooks (.college-card, .es-slot-card, .sess-dir-card,
+   .exam-dir-card, ...) stay on the markup for page JS only.
+   ============================================================ */
+.select-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+}
+.select-toolbar select { max-width: 280px; }
+.select-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--select-card-min), 1fr));
+    gap: var(--space-4);
+    align-items: stretch;
+}
+.select-card {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    text-align: left;
+    gap: var(--space-3);
+    padding: var(--space-5);
+    min-height: 128px;
+    background: var(--bg-elevated);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    text-decoration: none;
+    color: var(--text-primary);
+    transition: border-color .15s, box-shadow .15s;
+    position: relative;
+    cursor: pointer;
+}
+.select-card:hover {
+    border-color: var(--accent);
+    box-shadow: var(--shadow-sm);
+}
+.select-card.is-live,
+.select-card.is-today,
+.select-card.is-active {
+    border-color: var(--accent);
+    background: var(--accent-muted);
+}
+.select-card.is-full  { border-color: var(--error); }
+.select-card.is-muted { opacity: .6; }
+.select-card.is-disabled {
+    opacity: .5;
+    cursor: not-allowed;
+    background: var(--bg-subtle);
+}
+.select-card.is-disabled:hover { border-color: var(--border); box-shadow: none; }
+
+.select-card-title {
+    font-size: var(--text-base);
+    font-weight: var(--weight-semibold);
+    color: var(--text-primary);
+    line-height: 1.35;
+}
+.select-card-desc {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-top: calc(var(--space-1) * -1);
+}
+.select-card-meta {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+}
+.select-card-meta-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+.select-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    margin-top: auto;
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--border);
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+}
+.select-card-footer > span:first-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+.select-card-action {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    flex-shrink: 0;
+    font-weight: var(--weight-medium);
+    color: var(--accent);
+}
+/* Status chip, top-right. .has-edit leaves room for a 28px edit button. */
+.select-card-badge {
+    position: absolute;
+    top: var(--space-3);
+    right: var(--space-3);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+.select-card-badge.has-edit { right: 44px; }
+/* Red dot top-right: nothing scheduled, needs setup. */
+.select-card-dot {
+    position: absolute;
+    top: var(--space-3);
+    right: var(--space-3);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--error);
+}
+.select-card-live {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: 2px var(--space-2);
+    border-radius: var(--radius);
+    background: var(--accent);
+    color: #fff;
+    font-size: 10px;
+    font-weight: var(--weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+.select-card-live .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #fff;
+    animation: q-pulse-dot 1.4s infinite;
+}
+/* Dashed "+ Add" card: same anatomy and left alignment as every other
+   card (title, one-line description), so it reads as a sibling in the
+   grid, not a different component. */
+.select-card--add {
+    background: transparent;
+    border-style: dashed;
+    border-color: var(--border-strong);
+    box-shadow: none;
+}
+.select-card--add:hover { background: var(--accent-muted); border-color: var(--accent); box-shadow: none; }
+.select-card--add .select-card-title { color: var(--accent); }
+
+/* Bulk-select mode, shared by every grid that supports it. The checkbox
+   sits on the title's line (the title shifts right to make room); selected
+   cards use the same highlight as the live / today / active state. */
+.select-card-check {
+    position: absolute;
+    top: calc(var(--space-5) + 1px);
+    left: var(--space-5);
+    width: 22px;
+    height: 22px;
+    accent-color: var(--accent);
+    cursor: pointer;
+    z-index: 2;
+    display: none;
+}
+.select-grid.is-selecting .select-card-check { display: inline-block; }
+.select-grid.is-selecting .select-card:not(.select-card--add) .select-card-title { padding-left: calc(22px + var(--space-2)); }
+.select-grid.is-selecting .select-card.is-selected { border-color: var(--accent); background: var(--accent-muted); }
+.select-grid.is-selecting .select-card.is-undeletable { opacity: .55; }
+.select-grid.is-selecting .select-card--add { opacity: .5; pointer-events: none; }
+.select-bulk-bar {
+    position: fixed;
+    left: 50%;
+    bottom: var(--space-6);
+    transform: translateX(-50%);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    padding: var(--space-3) var(--space-4);
+    display: none;
+    align-items: center;
+    gap: var(--space-3);
+    z-index: 50;
+    font-size: var(--text-sm);
+}
+.select-bulk-bar.is-visible { display: flex; }
+/* Empty state shared by pickers */
+.select-empty {
+    padding: var(--space-8) var(--space-4);
+    background: var(--bg-subtle);
+    border-radius: var(--radius);
+    text-align: center;
+    color: var(--text-tertiary);
+    font-size: var(--text-sm);
+}
+@keyframes q-pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: .5; transform: scale(1.3); }
+}
+
+/* ============================================================
+   INTERFACE POLISH — make-interfaces-feel-better, applied once
+   for the whole system. Visual details only; no layout or
+   behaviour changes. Kept at the end so it refines the rules
+   above without rewriting them.
+   ============================================================ */
+
+:root {
+    /* Shadow as border: ring + lift + ambient depth. Adapts to any
+       background, unlike a solid border colour. */
+    --shadow-border:
+        0 0 0 1px oklch(0 0 0 / 0.06),
+        0 1px 2px -1px oklch(0 0 0 / 0.06),
+        0 2px 4px 0 oklch(0 0 0 / 0.04);
+    --shadow-border-hover:
+        0 0 0 1px oklch(0 0 0 / 0.08),
+        0 1px 2px -1px oklch(0 0 0 / 0.08),
+        0 2px 4px 0 oklch(0 0 0 / 0.06);
+    --image-outline: oklch(0 0 0 / 0.1);
+}
+[data-theme="dark"] {
+    /* Dark: a single white ring; layered depth is invisible on dark. */
+    --shadow-border: 0 0 0 1px oklch(1 0 0 / 0.08);
+    --shadow-border-hover: 0 0 0 1px oklch(1 0 0 / 0.13);
+    --image-outline: oklch(1 0 0 / 0.1);
+}
+
+/* ── Typography ─────────────────────────────────────────────── */
+html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+h1, h2, h3,
+.page-heading, .page-title,
+.card-title, .select-card-title,
+.modal-title { text-wrap: balance; }
+p, li, figcaption, blockquote,
+.card-description, .select-card-desc,
+.alert, .form-hint { text-wrap: pretty; }
+/* Equal-width digits wherever numbers change or line up in columns. */
+td, th,
+.metric-value, .stat-value,
+.q-sess-stat-num, .segmented-control-count,
+.es-code-timer, .es-code-display, .card-pw-timer,
+time, [class*="timer"], [class*="count"] { font-variant-numeric: tabular-nums; }
+
+/* ── Surfaces: depth from shadow, structure from borders ────── */
+.card, .metric-card, .stat-card, .chart-card, .quick-action-card, .select-card {
+    border-color: transparent;
+    box-shadow: var(--shadow-border);
+    transition-property: border-color, box-shadow, background-color;
+    transition-duration: 150ms;
+    transition-timing-function: ease-out;
+}
+.card:hover, .metric-card:hover, .stat-card:hover, .chart-card:hover { box-shadow: var(--shadow-border-hover); }
+/* Selectable cards: hover and state are borders (they communicate state). */
+.select-card:hover { border-color: var(--accent); box-shadow: var(--shadow-border-hover); }
+.select-card.is-live, .select-card.is-today, .select-card.is-active { border-color: var(--accent); }
+.select-card.is-full { border-color: var(--error); }
+.select-card.is-disabled { box-shadow: none; border-color: var(--border); }
+/* The global link hover fade would dim a whole card or button. */
+a.select-card:hover, a.btn:hover { opacity: 1; }
+
+/* Image outline: neutral black (light) / white (dark), inset so it never
+   changes the image size. Logos and icons are left alone. */
+img:not([class*="logo"]):not([src$=".svg"]) {
+    outline: 1px solid var(--image-outline);
+    outline-offset: -1px;
+}
+
+/* ── Press feedback: 0.96, interruptible (transition, not keyframes) ── */
+.btn, .btn-icon, .sidebar-icon-btn {
+    transition-property: background-color, border-color, color, box-shadow, opacity, scale;
+    transition-duration: 150ms;
+    transition-timing-function: ease-out;
+}
+.btn:active:not(:disabled):not([data-static]),
+.btn-icon:active:not(:disabled),
+.sidebar-icon-btn:active:not(:disabled) { scale: 0.96; }
+
+/* Optical alignment: the icon side carries 2px less padding. */
+.btn:not(.btn-icon):has(> svg:first-child):not(:has(> svg:last-child)) { padding-left: calc(var(--space-4) - 2px); }
+.btn:not(.btn-icon):has(> svg:last-child):not(:has(> svg:first-child)) { padding-right: calc(var(--space-4) - 2px); }
+
+/* ── Hit areas: dense desktop controls reach 40px without growing ── */
+:where(.btn-sm, .btn-icon) { position: relative; }
+.btn-sm::before { content: ""; position: absolute; inset: -4px 0; }
+.btn-icon::before { content: ""; position: absolute; inset: -2px; }
+
+/* ── Motion restraint ───────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .modal { animation: none; }
+    .btn:active, .btn-icon:active, .sidebar-icon-btn:active { scale: none; }
+    .select-card-live .dot { animation: none; }
+}
+
+/* ============================================================
+   REFINEMENTS — taken from the DESIGN.md references (Notion,
+   Linear, Mercury) and kept deliberately quiet: one accent, no
+   new colours, tonal depth over heavy shadow, calm focus states.
+   ============================================================ */
+
+/* Focus: a soft accent halo on top of the accent border (Linear / Notion
+   style) instead of a second hard outline. */
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus,
+.form-control:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+/* Disabled: flat muted surface rather than a faded copy of the live control. */
+.btn:disabled {
+    opacity: 1;
+    background: var(--bg-subtle);
+    border-color: var(--border);
+    color: var(--text-tertiary);
+}
+.form-input:disabled,
+.form-select:disabled,
+.form-textarea:disabled,
+.form-control:disabled {
+    opacity: 1;
+    color: var(--text-tertiary);
+}
+
+/* Floating layers: one soft, wide, low-opacity shadow (Notion) rather than
+   stacked hard ones. */
+.modal { box-shadow: 0 24px 48px -12px rgba(15, 15, 15, 0.22), 0 0 0 1px rgba(15, 15, 15, 0.06); }
+[data-theme="dark"] .modal { box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px oklch(1 0 0 / 0.08); }
+
+/* Dark mode depth is tonal (Linear's surface ladder): hovered cards lift one
+   step instead of gaining a shadow. */
+[data-theme="dark"] .select-card:hover { background: var(--bg-subtle); }
+[data-theme="dark"] .select-card.is-live:hover,
+[data-theme="dark"] .select-card.is-today:hover,
+[data-theme="dark"] .select-card.is-active:hover { background: var(--accent-muted); }

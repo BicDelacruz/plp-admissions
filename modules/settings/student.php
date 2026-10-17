@@ -6,6 +6,7 @@
 
 require_once CORE_PATH . '/bootstrap.php';
 Auth::requireRole(ROLE_STUDENT);
+settings_modal_gate();
 
 $db     = db();
 $userId = Auth::id();
@@ -84,6 +85,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+// Google users have no password of their own yet (they set one through Forgot password).
+// ponytail: stays hidden for any user with google_sub, even after they set a password. Upgrade: a password_set flag.
+$gs = $db->prepare('SELECT google_sub FROM users WHERE id = ?');
+$gs->execute([$userId]);
+$isGoogleUser = !empty($gs->fetchColumn());
+
 // Strip ", Pasig City" suffix for display in the address input
 $addressDisplay = preg_replace('/,?\s*Pasig City\s*$/i', '', $user['address'] ?? '');
 
@@ -97,23 +104,17 @@ ob_start();
     <div class="alert alert-success" style="margin-bottom:var(--space-3)"><?= e($s) ?></div>
 <?php endforeach; ?>
 
-<div style="display:flex;justify-content:flex-start;margin-bottom:var(--space-4);max-width:560px;margin-left:auto;margin-right:auto">
-    <a href="javascript:history.back()" class="btn btn-ghost btn-sm" style="display:flex;align-items:center;gap:var(--space-1)">
-        <?= icon('ic_fluent_arrow_left_24_regular', 16) ?>
-        Back
-    </a>
-</div>
-
 <div style="display:flex;flex-direction:column;gap:var(--space-6);max-width:560px;margin:0 auto">
 
     <!-- Appearance (per-device text size) -->
-    <div class="card" style="padding:var(--space-6)">
+    <div class="card" data-settings-section="appearance" style="padding:var(--space-6)">
         <div style="font-weight:var(--weight-semibold);margin-bottom:var(--space-4)">Appearance</div>
         <?php include VIEWS_PATH . '/partials/font_size_setting.php'; ?>
+        <?php include VIEWS_PATH . '/partials/dark_mode_setting.php'; ?>
     </div>
 
     <!-- Profile -->
-    <div class="card" style="padding:var(--space-6)">
+    <div class="card" data-settings-section="profile" style="padding:var(--space-6)">
         <div style="font-weight:var(--weight-semibold);margin-bottom:var(--space-5)">Profile</div>
         <form method="POST">
             <?= csrf_field() ?>
@@ -208,8 +209,18 @@ ob_start();
         </form>
     </div>
 
+    <?php if ($isGoogleUser): ?>
+    <!-- Password (Google account) -->
+    <div class="card" data-settings-section="password" style="padding:var(--space-6)">
+        <div style="font-weight:var(--weight-semibold);margin-bottom:var(--space-3)">Password</div>
+        <p style="font-size:var(--text-sm);color:var(--text-secondary);margin:0">
+            You sign in with Google. To set a password as well, use
+            <a href="<?= url('/forgot-password') ?>">Forgot password</a> on the sign in page.
+        </p>
+    </div>
+    <?php else: ?>
     <!-- Password -->
-    <div class="card" style="padding:var(--space-6)">
+    <div class="card" data-settings-section="password" style="padding:var(--space-6)">
         <div style="font-weight:var(--weight-semibold);margin-bottom:var(--space-5)">Change Password</div>
         <form method="POST">
             <?= csrf_field() ?>
@@ -233,6 +244,7 @@ ob_start();
             </div>
         </form>
     </div>
+    <?php endif; ?>
 
 </div>
 
@@ -245,9 +257,9 @@ function setSettingsSex(val) {
 }
 </script>
 <style>
-.sex-toggle-settings { display:flex; gap:var(--space-2); height:40px; }
+.sex-toggle-settings { display:flex; gap:var(--space-2); height:var(--control-height); }
 .sex-btn-s {
-    flex:1; border:1px solid var(--border); border-radius:var(--radius-md);
+    flex:1; border:1px solid var(--border); border-radius:var(--radius);
     background:var(--bg-elevated); color:var(--text-secondary);
     font-size:var(--text-sm); font-weight:var(--weight-medium); cursor:pointer;
     transition:background 0.15s,color 0.15s,border-color 0.15s;
@@ -258,5 +270,7 @@ function setSettingsSex(val) {
 <?php
 $content   = ob_get_clean();
 $pageTitle = 'Settings';
+require_once VIEWS_PATH . '/partials/page_header.php';
+$pageBreadcrumb = [page_home_crumb()];
 $activeNav = 'settings';
 include VIEWS_PATH . '/layouts/app.php';

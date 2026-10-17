@@ -189,13 +189,6 @@ ob_start();
     <div class="alert alert-success" style="margin-bottom:var(--space-4);flex-shrink:0"><?= e($s) ?></div>
 <?php endforeach; ?>
 
-<!-- Breadcrumb -->
-<div style="margin-bottom:var(--space-4);font-size:var(--text-sm);flex-shrink:0">
-    <a href="<?= url('/staff/interviews') ?>" style="color:var(--text-secondary)">
-        ← Back to sessions
-    </a>
-</div>
-
 <!-- Slot summary -->
 <div class="card" style="padding:var(--space-5);margin-bottom:var(--space-5);flex-shrink:0">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--space-3)">
@@ -273,7 +266,7 @@ ob_start();
                 <?php if ($canEvaluate): ?>
                     <button type="submit" class="btn btn-primary btn-sm">Save evaluations</button>
                 <?php else: ?>
-                    <span class="badge badge-neutral" style="font-size:var(--text-xs)"
+                    <span class="badge badge-neutral"
                           title="Read-only — only the session interviewer can record evaluations">
                         Read-only
                     </span>
@@ -452,7 +445,7 @@ ob_start();
                 var toolH   = toolbar.getBoundingClientRect().height;
                 var rowH    = cssPx('--height-table-row', 56);
                 var headerH = cssPx('--height-table-header', 40);
-                var footerH = cssPx('--height-table-footer', 40);
+                var footerH = cssPx('--control-height', 36) + 8; // pagination bar + 8px gap
                 var rows    = Math.floor((avail - toolH - headerH - footerH - 2) / rowH);
                 return Math.max(3, Math.min(100, rows));
             }
@@ -576,6 +569,7 @@ ob_start();
 <?php
 $content   = ob_get_clean();
 $pageTitle = 'Interview Roster';
+$pageBreadcrumb = [['label' => 'Interview Sessions', 'to' => '/staff/interviews']];
 $activeNav = 'interviews';
 $pageWide  = true; // table-heavy page — same as the other auto-table pages
 include VIEWS_PATH . '/layouts/app.php';

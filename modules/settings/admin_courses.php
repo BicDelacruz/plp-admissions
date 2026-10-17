@@ -253,9 +253,19 @@ ob_start();
     <div class="alert alert-success" style="margin-bottom:var(--space-3)"><?= e($s) ?></div>
 <?php endforeach; ?>
 
+<?php
+// Strand pills for a table cell. Neutral badges, same as the other tables.
+$strandPills = function (array $list): string {
+    if (!$list) return '<span style="font-size:var(--text-xs);color:var(--text-tertiary)">—</span>';
+    $out = '<div style="display:flex;gap:4px;flex-wrap:wrap;padding:var(--space-2) 0">';
+    foreach ($list as $sk) $out .= '<span class="badge badge-neutral">' . e($sk) . '</span>';
+    return $out . '</div>';
+};
+$customByName = array_column($customCourses, null, 'course_name');
+?>
 <div>
 
-    <!-- ── Unified Courses Table ────────────────────────────────── -->
+    <!-- ── Courses & Settings table ─────────────────────────────── -->
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-4);margin-bottom:var(--space-4)">
         <div>
             <div style="font-weight:var(--weight-semibold);font-size:var(--text-base)">Courses & Settings</div>
@@ -264,222 +274,305 @@ ob_start();
             </div>
         </div>
     </div>
-    <div style="border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;font-size:var(--text-sm);margin-bottom:var(--space-6);background:var(--bg-elevated);width:100%">
-        <?php
-        $hStyle = 'padding:var(--space-3) var(--space-4);background:var(--bg-subtle);font-size:var(--text-xs);font-weight:var(--weight-semibold);color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.04em;border-bottom:1px solid var(--border)';
-        $hStyleC = $hStyle . ';text-align:center';
-        ?>
-        <div style="display:grid;grid-template-columns:minmax(280px,1.6fr) minmax(160px,0.9fr) 90px 110px 90px 110px 110px 60px">
-            <div style="<?= $hStyle ?>">Course</div>
-            <div style="<?= $hStyle ?>">Strands</div>
-            <div style="<?= $hStyleC ?>">High</div>
-            <div style="<?= $hStyleC ?>">Average</div>
-            <div style="<?= $hStyleC ?>">Low</div>
-            <div style="<?= $hStyleC ?>">Accepted</div>
-            <div style="<?= $hStyleC ?>">Max Slots</div>
-            <div style="<?= $hStyleC ?>"></div>
+
+    <!-- Same card / toolbar / table as the other tables, but it scrolls inside
+         instead of paginating: 10 rows to start, "Show more" at the bottom. -->
+    <div class="auto-table-card auto-table-card--scroll" data-scroll-table data-limit="10" data-batch="10">
+
+        <div class="auto-table-toolbar">
+            <div class="auto-table-search">
+                <?= icon('ic_fluent_search_24_filled', 14) ?>
+                <input type="text" class="form-input" data-st-search autocomplete="off"
+                       placeholder="Search course or strand…" aria-label="Search courses">
+            </div>
+
+            <select class="form-input" style="width:180px" data-st-filter="strand" aria-label="Strand">
+                <option value="">All strands</option>
+                <?php foreach (SHS_STRANDS as $sKey => $sLabel): ?>
+                    <option value="<?= e($sKey) ?>"><?= e($sKey) ?></option>
+                <?php endforeach; ?>
+            </select>
+
+            <select class="form-input" style="width:180px" data-st-filter="status" aria-label="Status">
+                <option value="">All statuses</option>
+                <option value="full">Full</option>
+                <option value="nocap">No cap set</option>
+            </select>
+
+            <button type="button" class="btn btn-ghost btn-sm" data-st-clear style="display:none">Clear</button>
         </div>
 
-        <?php foreach ($allCoursesList as $ci => $course):
-            $pr       = $tierMap[$course] ?? null;
-            $highFrom = $pr['high_from'] ?? 7;
-            $avgFrom  = $pr['avg_from']  ?? 4;
-            $maxSlots = array_key_exists($course, $capRows) ? $capRows[$course] : null;
-            $accepted = $acceptedCounts[$course] ?? 0;
-            $isFull   = $maxSlots !== null && $accepted >= $maxSlots;
-            $isBuiltIn = in_array($course, PLP_COURSES, true);
-            $strands  = $isBuiltIn
-                ? (COURSE_STRAND_MAP[$course] ?? [])
-                : (json_decode($customCourses[array_search($course, array_column($customCourses, 'course_name'))]['strands'] ?? '[]', true) ?: []);
-            $isLast   = $ci === count($allCoursesList) - 1;
-            $bb       = !$isLast ? 'border-bottom:1px solid var(--border)' : '';
-            $enc      = htmlspecialchars($course, ENT_QUOTES);
-        ?>
-        <!-- Read-only row -->
-        <div id="row-read-<?= $ci ?>" class="course-row" style="display:grid;grid-template-columns:minmax(280px,1.6fr) minmax(160px,0.9fr) 90px 110px 90px 110px 110px 60px;<?= $bb ?>;transition:background-color var(--transition-fast)">
-            <div style="padding:var(--space-3) var(--space-4)">
-                <?= e($course) ?>
-                <?php if ($isFull): ?>
-                    <span style="font-size:10px;padding:1px 6px;background:#fee2e2;color:#b91c1c;border-radius:9999px;margin-left:4px">Full</span>
-                <?php endif; ?>
-            </div>
-            <div style="padding:var(--space-3) var(--space-4)">
-                <div style="display:flex;gap:4px;flex-wrap:wrap">
-                    <?php if ($strands): foreach ($strands as $s): ?>
-                        <span style="font-size:11px;padding:2px 8px;background:var(--bg-subtle);border-radius:9999px;color:var(--text-secondary);white-space:nowrap"><?= e($s) ?></span>
-                    <?php endforeach; else: ?>
-                        <span style="font-size:var(--text-xs);color:var(--text-tertiary)">—</span>
-                    <?php endif; ?>
-                </div>
-            </div>
-            <div style="padding:var(--space-3) var(--space-4);text-align:center;color:var(--text-secondary)"><?= $highFrom ?>–10</div>
-            <div style="padding:var(--space-3) var(--space-4);text-align:center;color:var(--text-secondary)"><?= $avgFrom ?>–<?= $highFrom - 1 ?></div>
-            <div style="padding:var(--space-3) var(--space-4);text-align:center;color:var(--text-secondary)">1–<?= max(0, $avgFrom - 1) ?></div>
-            <div style="padding:var(--space-3) var(--space-4);text-align:center"><strong><?= $accepted ?></strong></div>
-            <div style="padding:var(--space-3) var(--space-4);text-align:center;color:var(--text-tertiary);position:relative">
-                <?php
-                    // Red dot when this row's max-slots hasn't been set yet AND
-                    // the current user is allowed to set it. Visual nudge so the
-                    // Dean knows which of their courses still needs an intake cap.
-                    $needsCap = ($maxSlots === null) && $canEditMaxSlots;
+        <div class="auto-table-body">
+            <table class="auto-table" style="min-width:1140px">
+                <thead>
+                    <tr>
+                        <th>Course</th>
+                        <th style="width:240px">Strands</th>
+                        <th class="col-center" style="width:90px">High</th>
+                        <th class="col-center" style="width:110px">Average</th>
+                        <th class="col-center" style="width:90px">Low</th>
+                        <th class="col-center" style="width:110px">Accepted</th>
+                        <th class="col-center" style="width:110px">Max Slots</th>
+                        <th style="width:130px"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                <?php foreach ($allCoursesList as $ci => $course):
+                    $pr        = $tierMap[$course] ?? null;
+                    $highFrom  = $pr['high_from'] ?? 7;
+                    $avgFrom   = $pr['avg_from']  ?? 4;
+                    $maxSlots  = array_key_exists($course, $capRows) ? $capRows[$course] : null;
+                    $accepted  = $acceptedCounts[$course] ?? 0;
+                    $isFull    = $maxSlots !== null && $accepted >= $maxSlots;
+                    $isBuiltIn = in_array($course, PLP_COURSES, true);
+                    $strands   = $isBuiltIn
+                        ? (COURSE_STRAND_MAP[$course] ?? [])
+                        : (json_decode($customByName[$course]['strands'] ?? '[]', true) ?: []);
+                    $enc       = htmlspecialchars($course, ENT_QUOTES);
+                    $lowText   = '1–' . max(0, $avgFrom - 1);
+                    $rowStatus = $isFull ? 'full' : ($maxSlots === null ? 'nocap' : 'open');
+                    // Red dot when max-slots hasn't been set yet AND the current user
+                    // may set it (nudges a Dean toward their college's intake cap).
+                    $needsCap  = ($maxSlots === null) && $canEditMaxSlots;
                 ?>
-                <?php if ($needsCap): ?>
-                    <span title="Max slots not set" style="position:absolute;top:8px;right:10px;
-                                 width:8px;height:8px;border-radius:50%;background:var(--error)"></span>
-                <?php endif; ?>
-                <?= $maxSlots !== null ? $maxSlots : '∞' ?>
-            </div>
-            <div style="padding:var(--space-3) var(--space-4);text-align:center">
-                <button type="button" class="btn-icon" title="Edit" onclick="startRowEdit(<?= $ci ?>)" style="color:var(--text-tertiary)">
-                    <?= icon('ic_fluent_edit_24_regular', 14) ?>
-                </button>
-            </div>
-        </div>
-        <!-- Edit row -->
-        <div id="row-edit-<?= $ci ?>" style="display:none;<?= $bb ?>;background:var(--bg-subtle)">
-            <form method="POST" class="row-edit-form" data-row="<?= $ci ?>" style="display:grid;grid-template-columns:minmax(280px,1.6fr) minmax(160px,0.9fr) 90px 110px 90px 110px 110px 60px;align-items:center">
-                <?= csrf_field() ?>
-                <input type="hidden" name="action" value="update_tiers">
-                <input type="hidden" name="scores[<?= $enc ?>][course]" value="<?= $enc ?>">
-                <div style="padding:var(--space-3) var(--space-4);font-weight:var(--weight-medium)"><?= e($course) ?></div>
-                <div style="padding:var(--space-3) var(--space-4)">
-                    <div style="display:flex;gap:4px;flex-wrap:wrap">
-                        <?php if ($strands): foreach ($strands as $s): ?>
-                            <span style="font-size:11px;padding:2px 8px;background:var(--bg-subtle);border-radius:9999px;color:var(--text-secondary);white-space:nowrap"><?= e($s) ?></span>
-                        <?php endforeach; else: ?>
-                            <span style="color:var(--text-tertiary)">—</span>
+                    <tr id="course-row-<?= $ci ?>" data-st-row
+                        data-search="<?= e(mb_strtolower($course . ' ' . implode(' ', $strands))) ?>"
+                        data-strand="<?= e(implode('|', $strands)) ?>"
+                        data-status="<?= $rowStatus ?>">
+                        <td>
+                            <span style="display:flex;align-items:center;gap:var(--space-2);min-width:0">
+                                <span class="auto-table-clip" title="<?= e($course) ?>"><?= e($course) ?></span>
+                                <?php if ($isFull): ?>
+                                    <span class="badge badge-error" style="flex-shrink:0">Full</span>
+                                <?php endif; ?>
+                            </span>
+                        </td>
+                        <td class="cell-wrap"><?= $strandPills($strands) ?></td>
+                        <td class="col-center">
+                            <span class="cell-view" style="color:var(--text-secondary)"><?= $highFrom ?>–10</span>
+                            <input type="number" form="row-form-<?= $ci ?>" name="scores[<?= $enc ?>][high]"
+                                   class="form-control tier-high cell-edit" data-row="<?= $ci ?>"
+                                   value="<?= $highFrom ?>" min="2" max="10" aria-label="High from"
+                                   style="font-size:var(--text-sm);padding:5px 8px;text-align:center;width:100%">
+                        </td>
+                        <td class="col-center">
+                            <span class="cell-view" style="color:var(--text-secondary)"><?= $avgFrom ?>–<?= $highFrom - 1 ?></span>
+                            <input type="number" form="row-form-<?= $ci ?>" name="scores[<?= $enc ?>][avg]"
+                                   class="form-control tier-avg cell-edit" data-row="<?= $ci ?>"
+                                   value="<?= $avgFrom ?>" min="1" max="9" aria-label="Average from"
+                                   style="font-size:var(--text-sm);padding:5px 8px;text-align:center;width:100%">
+                        </td>
+                        <td class="col-center low-label" data-orig="<?= e($lowText) ?>" style="color:var(--text-secondary)"><?= e($lowText) ?></td>
+                        <td class="col-center"><strong><?= (int)$accepted ?></strong></td>
+                        <?php if ($canEditMaxSlots): ?>
+                        <td class="col-center" style="position:relative;color:var(--text-tertiary)">
+                            <span class="cell-view">
+                                <?php if ($needsCap): ?>
+                                    <span title="Max slots not set" style="position:absolute;top:8px;right:10px;
+                                                 width:8px;height:8px;border-radius:50%;background:var(--error)"></span>
+                                <?php endif; ?>
+                                <?= $maxSlots !== null ? (int)$maxSlots : '∞' ?>
+                            </span>
+                            <input type="number" form="row-form-<?= $ci ?>" name="caps[<?= $enc ?>]"
+                                   class="form-control cell-edit" min="0" max="99999"
+                                   value="<?= $maxSlots !== null ? (int)$maxSlots : '' ?>" placeholder="∞"
+                                   aria-label="Max slots"
+                                   style="font-size:var(--text-sm);padding:5px 8px;text-align:center;width:100%">
+                        </td>
+                        <?php else: ?>
+                        <td class="col-center" style="color:var(--text-tertiary)"><?= $maxSlots !== null ? (int)$maxSlots : '∞' ?></td>
                         <?php endif; ?>
-                    </div>
-                </div>
-                <div style="padding:var(--space-3) var(--space-4)">
-                    <input type="number" name="scores[<?= $enc ?>][high]"
-                           class="form-control tier-high" data-course="<?= $enc ?>" data-row="<?= $ci ?>"
-                           value="<?= $highFrom ?>" min="2" max="10"
-                           style="font-size:var(--text-sm);padding:5px 8px;text-align:center;width:100%">
-                </div>
-                <div style="padding:var(--space-3) var(--space-4)">
-                    <input type="number" name="scores[<?= $enc ?>][avg]"
-                           class="form-control tier-avg" data-course="<?= $enc ?>" data-row="<?= $ci ?>"
-                           value="<?= $avgFrom ?>" min="1" max="9"
-                           style="font-size:var(--text-sm);padding:5px 8px;text-align:center;width:100%">
-                </div>
-                <div style="padding:var(--space-3) var(--space-4);text-align:center;color:var(--text-tertiary)" class="low-label" data-row="<?= $ci ?>">
-                    1–<?= max(0, $avgFrom - 1) ?>
-                </div>
-                <div style="padding:var(--space-3) var(--space-4);text-align:center"><strong><?= $accepted ?></strong></div>
-                <div style="padding:var(--space-3) var(--space-4)">
-                    <?php if ($canEditMaxSlots): ?>
-                        <input type="number" name="caps[<?= $enc ?>]" class="form-control"
-                               min="0" max="99999"
-                               value="<?= $maxSlots !== null ? (int)$maxSlots : '' ?>"
-                               placeholder="∞"
-                               style="font-size:var(--text-sm);padding:5px 8px;text-align:center;width:100%">
-                    <?php else: ?>
-                        <div style="text-align:center;color:var(--text-tertiary);font-size:var(--text-sm)">
-                            <?= $maxSlots !== null ? (int)$maxSlots : '∞' ?>
-                        </div>
-                    <?php endif; ?>
-                </div>
-                <div style="padding:var(--space-3) var(--space-4);text-align:center">
-                    <button type="button" class="btn-icon" title="Cancel" onclick="cancelRowEdit(<?= $ci ?>)" style="color:var(--text-tertiary)">
-                        <?= icon('ic_fluent_dismiss_24_regular', 14) ?>
-                    </button>
-                </div>
-            </form>
-            <div style="display:flex;gap:var(--space-2);justify-content:flex-end;padding:var(--space-2) var(--space-4) var(--space-3)">
-                <button type="button" class="btn btn-primary btn-sm" onclick="saveRowEdit(<?= $ci ?>)">Save</button>
+                        <td class="col-center">
+                            <button type="button" class="btn-icon cell-view" title="Edit"
+                                    onclick="startRowEdit(<?= $ci ?>)" style="color:var(--text-tertiary)">
+                                <?= icon('ic_fluent_edit_24_regular', 14) ?>
+                            </button>
+                            <form method="POST" id="row-form-<?= $ci ?>" class="row-edit-form">
+                                <?= csrf_field() ?>
+                                <input type="hidden" name="action" value="update_tiers">
+                                <input type="hidden" name="scores[<?= $enc ?>][course]" value="<?= $enc ?>">
+                                <button type="button" class="btn btn-primary btn-sm" onclick="saveRowEdit(<?= $ci ?>)">Save</button>
+                                <button type="button" class="btn-icon" title="Cancel"
+                                        onclick="cancelRowEdit(<?= $ci ?>)" style="color:var(--text-tertiary)">
+                                    <?= icon('ic_fluent_dismiss_24_regular', 14) ?>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+
+            <?php if (!$allCoursesList): ?>
+            <div class="auto-table-empty">
+                <?= icon('ic_fluent_document_24_regular', 32) ?>
+                <div>No courses to show.</div>
+            </div>
+            <?php endif; ?>
+            <div class="auto-table-empty" data-st-empty hidden>
+                <?= icon('ic_fluent_document_24_regular', 32) ?>
+                <div>No courses match your filters.</div>
+            </div>
+            <div class="auto-table-more" data-st-more hidden>
+                <span data-st-count></span>
+                <button type="button" class="btn btn-secondary btn-sm" data-st-more-btn>Show more</button>
             </div>
         </div>
-        <?php endforeach; ?>
     </div>
 
     <?php if ($canManageCourses): /* Dean is scoped to their own college's
               tier thresholds + max-slots only — Custom Courses and the SHS
               Strand reference are out of scope for that role. */ ?>
 
-    <!-- ── Section 4: Custom Courses ───────────────────────────── -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-4)">
-        <div>
-            <div style="font-weight:var(--weight-semibold);font-size:var(--text-base)">Custom Courses</div>
-            <div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:var(--space-1)">
-                Additional programs you've added. They appear in dropdowns and strand-match suggestions.
-            </div>
+    <!-- ── Custom Courses table ─────────────────────────────────── -->
+    <div style="margin-bottom:var(--space-4)">
+        <div style="font-weight:var(--weight-semibold);font-size:var(--text-base)">Custom Courses</div>
+        <div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:var(--space-1)">
+            Additional programs you've added. They appear in dropdowns and strand-match suggestions.
         </div>
-        <?php if ($canManageCourses): ?>
-            <button class="btn btn-primary btn-sm"
+    </div>
+
+    <div class="auto-table-card auto-table-card--scroll" data-scroll-table data-limit="10" data-batch="10">
+
+        <div class="auto-table-toolbar">
+            <div class="auto-table-search">
+                <?= icon('ic_fluent_search_24_filled', 14) ?>
+                <input type="text" class="form-input" data-st-search autocomplete="off"
+                       placeholder="Search custom courses…" aria-label="Search custom courses">
+            </div>
+
+            <select class="form-input" style="width:180px" data-st-filter="status" aria-label="Status">
+                <option value="">All statuses</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+            </select>
+
+            <button type="button" class="btn btn-ghost btn-sm" data-st-clear style="display:none">Clear</button>
+
+            <span class="toolbar-spacer"></span>
+
+            <button type="button" class="btn btn-primary btn-sm"
                     onclick="document.getElementById('add-course-modal').style.display='flex'">
                 + Add Course
             </button>
-        <?php endif; ?>
-    </div>
-    <div class="card" style="padding:var(--space-5);margin-bottom:var(--space-6)">
+        </div>
 
-        <?php if (!$customCourses): ?>
-            <div style="text-align:left;padding:var(--space-8);color:var(--text-tertiary);font-size:var(--text-sm)">
-                No custom courses yet. Click <strong>+ Add Course</strong> to add a new program.
+        <div class="auto-table-body">
+            <table class="auto-table" style="min-width:720px">
+                <thead>
+                    <tr>
+                        <th>Course</th>
+                        <th style="width:300px">Strands</th>
+                        <th style="width:110px">Status</th>
+                        <th class="col-center" style="width:110px"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                <?php foreach ($customCourses as $cc):
+                    $ccStrands = json_decode($cc['strands'] ?? '[]', true) ?: [];
+                ?>
+                    <tr data-st-row
+                        data-search="<?= e(mb_strtolower($cc['course_name'] . ' ' . implode(' ', $ccStrands))) ?>"
+                        data-strand="<?= e(implode('|', $ccStrands)) ?>"
+                        data-status="<?= $cc['is_active'] ? 'active' : 'inactive' ?>">
+                        <td style="font-weight:var(--weight-medium)">
+                            <span class="auto-table-clip" title="<?= e($cc['course_name']) ?>"><?= e($cc['course_name']) ?></span>
+                        </td>
+                        <td class="cell-wrap">
+                            <?php if ($ccStrands): ?>
+                                <?= $strandPills($ccStrands) ?>
+                            <?php else: ?>
+                                <span style="font-size:var(--text-xs);color:var(--text-tertiary)">No strands set</span>
+                            <?php endif; ?>
+                        </td>
+                        <td>
+                            <?php if ($cc['is_active']): ?>
+                                <span class="badge badge-success">Active</span>
+                            <?php else: ?>
+                                <span class="badge badge-neutral">Inactive</span>
+                            <?php endif; ?>
+                        </td>
+                        <td class="col-center">
+                            <div style="display:flex;gap:var(--space-2);align-items:center;justify-content:center">
+                                <button type="button" class="btn-icon" title="Edit"
+                                        onclick="openEditModal(<?= (int)$cc['id'] ?>, <?= e(json_encode($cc['course_name'])) ?>, <?= e(json_encode($ccStrands)) ?>, <?= (int)$cc['is_active'] ?>)"
+                                        style="color:var(--text-tertiary)">
+                                    <?= icon('ic_fluent_edit_24_regular', 14) ?>
+                                </button>
+                                <form method="POST" style="display:inline"
+                                      onsubmit="return confirm('Delete this course? This cannot be undone.')">
+                                    <?= csrf_field() ?>
+                                    <input type="hidden" name="action" value="delete_course">
+                                    <input type="hidden" name="course_id" value="<?= (int)$cc['id'] ?>">
+                                    <button type="submit" class="btn-icon" title="Delete" style="color:var(--error)">
+                                        <?= icon('ic_fluent_delete_24_regular', 14) ?>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+
+            <?php if (!$customCourses): ?>
+            <div class="auto-table-empty">
+                <?= icon('ic_fluent_document_24_regular', 32) ?>
+                <div>No custom courses yet. Click <strong>+ Add Course</strong> to add a new program.</div>
             </div>
-        <?php else: ?>
-        <div style="display:flex;flex-direction:column;gap:var(--space-3)">
-        <?php foreach ($customCourses as $cc):
-            $ccStrands = json_decode($cc['strands'] ?? '[]', true) ?: [];
-        ?>
-        <div style="border:1px solid var(--border);border-radius:var(--radius-md);padding:var(--space-3) var(--space-4);
-                    display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap;
-                    <?= !$cc['is_active'] ? 'opacity:0.55' : '' ?>">
-            <div style="flex:1;min-width:200px">
-                <div style="display:flex;align-items:center;gap:var(--space-2)">
-                    <span style="font-size:var(--text-sm);font-weight:var(--weight-medium)"><?= e($cc['course_name']) ?></span>
-                    <?php if (!$cc['is_active']): ?>
-                        <span style="font-size:var(--text-xs);padding:1px 7px;background:#f3f4f6;color:#6b7280;border-radius:9999px">Inactive</span>
-                    <?php endif; ?>
-                </div>
-                <div style="display:flex;gap:var(--space-1);flex-wrap:wrap;margin-top:var(--space-1)">
-                    <?php foreach ($ccStrands as $s): ?>
-                        <span style="font-size:var(--text-xs);padding:1px 7px;background:var(--bg-subtle);
-                                     border-radius:9999px;color:var(--text-secondary)"><?= e($s) ?></span>
-                    <?php endforeach; ?>
-                    <?php if (!$ccStrands): ?>
-                        <span style="font-size:var(--text-xs);color:var(--text-tertiary)">No strands set</span>
-                    <?php endif; ?>
-                </div>
-            </div>
-            <?php if ($canManageCourses): ?>
-                <div style="display:flex;gap:var(--space-2);align-items:center">
-                    <button class="btn-icon" title="Edit"
-                            onclick="openEditModal(<?= $cc['id'] ?>, <?= e(json_encode($cc['course_name'])) ?>,
-                                     <?= e(json_encode($ccStrands)) ?>, <?= $cc['is_active'] ?>)"
-                            style="color:var(--text-tertiary)">
-                        <?= icon('ic_fluent_edit_24_regular', 14) ?>
-                    </button>
-                    <form method="POST" style="display:inline"
-                          onsubmit="return confirm('Delete this course? This cannot be undone.')">
-                        <?= csrf_field() ?>
-                        <input type="hidden" name="action" value="delete_course">
-                        <input type="hidden" name="course_id" value="<?= $cc['id'] ?>">
-                        <button type="submit" class="btn-icon" title="Delete"
-                                style="color:var(--error)">
-                            <?= icon('ic_fluent_delete_24_regular', 14) ?>
-                        </button>
-                    </form>
-                </div>
             <?php endif; ?>
+            <div class="auto-table-empty" data-st-empty hidden>
+                <?= icon('ic_fluent_document_24_regular', 32) ?>
+                <div>No custom courses match your filters.</div>
+            </div>
+            <div class="auto-table-more" data-st-more hidden>
+                <span data-st-count></span>
+                <button type="button" class="btn btn-secondary btn-sm" data-st-more-btn>Show more</button>
+            </div>
         </div>
-        <?php endforeach; ?>
-        </div>
-        <?php endif; ?>
     </div>
 
-    <!-- ── Section 5: Strand Reference ─────────────────────────── -->
+    <!-- ── SHS Strand Reference table ───────────────────────────── -->
     <div style="font-weight:var(--weight-semibold);font-size:var(--text-base);margin-bottom:var(--space-4)">SHS Strand Reference</div>
-    <div class="card" style="padding:var(--space-5)">
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:var(--space-3)">
-        <?php foreach (SHS_STRANDS as $key => $label): ?>
-            <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-md);
-                        padding:var(--space-3)">
-                <div style="font-size:var(--text-xs);font-weight:var(--weight-semibold);color:var(--text-primary)"><?= e($key) ?></div>
-                <div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:2px"><?= e($label) ?></div>
+
+    <div class="auto-table-card auto-table-card--scroll" data-scroll-table data-limit="10" data-batch="10">
+
+        <div class="auto-table-toolbar">
+            <div class="auto-table-search">
+                <?= icon('ic_fluent_search_24_filled', 14) ?>
+                <input type="text" class="form-input" data-st-search autocomplete="off"
+                       placeholder="Search strands…" aria-label="Search strands">
             </div>
-        <?php endforeach; ?>
+
+            <button type="button" class="btn btn-ghost btn-sm" data-st-clear style="display:none">Clear</button>
+        </div>
+
+        <div class="auto-table-body">
+            <table class="auto-table">
+                <thead>
+                    <tr>
+                        <th style="width:160px">Strand</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <?php foreach (SHS_STRANDS as $key => $label): ?>
+                    <tr data-st-row data-search="<?= e(mb_strtolower($key . ' ' . $label)) ?>">
+                        <td style="font-weight:var(--weight-semibold)"><?= e($key) ?></td>
+                        <td style="color:var(--text-secondary)"><span class="auto-table-clip" title="<?= e($label) ?>"><?= e($label) ?></span></td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+
+            <div class="auto-table-empty" data-st-empty hidden>
+                <?= icon('ic_fluent_document_24_regular', 32) ?>
+                <div>No strands match your search.</div>
+            </div>
+            <div class="auto-table-more" data-st-more hidden>
+                <span data-st-count></span>
+                <button type="button" class="btn btn-secondary btn-sm" data-st-more-btn>Show more</button>
+            </div>
         </div>
     </div>
 
@@ -490,7 +583,7 @@ ob_start();
 <div id="add-course-modal"
      style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;
             align-items:center;justify-content:center;padding:var(--space-4)">
-    <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-6);
+    <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);padding:var(--space-6);
                 max-width:520px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg)">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-5)">
             <div style="font-weight:var(--weight-semibold);font-size:var(--text-lg)">Add Custom Course</div>
@@ -547,7 +640,7 @@ ob_start();
 <div id="edit-course-modal"
      style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;
             align-items:center;justify-content:center;padding:var(--space-4)">
-    <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-6);
+    <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);padding:var(--space-6);
                 max-width:520px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg)">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-5)">
             <div style="font-weight:var(--weight-semibold);font-size:var(--text-lg)">Edit Course</div>
@@ -612,19 +705,38 @@ function openEditModal(id, name, strands, isActive) {
     document.getElementById('edit-course-modal').style.display = 'flex';
 }
 
+// Inline row edit: one <tr> per course. Its inputs are tied to the row's own
+// <form id="row-form-N"> (in the last cell) with the form="" attribute.
+function courseRow(i) { return document.getElementById('course-row-' + i); }
+
+function refreshCourseTable(tr) {
+    var card = tr.closest('[data-scroll-table]');
+    if (card) card.dispatchEvent(new Event('st:refresh'));
+}
+
 function startRowEdit(i) {
-    document.getElementById('row-read-' + i).style.display = 'none';
-    document.getElementById('row-edit-' + i).style.display = 'block';
+    var tr = courseRow(i);
+    if (!tr) return;
+    tr.classList.add('is-editing');
 }
+
 function cancelRowEdit(i) {
-    document.getElementById('row-edit-' + i).style.display = 'none';
-    document.getElementById('row-read-' + i).style.display = 'grid';
+    var tr = courseRow(i);
+    if (!tr) return;
+    tr.classList.remove('is-editing');
+    // Back to the saved values, including the live Low label.
+    tr.querySelectorAll('input[form="row-form-' + i + '"]').forEach(function(inp) {
+        inp.value = inp.defaultValue;
+    });
+    var low = tr.querySelector('.low-label');
+    if (low && low.dataset.orig) low.textContent = low.dataset.orig;
+    refreshCourseTable(tr);
 }
+
 function saveRowEdit(i) {
-    var editDiv = document.getElementById('row-edit-' + i);
-    var form = editDiv.querySelector('form');
-    // Inject cap value as a hidden field alongside the tiers form
-    var capInput = form.querySelector('input[name^="caps["]');
+    var form = document.getElementById('row-form-' + i);
+    if (!form) return;
+    var capInput = document.querySelector('input[form="row-form-' + i + '"][name^="caps["]');
     if (capInput) {
         // Also submit caps via a separate fetch, then submit tiers form
         var capsData = new FormData();
@@ -647,11 +759,11 @@ function saveRowEdit(i) {
         var el = e.target;
         if (!el.classList.contains('tier-high') && !el.classList.contains('tier-avg')) return;
         var rowIdx = el.dataset.row;
-        var editDiv = document.getElementById('row-edit-' + rowIdx);
-        if (!editDiv) return;
-        var highEl = editDiv.querySelector('.tier-high');
-        var avgEl  = editDiv.querySelector('.tier-avg');
-        var lowEl  = editDiv.querySelector('.low-label');
+        var editRow = courseRow(rowIdx);
+        if (!editRow) return;
+        var highEl = editRow.querySelector('.tier-high');
+        var avgEl  = editRow.querySelector('.tier-avg');
+        var lowEl  = editRow.querySelector('.low-label');
         if (!highEl || !avgEl || !lowEl) return;
         var highVal = parseInt(highEl.value, 10) || 7;
         var avgVal  = parseInt(avgEl.value,  10) || 4;
@@ -675,7 +787,12 @@ function saveRowEdit(i) {
 });
 </script>
 <style>
-.course-row:hover { background: var(--bg-overlay); }
+/* Inline row edit: view and edit controls share the cell; the row class picks one. */
+.cell-edit, .row-edit-form { display: none; }
+tr.is-editing .cell-view { display: none; }
+tr.is-editing .cell-edit { display: block; }
+tr.is-editing .row-edit-form { display: flex; align-items: center; justify-content: center; gap: var(--space-2); }
+.auto-table tbody tr.is-editing td { background: var(--bg-subtle); }
 </style>
 <?php
 $content   = ob_get_clean();

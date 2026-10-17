@@ -380,7 +380,7 @@ ob_start();
 .section-header {
     display: flex; align-items: center; gap: var(--space-3);
     padding: var(--space-3) var(--space-4);
-    border-radius: var(--radius-md); margin-bottom: var(--space-2);
+    border-radius: var(--radius); margin-bottom: var(--space-2);
     border: 1.5px solid transparent;
     position: relative;
 }
@@ -391,13 +391,13 @@ ob_start();
 /* ── Inline editing ──────────────────────────────── */
 .inline-edit-wrap { position: relative; display: inline-block; }
 .inline-editable {
-    cursor: pointer; border-radius: var(--radius-sm);
+    cursor: pointer; border-radius: var(--radius);
     transition: background .12s;
 }
 .inline-editable:hover { background: var(--bg-overlay); }
 .inline-edit-input {
     font-family: inherit; font-size: inherit; font-weight: inherit;
-    border: 2px solid var(--accent); border-radius: var(--radius-sm);
+    border: 2px solid var(--accent); border-radius: var(--radius);
     padding: 2px 6px; background: var(--bg-elevated); color: var(--text-primary);
     outline: none; width: 100%; box-sizing: border-box;
 }
@@ -405,28 +405,26 @@ ob_start();
     display: flex; gap: var(--space-1); margin-top: 4px;
 }
 .inline-save-btn {
-    padding: 2px 10px; font-size: var(--text-xs); border-radius: var(--radius-sm);
+    padding: 2px 10px; font-size: var(--text-xs); border-radius: var(--radius);
     background: var(--accent); color: #fff; border: none; cursor: pointer;
     font-weight: var(--weight-medium);
 }
 .inline-cancel-btn {
-    padding: 2px 10px; font-size: var(--text-xs); border-radius: var(--radius-sm);
+    padding: 2px 10px; font-size: var(--text-xs); border-radius: var(--radius);
     background: transparent; color: var(--text-secondary); border: 1px solid var(--border);
     cursor: pointer;
 }
 
 /* ── Type pills ──────────────────────────────────── */
 .type-pill {
-    display: inline-flex; align-items: center; gap: 4px;
-    font-size: var(--text-xs); padding: 2px 8px;
-    background: var(--bg-subtle); border-radius: 99px;
+    background: var(--bg-subtle);
     color: var(--text-secondary);
 }
 .type-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:var(--space-2); }
 .type-option {
     display:flex; flex-direction:column; align-items:center; gap:4px;
     padding: var(--space-3); border: 2px solid var(--border);
-    border-radius: var(--radius-md); cursor: pointer;
+    border-radius: var(--radius); cursor: pointer;
     font-size: var(--text-xs); color: var(--text-secondary);
     text-align: center; transition: border-color .15s, background .15s;
     user-select: none;
@@ -437,16 +435,15 @@ ob_start();
 
 /* ── Points badge ────────────────────────────────── */
 .pts-badge {
-    font-size: var(--text-xs); font-weight: var(--weight-semibold);
-    padding: 2px 8px; background: var(--accent); color: #fff;
-    border-radius: 99px;
+    font-weight: var(--weight-semibold);
+    background: var(--accent); color: #fff;
 }
 
 /* ── Toggle ──────────────────────────────────────── */
 .toggle { position:relative; width:36px; height:20px; }
 .toggle input { opacity:0; width:0; height:0; }
 .toggle-slider {
-    position:absolute; inset:0; border-radius:99px;
+    position:absolute; inset:0; border-radius:var(--radius);
     background:var(--border); cursor:pointer; transition:.2s;
 }
 .toggle-slider:before {
@@ -460,7 +457,7 @@ ob_start();
 .scale-preview { display:flex; gap:var(--space-2); flex-wrap:wrap; }
 .scale-btn {
     width:36px; height:36px; border:2px solid var(--border);
-    border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center;
+    border-radius:var(--radius); display:flex; align-items:center; justify-content:center;
     font-size:var(--text-sm); font-weight:var(--weight-medium);
     background:var(--surface); color:var(--text-primary);
 }
@@ -471,7 +468,7 @@ ob_start();
     box-shadow: var(--shadow-sm);
 }
 .section-block .section-header {
-    border-radius: var(--radius-md) var(--radius-md) 0 0 !important;
+    border-radius: var(--radius) var(--radius) 0 0 !important;
     border-bottom: 1px solid rgba(0,0,0,.06);
 }
 .section-questions { padding: var(--space-4); }
@@ -479,7 +476,7 @@ ob_start();
 /* ── Inline question creator ─────────────────────── */
 .inline-question-creator {
     border: 1.5px solid var(--accent);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius);
     background: var(--bg-elevated);
     overflow: hidden;
     animation: creator-slide-in .15s ease;
@@ -490,7 +487,6 @@ ob_start();
 }
 .iq-body { padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); }
 .iq-footer { padding: var(--space-3) var(--space-4); border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--bg); }
-.iq-type-badge { display: inline-flex; align-items: center; gap: 5px; font-size: var(--text-xs); padding: 3px 10px; border-radius: 99px; font-weight: var(--weight-medium); }
 .iq-choice-row { display: flex; align-items: center; gap: 8px; }
 .iq-choice-row input[type=text] { flex: 1; }
 .iq-add-choice { font-size: var(--text-xs); color: var(--accent); background: none; border: none; cursor: pointer; padding: 4px 0; display: flex; align-items: center; gap: 4px; }
@@ -499,133 +495,14 @@ ob_start();
 .exam-meta-strip {
     display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-5);
     padding: var(--space-3) var(--space-4);
-    background: var(--bg-subtle); border-radius: var(--radius-md);
+    background: var(--bg-subtle); border-radius: var(--radius);
     font-size: var(--text-xs); color: var(--text-secondary);
     margin-top: var(--space-3);
 }
 .exam-meta-item { display: flex; align-items: center; gap: 5px; }
 .exam-meta-item svg, .exam-meta-item i { flex-shrink: 0; color: var(--text-tertiary); }
 
-/* ── LANDING PAGE ────────────────────────────────── */
-.exam-landing-wrap {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: calc(100vh - 200px);
-    padding-bottom: var(--space-16);
-}
-.exam-landing-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-6);
-    width: 100%;
-    max-width: 640px;
-}
-.exam-landing-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: var(--space-4);
-    padding: var(--space-10) var(--space-6);
-    background: var(--bg-elevated);
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius-lg);
-    text-decoration: none;
-    color: var(--text-primary);
-    transition: border-color .18s, box-shadow .18s, transform .15s;
-    cursor: pointer;
-}
-.exam-landing-card:hover {
-    border-color: var(--accent);
-    box-shadow: 0 8px 24px rgba(0,0,0,.08);
-    transform: translateY(-4px);
-}
-.exam-landing-icon {
-    width: 60px; height: 60px;
-    border-radius: var(--radius-lg);
-    background: var(--accent-muted);
-    display: flex; align-items: center; justify-content: center;
-    color: var(--accent);
-    flex-shrink: 0;
-}
-.exam-landing-title {
-    font-size: var(--text-lg);
-    font-weight: var(--weight-semibold);
-    color: var(--text-primary);
-    letter-spacing: -0.2px;
-    margin-top: var(--space-1);
-}
-.exam-landing-desc {
-    font-size: var(--text-sm);
-    color: var(--text-secondary);
-    line-height: 1.55;
-    margin-top: var(--space-1);
-}
-.exam-landing-meta {
-    font-size: var(--text-xs);
-    color: var(--text-tertiary);
-    display: flex; align-items: center; gap: var(--space-2);
-    justify-content: center;
-    flex-wrap: wrap;
-    margin-top: var(--space-2);
-}
-.exam-landing-card--disabled {
-    opacity: 0.45;
-    pointer-events: none;
-    cursor: not-allowed;
-}
-
-/* ── EXAM DIRECTORY ──────────────────────────────── */
-.exam-dir-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: var(--space-4);
-    margin-top: var(--space-5);
-}
-.exam-dir-card {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-    padding: var(--space-5);
-    background: var(--bg-elevated);
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius-lg);
-    text-decoration: none;
-    color: var(--text-primary);
-    transition: border-color .15s, box-shadow .15s;
-    position: relative;
-}
-.exam-dir-card:hover {
-    border-color: var(--accent);
-    box-shadow: var(--shadow-sm);
-}
-.exam-dir-card.is-active {
-    border-color: var(--accent);
-    background: var(--accent-muted);
-}
-.exam-dir-title {
-    font-size: var(--text-base);
-    font-weight: var(--weight-semibold);
-    color: var(--text-primary);
-    line-height: 1.35;
-}
-.exam-dir-meta {
-    display: flex; flex-direction: column; gap: 4px;
-    font-size: var(--text-xs); color: var(--text-tertiary);
-}
-.exam-dir-meta-row {
-    display: flex; align-items: center; gap: 5px;
-}
-.exam-dir-footer {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-top: auto; padding-top: var(--space-3);
-    border-top: 1px solid var(--border);
-}
-
-@media (max-width: 640px) {
-    .exam-landing-grid { grid-template-columns: 1fr; max-width: 320px; }
-}
+/* Landing and directory cards use the shared selector-card layout (app.css). */
 </style>
 
 <?php foreach ($errors as $e): ?>
@@ -650,49 +527,39 @@ elseif ($selectedExamId) $view = 'editor';
 ════════════════════════════════════════════════════ */ ?>
 <?php if ($view === 'landing'): ?>
 
-<div class="exam-landing-wrap">
-<div class="exam-landing-grid">
+<div class="select-grid">
 
-    <!-- Exam Builder (left) — always enabled -->
-    <a href="<?= url('/staff/exam') ?>?view=exams" class="exam-landing-card">
-        <div class="exam-landing-icon">
-            <?= icon('file-text:fill', 28) ?>
-        </div>
-        <div class="exam-landing-title">Exam Builder</div>
-        <div class="exam-landing-desc">
-            Create exams, set questions, and manage schedules.
-        </div>
-        <div class="exam-landing-meta">
-            <?= icon('calendar-check', 13) ?>
-            <?= count($exams) ?> exam<?= count($exams) !== 1 ? 's' : '' ?> created
-            <?php if ($activeExam): ?>
-                &nbsp;&middot;&nbsp;
-                <span style="color:var(--success);font-weight:var(--weight-medium)"><?= e($activeExam['title']) ?> is active</span>
-            <?php endif; ?>
+    <!-- Exam Builder — always enabled -->
+    <a href="<?= url('/staff/exam') ?>?view=exams" class="select-card">
+        <div class="select-card-title">Exam Builder</div>
+        <div class="select-card-desc">Create exams, set questions, and manage schedules.</div>
+        <div class="select-card-meta">
+            <div class="select-card-meta-row">
+                <?= count($exams) ?> exam<?= count($exams) !== 1 ? 's' : '' ?> created
+                <?php if ($activeExam): ?>
+                    &nbsp;&middot;&nbsp;
+                    <span style="color:var(--success);font-weight:var(--weight-medium)"><?= e($activeExam['title']) ?> is active</span>
+                <?php endif; ?>
+            </div>
         </div>
     </a>
 
-    <!-- Room Slots (right) — disabled if no exams set up yet -->
+    <!-- Room Slots — disabled if no exams set up yet -->
     <?php if (!empty($exams)): ?>
-    <a href="<?= url('/staff/exam/slots') ?>" class="exam-landing-card">
+    <a href="<?= url('/staff/exam/slots') ?>" class="select-card">
     <?php else: ?>
-    <div class="exam-landing-card exam-landing-card--disabled" title="Create an exam first before setting up room slots">
+    <div class="select-card is-disabled" title="Create an exam first before setting up room slots">
     <?php endif; ?>
-        <div class="exam-landing-icon">
-            <?= icon('squares-four:fill', 28) ?>
-        </div>
-        <div class="exam-landing-title">Room Slots</div>
-        <div class="exam-landing-desc">
-            Assign rooms, manage seating, and organize exam-day logistics.
-        </div>
-        <div class="exam-landing-meta">
-            <?php if (empty($exams)): ?>
-                <?= icon('warning-circle:fill', 13) ?>
-                Create an exam first
-            <?php else: ?>
-                <?= icon('calendar-check', 13) ?>
-                <?= $slotCount ?> slot<?= $slotCount !== 1 ? 's' : '' ?> configured
-            <?php endif; ?>
+        <div class="select-card-title">Room Slots</div>
+        <div class="select-card-desc">Assign rooms, manage seating, and organize exam-day logistics.</div>
+        <div class="select-card-meta">
+            <div class="select-card-meta-row">
+                <?php if (empty($exams)): ?>
+                    Create an exam first
+                <?php else: ?>
+                    <?= $slotCount ?> slot<?= $slotCount !== 1 ? 's' : '' ?> configured
+                <?php endif; ?>
+            </div>
         </div>
     <?php if (!empty($exams)): ?>
     </a>
@@ -700,7 +567,6 @@ elseif ($selectedExamId) $view = 'editor';
     </div>
     <?php endif; ?>
 
-</div>
 </div>
 
 <?php /* ════════════════════════════════════════════════════
@@ -708,89 +574,43 @@ elseif ($selectedExamId) $view = 'editor';
 ════════════════════════════════════════════════════ */ ?>
 <?php elseif ($view === 'exams'): ?>
 
-<!-- Directory header -->
-<div style="margin-bottom:var(--space-5)">
-    <a href="<?= url('/staff/exam') ?>" class="btn btn-ghost btn-sm" style="display:inline-flex;align-items:center;gap:5px">
-        <?= icon('ic_fluent_arrow_left_24_regular', 15) ?>
-        Back
-    </a>
+<div class="select-grid exam-dir-grid">
+    <?php foreach ($exams as $ex):
+        $qCount = $examMeta[$ex['id']]['question_count'] ?? 0;
+        $isActive = (bool)$ex['is_active'];
+    ?>
+        <a href="<?= url('/staff/exam') ?>?exam=<?= $ex['id'] ?>" class="select-card exam-dir-card <?= $isActive ? 'is-active' : '' ?>">
+            <?php if ($isActive): ?>
+                <div class="select-card-badge"><span class="badge badge-success">Active</span></div>
+            <?php endif; ?>
+            <div class="select-card-title"><?= e($ex['title']) ?></div>
+            <div class="select-card-meta">
+                <div class="select-card-meta-row">
+                    <?= $qCount ?> question<?= $qCount !== 1 ? 's' : '' ?>
+                </div>
+            </div>
+            <div class="select-card-footer">
+                <span>Created <?= e(format_date($ex['created_at'] ?? null, 'M j, Y')) ?></span>
+                <span class="select-card-action">
+                    Edit
+                </span>
+            </div>
+        </a>
+    <?php endforeach; ?>
+
+    <!-- New Exam card (always last in grid) -->
+    <div class="select-card select-card--add exam-dir-card" onclick="openModal('create-exam-modal')"
+         role="button" tabindex="0"
+         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+        <div class="select-card-title"><?= empty($exams) ? 'Create Your First Exam' : 'New Exam' ?></div>
+        <div class="select-card-desc"><?= empty($exams) ? 'Get started by creating an entrance exam.' : 'Build a new entrance exam' ?></div>
+    </div>
 </div>
-
-<?php if (empty($exams)): ?>
-    <div class="exam-dir-grid" style="max-width:320px;margin:var(--space-10) auto 0">
-        <div class="exam-dir-card" onclick="openModal('create-exam-modal')"
-             style="align-items:center;justify-content:center;min-height:220px;border-style:dashed;cursor:pointer">
-            <div style="width:56px;height:56px;border-radius:50%;background:var(--accent-muted);
-                        display:flex;align-items:center;justify-content:center;color:var(--accent)">
-                <?= icon('plus:fill', 28) ?>
-            </div>
-            <div style="font-size:var(--text-base);font-weight:var(--weight-semibold);color:var(--accent);margin-top:var(--space-2)">Create Your First Exam</div>
-            <div style="font-size:var(--text-sm);color:var(--text-tertiary);margin-top:var(--space-1)">Get started by creating an entrance exam.</div>
-        </div>
-    </div>
-<?php else: ?>
-    <div class="exam-dir-grid">
-        <?php foreach ($exams as $ex):
-            $qCount = $examMeta[$ex['id']]['question_count'] ?? 0;
-            $isActive = (bool)$ex['is_active'];
-        ?>
-            <a href="<?= url('/staff/exam') ?>?exam=<?= $ex['id'] ?>" class="exam-dir-card <?= $isActive ? 'is-active' : '' ?>">
-
-                <!-- Active badge -->
-                <?php if ($isActive): ?>
-                    <div style="position:absolute;top:var(--space-4);right:var(--space-4)">
-                        <span class="badge badge-success" style="font-size:10px">Active</span>
-                    </div>
-                <?php endif; ?>
-
-                <!-- Title -->
-                <div class="exam-dir-title"><?= e($ex['title']) ?></div>
-
-                <!-- Meta info -->
-                <div class="exam-dir-meta">
-                    <div class="exam-dir-meta-row">
-                        <?= icon('calendar-check', 12) ?>
-                        <?= $qCount ?> question<?= $qCount !== 1 ? 's' : '' ?>
-                    </div>
-                </div>
-
-                <!-- Footer -->
-                <div class="exam-dir-footer">
-                    <span style="font-size:var(--text-xs);color:var(--text-tertiary)">
-                        Created <?= e(format_date($ex['created_at'] ?? null, 'M j, Y')) ?>
-                    </span>
-                    <span style="font-size:var(--text-xs);font-weight:var(--weight-medium);color:var(--accent);display:flex;align-items:center;gap:4px">
-                        Edit
-                        <?= icon('arrow-right', 12) ?>
-                    </span>
-                </div>
-            </a>
-        <?php endforeach; ?>
-
-        <!-- New Exam card (always last in grid) -->
-        <div class="exam-dir-card" onclick="openModal('create-exam-modal')"
-             style="align-items:center;justify-content:center;min-height:200px;border-style:dashed;cursor:pointer">
-            <div style="width:48px;height:48px;border-radius:50%;background:var(--accent-muted);
-                        display:flex;align-items:center;justify-content:center;color:var(--accent)">
-                <?= icon('plus:fill', 24) ?>
-            </div>
-            <div style="font-size:var(--text-sm);font-weight:var(--weight-medium);color:var(--accent);margin-top:var(--space-2)">New Exam</div>
-        </div>
-    </div>
-<?php endif; ?>
 
 <?php /* ════════════════════════════════════════════════════
    EXAM EDITOR — full question builder for a selected exam
 ════════════════════════════════════════════════════ */ ?>
 <?php else: ?>
-
-<!-- Back -->
-<div style="margin-bottom:var(--space-5)">
-    <a href="<?= url('/staff/exam') ?>?view=exams" class="btn btn-ghost btn-sm" style="display:inline-flex;align-items:center;gap:5px">
-        <?= icon('ic_fluent_arrow_left_24_regular', 15) ?>
-        Back
-    </a>
-</div>
 
 <?php if ($selectedExam): ?>
 
@@ -804,7 +624,7 @@ elseif ($selectedExamId) $view = 'editor';
                 color: inherit;
                 background: transparent;
                 border: 1px solid transparent;
-                border-radius: var(--radius-sm);
+                border-radius: var(--radius);
                 padding: 4px 8px;
                 margin: 0 -8px;
                 box-sizing: border-box;
@@ -957,7 +777,7 @@ elseif ($selectedExamId) $view = 'editor';
                                         <?php if ($isCorrect): ?>
                                             <?= icon('ic_fluent_checkmark_24_regular', 13, 'color:var(--success);flex-shrink:0') ?>
                                         <?php elseif ($q['question_type'] === 'checkboxes'): ?>
-                                            <span style="width:13px;height:13px;border:1.5px solid var(--border);border-radius:3px;display:inline-block;flex-shrink:0"></span>
+                                            <span style="width:13px;height:13px;border:1.5px solid var(--border);border-radius:var(--radius);display:inline-block;flex-shrink:0"></span>
                                         <?php else: ?>
                                             <span style="width:13px;height:13px;border:1.5px solid var(--border);border-radius:50%;display:inline-block;flex-shrink:0"></span>
                                         <?php endif; ?>
@@ -1013,7 +833,7 @@ elseif ($selectedExamId) $view = 'editor';
                 $secJson   = htmlspecialchars(json_encode($sec));
             ?>
                 <div class="card section-block" style="margin-bottom:var(--space-5);padding:0;overflow:visible" data-section-id="<?= $sec['id'] ?>">
-                    <div class="section-header" style="background:<?= $sc['bg'] ?>;border-color:<?= $sc['border'] ?>;border-radius:var(--radius-md) var(--radius-md) 0 0;margin-bottom:0;align-items:flex-start">
+                    <div class="section-header" style="background:<?= $sc['bg'] ?>;border-color:<?= $sc['border'] ?>;border-radius:var(--radius) var(--radius) 0 0;margin-bottom:0;align-items:flex-start">
                         <?php /* Stack title row + description vertically inside one flex
                                  cell so a long description wraps below the title instead
                                  of getting laid out alongside it (which used to push the
@@ -1061,7 +881,7 @@ elseif ($selectedExamId) $view = 'editor';
 
                     <div class="section-questions" id="sec-questions-<?= $sec['id'] ?>" style="display:flex;flex-direction:column;padding:0">
                         <?php if (empty($secQs)): ?>
-                            <div id="sec-empty-<?= $sec['id'] ?>" style="padding:var(--space-4) var(--space-5);border:1.5px dashed var(--border);border-radius:var(--radius-md);text-align:center;color:var(--text-tertiary);font-size:var(--text-sm)">
+                            <div id="sec-empty-<?= $sec['id'] ?>" style="padding:var(--space-4) var(--space-5);border:1.5px dashed var(--border);border-radius:var(--radius);text-align:center;color:var(--text-tertiary);font-size:var(--text-sm)">
                                 No questions yet — click <strong>Add question</strong> below to get started.
                             </div>
                         <?php else: ?>
@@ -1099,7 +919,6 @@ elseif ($selectedExamId) $view = 'editor';
 
 <?php else: ?>
     <div class="card" style="padding:var(--space-16);text-align:left;color:var(--text-tertiary)">
-        <div style="font-size:var(--text-2xl);margin-bottom:var(--space-3)">📋</div>
         <p style="font-size:var(--text-sm)">Select an exam from the directory or create a new one.</p>
         <div style="margin-top:var(--space-4)">
             <a href="<?= url('/staff/exam') ?>?view=exams" class="btn btn-primary btn-sm">Go to Exam Builder</a>
@@ -1126,7 +945,7 @@ elseif ($selectedExamId) $view = 'editor';
             <input type="hidden" name="action" value="create_exam">
             <div class="modal-body" style="display:flex;flex-direction:column;gap:var(--space-4)">
                 <div style="font-size:var(--text-sm);color:var(--text-secondary);background:var(--bg-subtle);
-                            padding:var(--space-3) var(--space-4);border-radius:var(--radius-md)">
+                            padding:var(--space-3) var(--space-4);border-radius:var(--radius)">
                     Title will be set automatically:
                     <strong>PLP Admissions Test (<?= e($schoolYear) ?>)</strong>
                     <div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:2px">
@@ -1178,7 +997,7 @@ elseif ($selectedExamId) $view = 'editor';
             <input type="hidden" name="exam_id" id="edit-exam-id">
             <div class="modal-body" style="display:flex;flex-direction:column;gap:var(--space-4)">
                 <div style="font-size:var(--text-sm);color:var(--text-secondary);background:var(--bg-subtle);
-                            padding:var(--space-3) var(--space-4);border-radius:var(--radius-md)">
+                            padding:var(--space-3) var(--space-4);border-radius:var(--radius)">
                     Title is set automatically:
                     <strong>PLP Admissions Test (<?= e($schoolYear) ?>)</strong>
                     <div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:2px">
@@ -1950,24 +1769,24 @@ function togglePassingPanel() {
 <style>
 @keyframes ai-spin { to { transform: rotate(360deg); } }
 @keyframes ai-pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-.ai-status-bar { display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--radius-md);font-size:var(--text-sm);border:1px solid; }
+.ai-status-bar { display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--radius);font-size:var(--text-sm);border:1px solid; }
 .ai-status-bar.connected { background:#f0faf4;border-color:#a7d9b8;color:#1a5c32; }
 .ai-status-bar.disconnected { background:#fafafa;border-color:var(--border);color:var(--text-secondary); }
 .ai-status-dot { width:8px;height:8px;border-radius:50%;flex-shrink:0; }
 .ai-status-bar.connected .ai-status-dot { background:#22c55e; }
 .ai-status-bar.disconnected .ai-status-dot { background:var(--neutral-400);animation:ai-pulse 2s ease-in-out infinite; }
-.ai-dropzone { border:2px dashed var(--border);border-radius:var(--radius-md);padding:var(--space-6) var(--space-5);text-align:center;cursor:pointer;transition:border-color .15s,background .15s; }
+.ai-dropzone { border:2px dashed var(--border);border-radius:var(--radius);padding:var(--space-6) var(--space-5);text-align:center;cursor:pointer;transition:border-color .15s,background .15s; }
 .ai-dropzone:hover,.ai-dropzone.dragover { border-color:var(--accent);background:rgba(45,106,79,.03); }
 .ai-dropzone.has-file { border-style:solid;border-color:var(--accent);background:rgba(45,106,79,.04); }
-.ai-dropzone-icon { width:40px;height:40px;margin:0 auto var(--space-2);border-radius:var(--radius-md);background:var(--neutral-100);display:flex;align-items:center;justify-content:center; }
-.ai-file-tag { display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:#fff;border-radius:var(--radius-sm);padding:4px 10px;font-size:var(--text-xs);font-weight:var(--weight-medium);margin-top:var(--space-2); }
+.ai-dropzone-icon { width:40px;height:40px;margin:0 auto var(--space-2);border-radius:var(--radius);background:var(--neutral-100);display:flex;align-items:center;justify-content:center; }
+.ai-file-tag { display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:#fff;border-radius:var(--radius);padding:4px 10px;font-size:var(--text-xs);font-weight:var(--weight-medium);margin-top:var(--space-2); }
 .ai-file-tag .rm { cursor:pointer;opacity:.7;background:none;border:none;color:#fff;padding:0;font-size:14px;display:flex;align-items:center;line-height:1; }
 .ai-file-tag .rm:hover { opacity:1; }
 .ai-progress-wrap { padding: var(--space-2) 0; }
-.ai-progress-track { height:5px;background:var(--border);border-radius:99px;overflow:hidden;margin-bottom:var(--space-3); }
-.ai-progress-fill { height:100%;background:var(--accent);border-radius:99px;width:0%;transition:width .4s cubic-bezier(.4,0,.2,1); }
+.ai-progress-track { height:5px;background:var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:var(--space-3); }
+.ai-progress-fill { height:100%;background:var(--accent);border-radius:var(--radius);width:0%;transition:width .4s cubic-bezier(.4,0,.2,1); }
 .ai-progress-step { font-size:var(--text-xs);color:var(--text-tertiary);margin-top:2px; }
-.ai-q-card { border:1px solid #e5e7eb;border-radius:var(--radius-md);overflow:hidden;background:#fff;flex-shrink:0; }
+.ai-q-card { border:1px solid #e5e7eb;border-radius:var(--radius);overflow:hidden;background:#fff;flex-shrink:0; }
 .ai-q-card-head { display:flex;align-items:center;gap:8px;padding:9px 14px;background:#f9fafb;font-size:var(--text-xs);color:#6b7280; }
 .ai-q-card-body { padding:12px 14px;background:#fff; }
 .ai-q-text { font-size:var(--text-sm);font-weight:var(--weight-medium);color:#111827;margin-bottom:8px;line-height:1.45; }
@@ -1975,7 +1794,7 @@ function togglePassingPanel() {
 .ai-choice-row.correct { color:#16a34a;font-weight:var(--weight-medium); }
 .ai-choice-ind { width:14px;height:14px;border-radius:50%;flex-shrink:0;border:1.5px solid var(--border); }
 .ai-choice-row.correct .ai-choice-ind { background:#16a34a;border-color:#16a34a;display:flex;align-items:center;justify-content:center; }
-.ai-warn-strip { display:flex;align-items:flex-start;gap:8px;background:#fffbeb;border:1px solid #fcd34d;border-radius:var(--radius-md);padding:10px 12px;font-size:var(--text-xs);color:#92400e;line-height:1.5; }
+.ai-warn-strip { display:flex;align-items:flex-start;gap:8px;background:#fffbeb;border:1px solid #fcd34d;border-radius:var(--radius);padding:10px 12px;font-size:var(--text-xs);color:#92400e;line-height:1.5; }
 </style>
 
 <div id="ai-import-modal" class="modal-backdrop" style="display:none">
@@ -1983,7 +1802,7 @@ function togglePassingPanel() {
         <?= csrf_field() ?>
         <div class="modal-header" style="padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--border)">
             <div style="display:flex;align-items:center;gap:var(--space-3)">
-                <div style="width:34px;height:34px;border-radius:var(--radius-md);background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <div style="width:34px;height:34px;border-radius:var(--radius);background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0">
                     <?= icon('sparkle', 17, 'color:#fff') ?>
                 </div>
                 <div>
@@ -1999,8 +1818,8 @@ function togglePassingPanel() {
             <div id="ai-puter-status" class="ai-status-bar disconnected">
                 <div class="ai-status-dot"></div>
                 <div id="ai-puter-status-text" style="flex:1">Checking Puter connection…</div>
-                <a id="ai-puter-link" href="https://puter.com" target="_blank" style="display:none;font-size:var(--text-xs);font-weight:var(--weight-medium);color:var(--accent);text-decoration:none;white-space:nowrap">Create account →</a>
-                <button id="ai-puter-signin-btn" onclick="puterSignIn()" style="display:none;font-size:var(--text-xs);font-weight:var(--weight-medium);color:var(--accent);background:none;border:none;cursor:pointer;padding:0;white-space:nowrap">Sign in →</button>
+                <a id="ai-puter-link" href="https://puter.com" target="_blank" style="display:none;font-size:var(--text-xs);font-weight:var(--weight-medium);color:var(--accent);text-decoration:none;white-space:nowrap">Create account <?= icon('ic_fluent_arrow_right_24_regular', 14) ?></a>
+                <button id="ai-puter-signin-btn" onclick="puterSignIn()" style="display:none;font-size:var(--text-xs);font-weight:var(--weight-medium);color:var(--accent);background:none;border:none;cursor:pointer;padding:0;white-space:nowrap">Sign in <?= icon('ic_fluent_arrow_right_24_regular', 14) ?></button>
                 <button id="ai-puter-signout-btn" onclick="puterSignOut()" style="display:none;font-size:var(--text-xs);color:var(--text-tertiary);background:none;border:none;cursor:pointer;padding:0">Sign out</button>
             </div>
             <div id="ai-step-upload">
@@ -2036,7 +1855,7 @@ function togglePassingPanel() {
             <div id="ai-step-preview" style="display:none;flex-direction:column;gap:var(--space-3)">
                 <div style="display:flex;align-items:center;justify-content:space-between">
                     <div style="font-size:var(--text-sm);font-weight:var(--weight-semibold)" id="ai-preview-count"></div>
-                    <button class="btn btn-ghost btn-sm" onclick="resetAiImport()">← Try again</button>
+                    <button class="btn btn-ghost btn-sm" onclick="resetAiImport()"><?= icon('ic_fluent_arrow_left_24_regular', 16) ?> Try again</button>
                 </div>
                 <div class="ai-warn-strip">
                     <?= icon('warning:fill', 14, 'margin-top:1px;color:#d97706') ?>
@@ -2045,11 +1864,11 @@ function togglePassingPanel() {
                 <div id="ai-questions-preview" style="display:flex;flex-direction:column;gap:var(--space-2);max-height:320px;overflow-y:auto"></div>
             </div>
             <div id="ai-step-error" style="display:none;flex-direction:column;gap:var(--space-3)">
-                <div style="display:flex;align-items:flex-start;gap:10px;background:#fef2f2;border:1px solid #fca5a5;border-radius:var(--radius-md);padding:12px 14px;font-size:var(--text-sm);color:#991b1b">
+                <div style="display:flex;align-items:flex-start;gap:10px;background:#fef2f2;border:1px solid #fca5a5;border-radius:var(--radius);padding:12px 14px;font-size:var(--text-sm);color:#991b1b">
                     <?= icon('warning-circle:fill', 16, 'margin-top:1px') ?>
                     <span id="ai-error-msg"></span>
                 </div>
-                <button class="btn btn-ghost btn-sm" style="align-self:flex-start" onclick="resetAiImport()">← Try again</button>
+                <button class="btn btn-ghost btn-sm" style="align-self:flex-start" onclick="resetAiImport()"><?= icon('ic_fluent_arrow_left_24_regular', 16) ?> Try again</button>
             </div>
         </div>
         <div class="modal-footer" id="ai-modal-footer" style="border-top:1px solid var(--border)">
@@ -2597,7 +2416,7 @@ function renderAiPreview(sections) {
         const sc=AI_SECTION_COLORS[sec.section_type]||AI_SECTION_COLORS['multiple_choice'];
         // Section header
         const secHead=document.createElement('div');
-        secHead.style.cssText=`background:${sc.bg};border:1.5px solid ${sc.border};border-radius:8px;padding:8px 12px;margin-top:8px`;
+        secHead.style.cssText=`background:${sc.bg};border:1.5px solid ${sc.border};border-radius:var(--radius);padding:8px 12px;margin-top:8px`;
         let secDesc = sec.section_description ? `<div style="font-size:11px;color:${sc.text};opacity:.75;margin-top:2px">${escHtml(sec.section_description)}</div>` : '';
         secHead.innerHTML=`<div style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;font-weight:600;color:${sc.text}">${escHtml(sec.section_title)}</span><span style="font-size:11px;color:${sc.text};opacity:.7;margin-left:auto">${sec.section_type.replace(/_/g,' ')} · ${sec.questions.length} question${sec.questions.length!==1?'s':''}</span></div>${secDesc}`;
         wrap.appendChild(secHead);
@@ -2613,14 +2432,14 @@ function renderAiPreview(sections) {
                     const dot=ok
                         ? `<span style="width:14px;height:14px;border-radius:50%;background:#15803d;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center"><i class="ph-bold ph-check" aria-hidden="true" style="font-size:8px;color:#fff"></i></span>`
                         : `<span style="width:14px;height:14px;border-radius:50%;border:1.5px solid #d1d5db;flex-shrink:0;display:inline-block"></span>`;
-                    return`<div style="display:flex;align-items:center;gap:7px;padding:2px 0;font-size:13px;color:${ok?'#15803d':'#374151'};${ok?'font-weight:500':''}">${dot}${escHtml(c)}</div>`;
+                    return`<div style="display:flex;align-items:center;gap:8px;padding:var(--space-1) 0;font-size:var(--text-sm);color:${ok?'#15803d':'#374151'};${ok?'font-weight:600':''}">${dot}${escHtml(c)}</div>`;
                 }).join('')+'</div>';
             } else if(q.question_type==='short_answer'){
                 choices=`<div style="margin-top:6px;font-size:12px;color:#6b7280">${q.correct_answer?'Expected: <strong style=\'color:#111827\'">'+escHtml(q.correct_answer)+'</strong>':'Short answer — reviewed manually'}</div>`;
             } else {
                 choices=`<div style="margin-top:6px;font-size:12px;color:#6b7280">Paragraph — reviewed manually</div>`;
             }
-            card.innerHTML=`<div class="ai-q-card-head"><span style="background:#2d6a4f;color:#fff;border-radius:4px;padding:1px 7px;font-weight:600;font-size:11px">Q${globalQ}</span><span style="font-size:11px;color:#6b7280">${q.question_type.replace(/_/g,' ')}</span><span style="margin-left:auto;font-size:11px;color:#6b7280">${q.points} pt${q.points!==1?'s':''}</span></div><div class="ai-q-card-body"><div class="ai-q-text">${escHtml(q.question_text)}</div>${choices}</div>`;
+            card.innerHTML=`<div class="ai-q-card-head"><span style="background:#2d6a4f;color:#fff;border-radius:var(--radius);padding:1px 7px;font-weight:600;font-size:11px">Q${globalQ}</span><span style="font-size:11px;color:#6b7280">${q.question_type.replace(/_/g,' ')}</span><span style="margin-left:auto;font-size:11px;color:#6b7280">${q.points} pt${q.points!==1?'s':''}</span></div><div class="ai-q-card-body"><div class="ai-q-text">${escHtml(q.question_text)}</div>${choices}</div>`;
             wrap.appendChild(card);
         });
     });
@@ -2685,5 +2504,18 @@ async function saveAiQuestions(){
 <?php
 $content   = ob_get_clean();
 $pageTitle = 'Entrance Exam';
+// Entrance Exam > Exams > Exam Editor (replaces the old back-arrow buttons).
+$pageBreadcrumb = [];
+if ($view === 'exams') {
+    $pageHeading    = 'Exams';
+    $pageBreadcrumb = [['label' => 'Entrance Exam', 'to' => '/staff/exam']];
+} elseif ($view === 'editor') {
+    $pageHeading    = 'Exam Editor';
+    $pageBreadcrumb = [
+        ['label' => 'Entrance Exam', 'to' => '/staff/exam'],
+        ['label' => 'Exams',         'to' => '/staff/exam?view=exams'],
+    ];
+}
 $activeNav = 'exam';
+$pageWide  = ($view !== 'editor'); // picker views share the wide container
 include VIEWS_PATH . '/layouts/app.php';

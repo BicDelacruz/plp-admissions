@@ -16,6 +16,32 @@ $activeNav    = $activeNav ?? '';
 $showStepper  = $showStepper ?? false;
 $pageWide     = $pageWide ?? false;
 $isStudent    = ($userRole === 'student');
+// Embedded in the settings modal's iframe: draw the page content only.
+$isEmbed      = is_embed();
+$embedSection = preg_replace('/[^a-z_-]/', '', strtolower((string)($_GET['section'] ?? '')));
+// True when the page already draws its own heading (an <h1> or .page-title).
+$hasPageHeading = !empty($content) && preg_match('/<h1\b|class=["\'][^"\']*\bpage-title\b/i', $content);
+
+// Page heading. Title only, no subtitle.
+//   $pageHeading = 'Text'  -> override the heading text (defaults to $pageTitle)
+//   $pageHeading = false   -> no heading for this page
+//   $pageActions = '<html>' -> buttons shown at the top right of the heading row
+//   data-page-action / data-page-actions in the page body are also moved up there.
+// Pages that already draw their own heading / .page-header are left alone.
+// Staff / admin pages get the .page-head row; students get the simpler
+// .page-header-generated row (same $pageActions slot).
+$pageHeading    = $pageHeading ?? $pageTitle;
+$pageActions    = $pageActions ?? '';
+// Breadcrumb ancestors ("Previous Page > Current Page"), rendered by the
+// shared views/partials/page_header.php. Pages only set $pageBreadcrumb.
+$pageBreadcrumb = $pageBreadcrumb ?? [];
+require_once __DIR__ . '/../partials/page_header.php';
+$showPageHead   = !$isStudent
+    && $pageHeading !== false
+    && !$hasPageHeading
+    && !str_contains((string)($content ?? ''), 'class="page-header"');
+$showStudentHead = $isStudent && $pageHeading !== false && !$hasPageHeading;
+if ($isEmbed) { $showPageHead = false; $showStudentHead = false; }
 
 // Sidebar (staff / admin / SSO / dean / proctor), ported from lakbay-pasig's
 // SidebarProvider. Lakbay keeps the desktop open/closed state in a cookie so
@@ -40,7 +66,7 @@ $sidebarHome = match ($userRole) {
 // returned at runtime. A strict allow-list breaks every time Puter changes
 // infra. (The old documents AI Validate feature has been removed; Puter is
 // only used by the exam builder now.)
-header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://js.puter.com; worker-src 'self' blob: https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob: https:; frame-src https://*.puter.com; connect-src 'self' https: blob: data:;");
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://js.puter.com; worker-src 'self' blob: https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob: https:; frame-src 'self' https://*.puter.com; connect-src 'self' https: blob: data:;");
 header("X-Content-Type-Options: nosniff");
 header("X-Frame-Options: SAMEORIGIN");
 header("Referrer-Policy: strict-origin-when-cross-origin");
@@ -56,16 +82,16 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
     <!-- Preconnect for Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap">
 
     <?= phosphor_head() ?>
 
-    <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
-
-    <?php if ($schoolLogo): ?>
-    <link rel="preload" as="image" href="<?= str_starts_with($schoolLogo, 'http') ? e($schoolLogo) : e(url('/' . $schoolLogo)) ?>">
-    <?php endif; ?>
-
-    <!-- Inject accent color from DB before paint -->
+    <!-- Critical canvas colour: applies before app.css arrives so page switches never flash -->
+    <style>
+        html{background:#f7f7f5;color-scheme:light}
+        html[data-theme="dark"]{background:#111110;color-scheme:dark}
+    </style>
+    <!-- Theme and text size are applied before the stylesheet, so the first paint is already in the right theme -->
     <script>
         // Apply saved theme before render to prevent flash
         (function(){
@@ -79,12 +105,22 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
             });
         })();
     </script>
+    <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
+    <?php if ($isEmbed && $embedSection !== ''): ?>
+    <style>[data-settings-section]:not([data-settings-section="<?= $embedSection ?>"]) { display: none !important; }</style>
+    <?php endif; ?>
+
+    <?php if ($schoolLogo): ?>
+    <link rel="preload" as="image" href="<?= str_starts_with($schoolLogo, 'http') ? e($schoolLogo) : e(url('/' . $schoolLogo)) ?>">
+    <?php endif; ?>
+
 </head>
-<body>
+<body<?= $isEmbed ? ' class="is-embed"' : '' ?>>
 
-<div class="layout <?= $isStudent ? 'layout-student' : '' ?>">
+<div class="layout <?= ($isStudent && !$isEmbed) ? 'layout-student' : '' ?>">
 
-<?php if ($isStudent): ?>
+<?php if ($isEmbed): ?>
+<?php elseif ($isStudent): ?>
 
     <!-- ====================================================
          STUDENT HEADER (no sidebar)
@@ -159,7 +195,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                     <div class="user-role"><?= e(Auth::roleLabel($userRole)) ?></div>
                 </div>
                 <div class="dropdown-separator"></div>
-                <a href="<?= url('/student/settings') ?>" class="dropdown-item">
+                <a href="<?= url('/student/settings') ?>" class="dropdown-item" data-settings-open>
                     <?= icon('gear', 15) ?>
                     Settings
                 </a>
@@ -173,7 +209,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                         Dark Mode
                     </span>
                     <div class="theme-pill" data-theme="light" style="
-                        position:relative;width:32px;height:18px;border-radius:999px;
+                        position:relative;width:32px;height:18px;border-radius:var(--radius);
                         background:var(--border);transition:background .2s;flex-shrink:0;pointer-events:none;">
                         <div style="
                             position:absolute;top:3px;left:3px;width:12px;height:12px;
@@ -197,8 +233,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                     Withdraw Application
                 </a>
                 <?php endif; ?>
-                <div class="dropdown-separator"></div>
-                <a href="<?= url('/logout') ?>" class="dropdown-item danger">
+                <a href="<?= url('/logout') ?>" class="dropdown-item">
                     <?= icon('sign-out', 15) ?>
                     Log out
                 </a>
@@ -264,7 +299,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                             <div class="user-name truncate"><?= e($authUser['name'] ?? '') ?></div>
                             <div class="user-role"><?= e(Auth::roleLabel($userRole)) ?></div>
                         </div>
-                        <?= icon('caret-up-down', 16, 'flex-shrink:0;color:var(--text-tertiary)', 'class="sidebar-user-caret"') ?>
+                        <?= icon('caret-up-down', 16, 'flex-shrink:0;color:var(--text-secondary)', 'class="sidebar-user-caret"') ?>
                     </div>
                     <div class="dropdown-menu">
                         <?php
@@ -276,7 +311,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                                 ? '/admin/settings'
                                 : '/staff/settings';
                         ?>
-                        <a href="<?= url($settingsHref) ?>" class="dropdown-item">
+                        <a href="<?= url($settingsHref) ?>" class="dropdown-item" data-settings-open>
                             <?= icon('gear', 15) ?>
                             Settings
                         </a>
@@ -290,7 +325,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                                 Dark Mode
                             </span>
                             <div class="theme-pill" data-theme="light" style="
-                                position:relative;width:32px;height:18px;border-radius:999px;
+                                position:relative;width:32px;height:18px;border-radius:var(--radius);
                                 background:var(--border);transition:background .2s;flex-shrink:0;pointer-events:none;">
                                 <div style="
                                     position:absolute;top:3px;left:3px;width:12px;height:12px;
@@ -304,8 +339,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                             .theme-pill[data-theme='dark'] { background: var(--accent) !important; }
                             .theme-pill[data-theme='dark'] div { transform: translateX(14px) !important; }
                         </style>
-                        <div class="dropdown-separator"></div>
-                        <a href="<?= url('/logout') ?>" class="dropdown-item danger">
+                        <a href="<?= url('/logout') ?>" class="dropdown-item">
                             <?= icon('sign-out', 15) ?>
                             Log out
                         </a>
@@ -324,7 +358,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
     ==================================================== -->
     <div class="main">
 
-        <?php if (!$isStudent): ?>
+        <?php if (!$isStudent && !$isEmbed): ?>
         <!-- Phone-only top bar (hidden >768px by CSS). Below that the sidebar is a
              drawer, so this button is the only way to open it. It carries a dot
              when any nav row has one, because the row dots are inside the closed
@@ -367,8 +401,31 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
 
         <!-- Page content injected here -->
         <main class="page <?= $pageWide ? 'page-wide' : '' ?>" id="main-content">
+            <?php if ($showPageHead): ?>
+            <?= page_header((string)$pageHeading, $pageBreadcrumb, (string)$pageActions, 'staff') ?>
+            <?php elseif ($showStudentHead): ?>
+            <?= page_header((string)$pageHeading, $pageBreadcrumb, (string)$pageActions, 'student') ?>
+            <?php endif; ?>
             <?= $content ?? '' ?>
         </main>
+        <?php if ($showPageHead): ?>
+        <script>
+        // Move any element marked data-page-action (the element itself) or
+        // data-page-actions (its children) into the heading row, top right.
+        (function () {
+            var slot = document.getElementById('page-head-actions');
+            if (!slot) return;
+            document.querySelectorAll('#main-content [data-page-action]').forEach(function (el) {
+                el.removeAttribute('data-page-action');
+                slot.appendChild(el);
+            });
+            document.querySelectorAll('#main-content [data-page-actions]').forEach(function (wrap) {
+                while (wrap.firstElementChild) slot.appendChild(wrap.firstElementChild);
+                wrap.remove();
+            });
+        })();
+        </script>
+        <?php endif; ?>
 
     </div><!-- /.main -->
 
@@ -383,7 +440,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
 
 </script>
 
-<?php if (Auth::check()): ?>
+<?php if (Auth::check() && !$isEmbed): ?>
 <!-- ── Session timeout warning ──────────────────────────────── -->
 <div id="session-timeout-modal" style="
     display:none;position:fixed;inset:0;z-index:9999;
@@ -502,7 +559,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
             <?= csrf_field() ?>
             <input type="hidden" name="action" value="withdraw">
             <div class="modal-body" style="display:flex;flex-direction:column;gap:var(--space-4)">
-                <div style="background:#fff7ed;border:1px solid #f97316;border-radius:var(--radius-md);padding:var(--space-4)">
+                <div style="background:#fff7ed;border:1px solid #f97316;border-radius:var(--radius);padding:var(--space-4)">
                     <div style="display:flex;gap:var(--space-3);align-items:flex-start">
                         <?= icon('warning-circle:fill', 18, 'margin-top:1px;color:#f97316') ?>
                         <div>
@@ -537,6 +594,24 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
 document.getElementById('withdraw-modal').addEventListener('click', function(e) {
     if (e.target === this) this.style.display = 'none';
 });
+</script>
+<?php endif; ?>
+
+<?php if (!$isEmbed && Auth::check()): ?>
+<?php include __DIR__ . '/../partials/settings_modal.php'; ?>
+<?php endif; ?>
+
+<?php if ($isEmbed): ?>
+<script>
+// Inside the settings modal: tell the page around us when something was saved
+// (it reloads on close so the name / branding / theme shown behind updates)
+// and forward Escape, since key presses in an iframe never reach the parent.
+(function () {
+    if (window.parent === window) return;
+    function tell(type) { try { window.parent.postMessage({ type: type }, location.origin); } catch (e) {} }
+    if (document.querySelector('.alert-success')) tell('settings:saved');
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') tell('settings:close'); });
+})();
 </script>
 <?php endif; ?>
 

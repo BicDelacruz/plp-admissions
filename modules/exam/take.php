@@ -222,7 +222,7 @@ if ($isSlotFuture) {
             <div style="font-size:var(--text-lg);color:var(--text-secondary);margin-bottom:var(--space-5)">
                 <?= e($slotTimeNice) ?>
             </div>
-            <div style="background:var(--bg-subtle);border-radius:var(--radius-md);padding:var(--space-4);margin-bottom:var(--space-5)">
+            <div style="background:var(--bg-subtle);border-radius:var(--radius);padding:var(--space-4);margin-bottom:var(--space-5)">
                 <div style="font-size:var(--text-xs);color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.06em;font-weight:var(--weight-semibold);margin-bottom:var(--space-1)">Room</div>
                 <div style="font-size:var(--text-lg);font-weight:var(--weight-medium)"><?= e($mySlot['room_label']) ?></div>
             </div>
@@ -236,7 +236,7 @@ if ($isSlotFuture) {
                  submit a duplicate. Page has "changed" the moment they
                  hit submit. -->
             <div style="margin-top:var(--space-4);padding:var(--space-4) var(--space-5);
-                        background:var(--warning-bg);border-radius:var(--radius-md)">
+                        background:var(--warning-bg);border-radius:var(--radius)">
                 <div style="font-weight:var(--weight-semibold);font-size:var(--text-sm);color:var(--warning)">
                     Reschedule request submitted
                 </div>
@@ -299,7 +299,7 @@ if ($isSlotFuture) {
                 </summary>
                 <div style="margin-top:var(--space-3);display:flex;flex-direction:column;gap:var(--space-2)">
                     <?php foreach ($pastExamReschedules as $h): ?>
-                        <div style="padding:var(--space-3);background:var(--bg-subtle);border-radius:var(--radius-md);font-size:var(--text-xs)">
+                        <div style="padding:var(--space-3);background:var(--bg-subtle);border-radius:var(--radius);font-size:var(--text-xs)">
                             <div style="display:flex;justify-content:space-between;gap:var(--space-3);align-items:flex-start">
                                 <div style="color:var(--text-tertiary)">
                                     <?= date('M j, Y · g:i A', strtotime($h['created_at'])) ?>
@@ -309,7 +309,7 @@ if ($isSlotFuture) {
                                     $sClass = $sLabel === 'approved' ? 'badge-success'
                                             : ($sLabel === 'denied' ? 'badge-error' : 'badge-warning');
                                 ?>
-                                <span class="badge <?= $sClass ?>" style="font-size:10px">
+                                <span class="badge <?= $sClass ?>">
                                     <?= e(ucfirst($sLabel)) ?>
                                 </span>
                             </div>
@@ -351,7 +351,7 @@ if ($isSlotPast) {
 
         <?php if ($examReschedulePending): ?>
             <div style="margin-top:var(--space-4);padding:var(--space-4) var(--space-5);
-                        background:var(--warning-bg);border-radius:var(--radius-md);text-align:left">
+                        background:var(--warning-bg);border-radius:var(--radius);text-align:left">
                 <div style="font-weight:var(--weight-semibold);font-size:var(--text-sm);color:var(--warning)">
                     Reschedule request submitted
                 </div>
@@ -405,7 +405,7 @@ if ($isSlotPast) {
                 </summary>
                 <div style="margin-top:var(--space-3);display:flex;flex-direction:column;gap:var(--space-2)">
                     <?php foreach ($pastExamReschedules as $h): ?>
-                        <div style="padding:var(--space-3);background:var(--bg-subtle);border-radius:var(--radius-md);font-size:var(--text-xs)">
+                        <div style="padding:var(--space-3);background:var(--bg-subtle);border-radius:var(--radius);font-size:var(--text-xs)">
                             <div style="display:flex;justify-content:space-between;gap:var(--space-3);align-items:flex-start">
                                 <div style="color:var(--text-tertiary)">
                                     <?= date('M j, Y · g:i A', strtotime($h['created_at'])) ?>
@@ -415,7 +415,7 @@ if ($isSlotPast) {
                                     $sClass = $sLabel === 'approved' ? 'badge-success'
                                             : ($sLabel === 'denied' ? 'badge-error' : 'badge-warning');
                                 ?>
-                                <span class="badge <?= $sClass ?>" style="font-size:10px">
+                                <span class="badge <?= $sClass ?>">
                                     <?= e(ucfirst($sLabel)) ?>
                                 </span>
                             </div>
@@ -750,7 +750,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div style="display:inline-flex;align-items:center;gap:6px;
                         background:<?= $tierInfo['bg'] ?>;
                         color:<?= $tierInfo['color'] ?>;
-                        border-radius:var(--radius-full);
+                        border-radius:var(--radius);
                         padding:4px 14px;
                         font-weight:var(--weight-semibold);
                         font-size:var(--text-sm);
@@ -775,7 +775,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <!-- Score breakdown grid -->
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-3);
-                        background:var(--bg-subtle);border-radius:var(--radius-md);padding:var(--space-5)">
+                        background:var(--bg-subtle);border-radius:var(--radius);padding:var(--space-5)">
                 <div>
                     <div style="font-size:var(--text-xs);color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Raw Score</div>
                     <div style="font-size:var(--text-2xl);font-weight:var(--weight-semibold)"><?= $score ?></div>
@@ -795,7 +795,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <!-- Course + threshold row -->
             <div style="margin-top:var(--space-4);padding:var(--space-3) var(--space-4);
-                        border:1px solid var(--border);border-radius:var(--radius-md);
+                        border:1px solid var(--border);border-radius:var(--radius);
                         font-size:var(--text-xs);color:var(--text-secondary);text-align:left;
                         display:flex;justify-content:space-between;align-items:center">
                 <div>
@@ -819,7 +819,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div style="font-weight:var(--weight-semibold);font-size:var(--text-sm)">Next: Interview</div>
                 <div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:2px">The admissions office will automatically assign you an interview slot. No action required.</div>
             </div>
-            <a href="<?= url('/student/interview') ?>" class="btn btn-primary btn-sm">Continue →</a>
+            <a href="<?= url('/student/interview') ?>" class="btn btn-primary btn-sm">Continue <?= icon('ic_fluent_arrow_right_24_regular', 16) ?></a>
         </div>
 
         <?php else: ?>
@@ -845,7 +845,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ?>
                 <div style="display:flex;align-items:center;justify-content:space-between;
                              padding:var(--space-3) var(--space-4);
-                             background:var(--bg-subtle);border-radius:var(--radius-md);
+                             background:var(--bg-subtle);border-radius:var(--radius);
                              border:1px solid var(--border)">
                     <div>
                         <div style="font-weight:var(--weight-medium);font-size:var(--text-sm)"><?= e($alt) ?></div>
@@ -854,7 +854,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             Your rank: <span style="color:<?= $altTier['color'] ?>;font-weight:var(--weight-semibold)"><?= $rank ?> (<?= $altTier['label'] ?>)</span>
                         </div>
                     </div>
-                    <span class="badge badge-approved" style="font-size:10px;flex-shrink:0">Qualifies</span>
+                    <span class="badge badge-approved" style="flex-shrink:0">Qualifies</span>
                 </div>
                 <?php endforeach; ?>
             </div>
@@ -932,7 +932,7 @@ ob_start();
 .exam-section-header {
     display: flex; flex-direction: column; gap: 2px;
     padding: var(--space-3) var(--space-5);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius);
     border: 1.5px solid transparent;
     margin-bottom: var(--space-1);
 }
@@ -947,7 +947,7 @@ ob_start();
     margin-top: var(--space-2);
     padding: var(--space-2) var(--space-3);
     background: rgba(255,255,255,.55);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius);
     font-size: var(--text-xs);
     line-height: 1.5;
     opacity: .95;
@@ -988,7 +988,7 @@ ob_start();
     gap: var(--space-3);
     padding: var(--space-3) var(--space-4);
     border: 1.5px solid var(--border);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius);
     cursor: pointer;
     transition: background .12s, border-color .12s, box-shadow .12s;
     margin-bottom: var(--space-2);
@@ -1017,7 +1017,7 @@ ob_start();
     width: 100%;
     padding: 10px var(--space-4);
     border: 1.5px solid var(--border);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius);
     background: var(--bg-elevated);
     font-family: var(--font-sans);
     font-size: var(--text-sm);
@@ -1038,7 +1038,7 @@ ob_start();
     width: 100%;
     padding: 10px var(--space-4);
     border: 1.5px solid var(--border);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius);
     background: var(--bg-elevated);
     font-family: var(--font-sans);
     font-size: var(--text-sm);
@@ -1113,13 +1113,13 @@ ob_start();
     flex: 1;
     height: 6px;
     background: var(--bg-subtle);
-    border-radius: 99px;
+    border-radius: var(--radius);
     overflow: hidden;
 }
 .progress-bar-fill {
     height: 100%;
     background: var(--accent);
-    border-radius: 99px;
+    border-radius: var(--radius);
     transition: width .3s;
     width: 0%;
 }
@@ -1130,7 +1130,7 @@ ob_start();
     font-size: var(--text-sm); font-weight: var(--weight-semibold);
     padding: 4px 12px;
     background: var(--bg-subtle);
-    border-radius: 99px;
+    border-radius: var(--radius);
     font-variant-numeric: tabular-nums;
 }
 .timer-chip.warning { background: rgba(220,38,38,.08); color: var(--error); }
@@ -1471,7 +1471,7 @@ window.addEventListener('beforeunload', e => {
     const form = document.getElementById('exam-form');
     const csrfToken = form.querySelector('input[name="csrf_token"]')?.value || '';
     let saveIndicator = document.createElement('div');
-    saveIndicator.style.cssText = 'position:fixed;bottom:16px;right:16px;padding:6px 14px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-md);font-size:12px;color:var(--text-tertiary);z-index:999;opacity:0;transition:opacity .3s';
+    saveIndicator.style.cssText = 'position:fixed;bottom:16px;right:16px;padding:6px 14px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;color:var(--text-tertiary);z-index:999;opacity:0;transition:opacity .3s';
     document.body.appendChild(saveIndicator);
 
     function collectAnswers() {
@@ -1518,7 +1518,7 @@ window.addEventListener('beforeunload', e => {
 
 <!-- Step navigation -->
 <div class="step-nav" style="margin-top:var(--space-4)">
-    <a href="<?= url('/student/documents') ?>" class="btn btn-ghost">← Documents</a>
+    <a href="<?= url('/student/documents') ?>" class="btn btn-ghost"><?= icon('ic_fluent_arrow_left_24_regular', 16) ?> Documents</a>
     <span></span>
 </div>
 

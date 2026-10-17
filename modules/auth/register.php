@@ -16,24 +16,21 @@ if (!admissions_is_open()) {
     if ($open && $close) {
         $msg .= ' The application window is ' . $open->format('F j, Y') . ' to ' . $close->format('F j, Y') . '.';
     }
-    $schoolLogo = school_setting('school_logo', '');
     $closedMsg  = $msg;
     ob_start();
     ?>
-    <div class="auth-card animate-fade-in" style="text-align:center">
-        <div class="auth-header" style="margin-bottom:var(--space-6)">
-            <?php if ($schoolLogo): ?>
-                <img src="<?= e(str_starts_with($schoolLogo, 'http') ? $schoolLogo : url($schoolLogo)) ?>" alt="School Logo" class="auth-logo-img">
-            <?php else: ?>
-                <div class="auth-logo"><?= icon('bank:fill', 26) ?></div>
-            <?php endif; ?>
-            <div class="auth-header-text">
-                <h1 class="auth-title">PLP Admissions</h1>
-                <p class="auth-subtitle">Pamantasan ng Lungsod ng Pasig</p>
-            </div>
+    <div class="auth-card animate-fade-in">
+        <div class="auth-header">
+            <h1 class="auth-title">Registration closed</h1>
+            <p class="auth-subtitle">New accounts can't be created right now.</p>
         </div>
-        <div class="alert alert-error" style="margin-bottom:var(--space-5)"><?= e($closedMsg) ?></div>
-        <a href="<?= url('/login') ?>" class="btn btn-ghost btn-block">Back to Login</a>
+        <div class="alert alert-error" role="alert">
+            <?= icon('ic_fluent_info_24_regular', 16) ?>
+            <?= e($closedMsg) ?>
+        </div>
+        <div class="auth-footer">
+            <a class="auth-back" href="<?= url('/login') ?>"><?= icon('ic_fluent_arrow_left_24_regular', 16) ?> Back to sign in</a>
+        </div>
     </div>
     <?php
     $content   = ob_get_clean();
@@ -42,14 +39,30 @@ if (!admissions_is_open()) {
     exit;
 }
 
+// Google mode: the applicant came back from Google and still has to finish the profile.
+$googlePending = null;
+if (!empty($_GET['google'])) {
+    $gp = GOOGLE_ENABLED ? Session::get('google_pending') : null;
+    if (!is_array($gp) || empty($gp['sub']) || empty($gp['email'])) {
+        redirect('/register');
+    }
+    $googlePending = $gp;
+}
+$googleMode = $googlePending !== null;
+
 $errors = [];
 $old    = [];
+if ($googleMode) {
+    // Names from Google are only a hint; the applicant confirms the legal name.
+    $old = ['first_name' => $googlePending['first_name'], 'last_name' => $googlePending['last_name'],
+            'email' => $googlePending['email']];
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
 
-    // Turnstile verification
-    if (!captcha_verify()) {
+    // Turnstile verification (skipped in Google mode: Google is the gate)
+    if (!$googleMode && !captcha_verify()) {
         $errors['captcha'] = 'Please complete the check.';
     }
 
@@ -63,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'street_address' => trim($_POST['street_address'] ?? ''),
         'barangay'       => trim($_POST['barangay']       ?? ''),
         'phone'          => trim($_POST['phone']          ?? ''),
-        'email'          => trim($_POST['email']          ?? ''),
+        'email'          => $googleMode ? $googlePending['email'] : trim($_POST['email'] ?? ''),
         'applicant_type' => trim($_POST['applicant_type'] ?? ''),
         'course_applied' => trim($_POST['course_applied'] ?? ''),
         'shs_strand'     => trim($_POST['shs_strand']     ?? ''),
@@ -127,9 +140,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         } catch (\Throwable $e) { /* ignore — table may not exist yet */ }
     }
-    if (strlen($password) < 8)
+    if (!$googleMode && strlen($password) < 8)
         $errors['password']   = 'Password must be at least 8 characters.';
-    if ($password !== $passwordConfirm)
+    if (!$googleMode && $password !== $passwordConfirm)
         $errors['password_confirm'] = 'Passwords do not match.';
 
     // Strand validation for freshmen
@@ -197,8 +210,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $pdo->prepare(
                 'INSERT INTO users
                     (name, first_name, middle_name, last_name, suffix,
-                     birthdate, sex, address, phone, email, password_hash, role, department)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                     birthdate, sex, address, phone, email, password_hash, role, department,
+                     google_sub, email_verified)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                  RETURNING id'
             );
             $stmt->execute([
@@ -212,9 +226,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $fullAddress,
                 $old['phone'],
                 $old['email'],
-                password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]),
+                // ponytail: Google users get a random unusable hash because the column is NOT NULL. Upgrade: make it nullable.
+                $googleMode ? '!' . bin2hex(random_bytes(32)) : password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]),
                 ROLE_STUDENT,
                 $department,
+                $googleMode ? $googlePending['sub'] : null,
+                $googleMode ? 1 : 0,
             ]);
             $userId = (int) $stmt->fetchColumn();
 
@@ -256,6 +273,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 );
             }
 
+            // Google mode: the email is already verified, so skip the code and sign in.
+            if ($googleMode) {
+                $remember = !empty($googlePending['remember']);
+                Session::remove('google_pending');
+                $newUser = $pdo->prepare('SELECT * FROM users WHERE id = ?');
+                $newUser->execute([$userId]);
+                Auth::login($newUser->fetch(), $remember);
+                audit_log('login_google', "Google sign up: {$old['email']}", 'user', $userId);
+                header('Location: ' . Auth::homeUrl());
+                exit;
+            }
+
             // Send verification email — both magic link and 6-digit code
             $verifyCreds = generate_verify_credentials($userId);
             send_verification_email($old['email'], $displayName, $verifyCreds['token'], $verifyCreds['code']);
@@ -280,8 +309,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // -- View -------------------------------------------------------
-$schoolLogo = school_setting('school_logo', '');
-
 // Load course caps and accepted counts for the current school year
 $regSchoolYear = school_setting('current_school_year', date('Y').'-'.(date('Y')+1));
 $fullCourses   = [];   // courses that have hit their cap
@@ -306,155 +333,165 @@ ob_start();
 ?>
 <div class="auth-card auth-card-wide animate-fade-in">
 
-    <button class="auth-theme-toggle" onclick="Theme.toggle()" aria-label="Toggle theme">
-        <?= icon('ic_fluent_weather_sunny_24_regular', 16, '', 'data-theme-icon="dark" class="hidden"') ?>
-        <?= icon('ic_fluent_weather_moon_24_regular', 16, '', 'data-theme-icon="light"') ?>
-    </button>
-
-    <div class="auth-header">
-        <?php if ($schoolLogo): ?>
-            <img src="<?= e(str_starts_with($schoolLogo, 'http') ? $schoolLogo : url($schoolLogo)) ?>" alt="School Logo" class="auth-logo-img">
-        <?php else: ?>
-            <div class="auth-logo">
-                <?= icon('bank:fill', 26) ?>
-            </div>
-        <?php endif; ?>
-        <div class="auth-header-text">
+    <div class="reg-head">
+        <div class="auth-header">
             <h1 class="auth-title">Create your account</h1>
-            <p class="auth-subtitle">Start your PLP admission application.</p>
+            <p class="auth-subtitle">Fill in your details to start your application.</p>
         </div>
+        <?php if (!$googleMode && GOOGLE_ENABLED): ?>
+            <a class="auth-google" href="<?= url('/auth/google') ?>">
+                <?= google_logo_svg() ?>
+                Sign up with Google
+            </a>
+        <?php endif; ?>
     </div>
 
     <?php if (!empty($errors['general'])): ?>
-        <div class="alert alert-error" style="margin-bottom:var(--space-5)">
+        <div class="alert alert-error" role="alert">
             <?= icon('ic_fluent_info_24_regular', 16) ?>
             <?= e($errors['general']) ?>
         </div>
     <?php endif; ?>
 
-    <form method="POST" action="<?= url('/register') ?>" data-once novalidate>
+    <?php if ($googleMode): ?>
+        <div class="alert alert-info" role="status">
+            <?= icon('ic_fluent_info_24_regular', 16) ?>
+            <span>
+                Signed in with Google as <strong><?= e($googlePending['email']) ?></strong>.
+                Finish your details to create your account.
+                <a class="auth-link" href="<?= url('/register') ?>">Use a different account</a>
+            </span>
+        </div>
+    <?php elseif (GOOGLE_ENABLED): ?>
+        <div class="auth-divider"><span>or fill in the form</span></div>
+    <?php endif; ?>
+
+    <form method="POST" action="<?= url('/register' . ($googleMode ? '?google=1' : '')) ?>" data-once novalidate>
         <?= csrf_field() ?>
 
-        <!-- Applicant Type -->
-        <div class="form-group">
-            <label class="form-label" for="applicant_type">Applicant Type <span>*</span></label>
-            <select id="applicant_type" name="applicant_type"
-                class="form-select <?= isset($errors['applicant_type']) ? 'error' : '' ?>" required
-                onchange="onTypeChange(this.value)">
-                <option value="">Select…</option>
-                <option value="freshman"   <?= ($old['applicant_type'] ?? '') === 'freshman'   ? 'selected' : '' ?>>Freshman (Graduating / Graduate of Senior HS)</option>
-                <option value="transferee" <?= ($old['applicant_type'] ?? '') === 'transferee' ? 'selected' : '' ?>>Transferee (Incoming 2nd–3rd Year)</option>
-                <option value="foreign"    <?= ($old['applicant_type'] ?? '') === 'foreign'    ? 'selected' : '' ?>>Foreign Student</option>
-            </select>
-            <?php if (!empty($errors['applicant_type'])): ?>
-                <span class="form-error"><?= e($errors['applicant_type']) ?></span>
-            <?php endif; ?>
-        </div>
-
-        <div id="qual-freshman" class="qual-box" style="display:<?= ($old['applicant_type'] ?? '') === 'freshman' ? 'block' : 'none' ?>">
-            <div class="qual-box-title">Freshman Qualifications</div>
-            <ul class="qual-list">
-                <li>At least <strong>80% General Weighted Average (GWA)</strong></li>
-                <li>Graduate of Senior High School or currently enrolled in Grade 12 SHS</li>
-                <li>Applicant, Parent, or Guardian must be a resident of Pasig City for at least <strong>five (5) years</strong></li>
-            </ul>
-        </div>
-        <div id="qual-transferee" class="qual-box" style="display:<?= ($old['applicant_type'] ?? '') === 'transferee' ? 'block' : 'none' ?>">
-            <div class="qual-box-title">Transferee Qualifications</div>
-            <ul class="qual-list">
-                <li>Incoming 2nd–3rd year ONLY from any CHED-accredited college/university (at least 36 units taken)</li>
-                <li>Graduated under the K–12 Program</li>
-                <li>GWA of <strong>2.25 or higher</strong></li>
-                <li>No Failing, Dropped, or Incomplete Grades</li>
-                <li>No Shifting of Program</li>
-                <li>Parent/Guardian or Applicant must be a resident of Pasig City for at least <strong>five (5) years</strong></li>
-            </ul>
-        </div>
-
-        <!-- Course -->
-        <div class="form-group">
-            <label class="form-label" for="course_applied">Course Applying For <span>*</span></label>
-            <select id="course_applied" name="course_applied"
-                class="form-select <?= isset($errors['course_applied']) ? 'error' : '' ?>" required
-                onchange="onCourseChange(this.value)">
-                <option value="">Select…</option>
-                <?php foreach (get_all_courses() as $course):
-                    $isFull = in_array($course, $fullCourses, true);
-                ?>
-                    <option value="<?= e($course) ?>"
-                        <?= ($old['course_applied'] ?? '') === $course ? 'selected' : '' ?>
-                        <?= $isFull ? 'disabled' : '' ?>>
-                        <?= e($course) ?><?= $isFull ? ' — FULL' : '' ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-            <?php if (!empty($errors['course_applied'])): ?>
-                <span class="form-error"><?= e($errors['course_applied']) ?></span>
-            <?php endif; ?>
-            <?php if (!empty($fullCourses)): ?>
-                <p style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:4px">
-                    Courses marked <strong>FULL</strong> have reached their enrollment cap for <?= e($regSchoolYear) ?> and are no longer accepting applications.
-                </p>
-            <?php endif; ?>
-        </div>
-
-        <!-- SHS Strand — only shown for freshmen; options filtered by course via JS -->
-        <div id="strand-group" class="form-group" style="display:<?= ($old['applicant_type'] ?? '') === 'freshman' ? 'block' : 'none' ?>">
-            <label class="form-label" for="shs_strand">SHS Strand <span>*</span></label>
-            <select id="shs_strand" name="shs_strand"
-                class="form-select <?= isset($errors['shs_strand']) ? 'error' : '' ?>">
-                <option value="">Select…</option>
-            </select>
-            <?php if (!empty($errors['shs_strand'])): ?>
-                <span class="form-error"><?= e($errors['shs_strand']) ?></span>
-            <?php endif; ?>
-        </div>
-
-        <!-- Which conditional documents apply (shown by jQuery once a type is picked) -->
-        <div id="doc-flags" class="qual-box" style="display:none">
-            <div class="qual-box-title">Which of these apply to you?</div>
-            <p style="font-size:var(--text-xs);color:var(--text-tertiary);margin:0 0 var(--space-3)">
-                This decides which documents you need to upload. You can change it later on the documents page until you submit.
-            </p>
-            <?php $_stage = doc_stage_of($old['doc_flags'] ?? []); ?>
-            <!-- Freshmen pick exactly one (required); it decides Form 138 or Form 137 -->
-            <div data-types="freshman" role="radiogroup" aria-required="true" style="margin-bottom:var(--space-3)">
-                <div style="font-size:var(--text-xs);font-weight:var(--weight-medium);color:var(--text-secondary);margin-bottom:var(--space-2)">Select one <span style="color:var(--error)">*</span></div>
-                <div style="display:flex;flex-direction:column;gap:var(--space-2)">
-                    <label class="form-check">
-                        <input type="radio" name="flags[stage]" value="grade12" <?= $_stage === 'grade12' ? 'checked' : '' ?>>
-                        <span>I am currently in Grade 12</span>
-                    </label>
-                    <label class="form-check">
-                        <input type="radio" name="flags[stage]" value="shs_grad" <?= $_stage === 'shs_grad' ? 'checked' : '' ?>>
-                        <span>I am a Senior High School graduate</span>
-                    </label>
-                </div>
-                <?php if (!empty($errors['stage'])): ?>
-                    <span class="form-error"><?= e($errors['stage']) ?></span>
+        <!-- Rows of two, so both columns always line up -->
+        <div class="reg-pair">
+            <!-- Applicant Type -->
+            <div class="form-group">
+                <label class="form-label" for="applicant_type">Applicant Type <span>*</span></label>
+                <select id="applicant_type" name="applicant_type"
+                    class="form-select <?= isset($errors['applicant_type']) ? 'error' : '' ?>" required
+                    onchange="onTypeChange(this.value)">
+                    <option value="">Select…</option>
+                    <option value="freshman"   <?= ($old['applicant_type'] ?? '') === 'freshman'   ? 'selected' : '' ?>>Freshman (Graduating / Graduate of Senior HS)</option>
+                    <option value="transferee" <?= ($old['applicant_type'] ?? '') === 'transferee' ? 'selected' : '' ?>>Transferee (Incoming 2nd–3rd Year)</option>
+                    <option value="foreign"    <?= ($old['applicant_type'] ?? '') === 'foreign'    ? 'selected' : '' ?>>Foreign Student</option>
+                </select>
+                <?php if (!empty($errors['applicant_type'])): ?>
+                    <span class="form-error"><?= e($errors['applicant_type']) ?></span>
                 <?php endif; ?>
             </div>
-            <div style="font-size:var(--text-xs);font-weight:var(--weight-medium);color:var(--text-secondary);margin-bottom:var(--space-2)">Also tick if they apply</div>
-            <div style="display:flex;flex-direction:column;gap:var(--space-2)">
-                <label class="form-check">
-                    <input type="checkbox" name="flags[married]" value="1" <?= !empty($old['doc_flags']['married']) ? 'checked' : '' ?>>
-                    <span>I am married</span>
-                </label>
-                <label class="form-check">
-                    <input type="checkbox" name="flags[guardian]" value="1" <?= !empty($old['doc_flags']['guardian']) ? 'checked' : '' ?>>
-                    <span>I am not living with my parents</span>
-                </label>
+            <!-- Course -->
+            <div class="form-group">
+                <label class="form-label" for="course_applied">Course Applying For <span>*</span></label>
+                <select id="course_applied" name="course_applied"
+                    class="form-select <?= isset($errors['course_applied']) ? 'error' : '' ?>" required
+                    onchange="onCourseChange(this.value)">
+                    <option value="">Select…</option>
+                    <?php foreach (get_all_courses() as $course):
+                        $isFull = in_array($course, $fullCourses, true);
+                    ?>
+                        <option value="<?= e($course) ?>"
+                            <?= ($old['course_applied'] ?? '') === $course ? 'selected' : '' ?>
+                            <?= $isFull ? 'disabled' : '' ?>>
+                            <?= e($course) ?><?= $isFull ? ' — FULL' : '' ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+                <?php if (!empty($errors['course_applied'])): ?>
+                    <span class="form-error"><?= e($errors['course_applied']) ?></span>
+                <?php endif; ?>
+                <?php if (!empty($fullCourses)): ?>
+                    <span class="form-hint">
+                        Courses marked <strong>FULL</strong> have reached their enrollment cap for <?= e($regSchoolYear) ?> and are no longer accepting applications.
+                    </span>
+                <?php endif; ?>
             </div>
         </div>
 
-        <!-- Row: First / Middle / Last / Suffix — all in one row -->
-        <div class="reg-row-names">
+        <div class="reg-pair">
+            <!-- SHS Strand — only shown for freshmen; options filtered by course via JS -->
+            <div id="strand-group" class="form-group" style="display:<?= ($old['applicant_type'] ?? '') === 'freshman' ? 'flex' : 'none' ?>">
+                <label class="form-label" for="shs_strand">SHS Strand <span>*</span></label>
+                <select id="shs_strand" name="shs_strand"
+                    class="form-select <?= isset($errors['shs_strand']) ? 'error' : '' ?>">
+                    <option value="">Select…</option>
+                </select>
+                <?php if (!empty($errors['shs_strand'])): ?>
+                    <span class="form-error"><?= e($errors['shs_strand']) ?></span>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <div class="reg-pair reg-info">
+            <div id="qual-freshman" class="qual-box" style="display:<?= ($old['applicant_type'] ?? '') === 'freshman' ? 'block' : 'none' ?>">
+                <div class="qual-box-title">Freshman Qualifications</div>
+                <ul class="qual-list">
+                    <li>At least <strong>80% General Weighted Average (GWA)</strong></li>
+                    <li>Graduate of Senior High School or currently enrolled in Grade 12 SHS</li>
+                    <li>Applicant, Parent, or Guardian must be a resident of Pasig City for at least <strong>five (5) years</strong></li>
+                </ul>
+            </div>
+            <div id="qual-transferee" class="qual-box" style="display:<?= ($old['applicant_type'] ?? '') === 'transferee' ? 'block' : 'none' ?>">
+                <div class="qual-box-title">Transferee Qualifications</div>
+                <ul class="qual-list">
+                    <li>Incoming 2nd–3rd year ONLY from any CHED-accredited college/university (at least 36 units taken)</li>
+                    <li>Graduated under the K–12 Program</li>
+                    <li>GWA of <strong>2.25 or higher</strong></li>
+                    <li>No Failing, Dropped, or Incomplete Grades</li>
+                    <li>No Shifting of Program</li>
+                    <li>Parent/Guardian or Applicant must be a resident of Pasig City for at least <strong>five (5) years</strong></li>
+                </ul>
+            </div>
+            <!-- Which conditional documents apply (shown by jQuery once a type is picked) -->
+            <div id="doc-flags" class="qual-box" style="display:none">
+                <div class="qual-box-title">Which of these apply to you?</div>
+                <p class="form-hint" style="margin:0 0 var(--space-3)">
+                    This decides which documents you need to upload. You can change it later on the documents page until you submit.
+                </p>
+                <?php $_stage = doc_stage_of($old['doc_flags'] ?? []); ?>
+                <!-- Freshmen pick exactly one (required); it decides Form 138 or Form 137 -->
+                <div data-types="freshman" role="radiogroup" aria-required="true" style="margin-bottom:var(--space-3)">
+                    <div style="font-size:var(--text-xs);font-weight:var(--weight-medium);color:var(--text-secondary);margin-bottom:var(--space-2)">Select one <span style="color:var(--error)">*</span></div>
+                    <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+                        <label class="form-check">
+                            <input type="radio" name="flags[stage]" value="grade12" <?= $_stage === 'grade12' ? 'checked' : '' ?>>
+                            <span>I am currently in Grade 12</span>
+                        </label>
+                        <label class="form-check">
+                            <input type="radio" name="flags[stage]" value="shs_grad" <?= $_stage === 'shs_grad' ? 'checked' : '' ?>>
+                            <span>I am a Senior High School graduate</span>
+                        </label>
+                    </div>
+                    <?php if (!empty($errors['stage'])): ?>
+                        <span class="form-error"><?= e($errors['stage']) ?></span>
+                    <?php endif; ?>
+                </div>
+                <div style="font-size:var(--text-xs);font-weight:var(--weight-medium);color:var(--text-secondary);margin-bottom:var(--space-2)">Also tick if they apply</div>
+                <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+                    <label class="form-check">
+                        <input type="checkbox" name="flags[married]" value="1" <?= !empty($old['doc_flags']['married']) ? 'checked' : '' ?>>
+                        <span>I am married</span>
+                    </label>
+                    <label class="form-check">
+                        <input type="checkbox" name="flags[guardian]" value="1" <?= !empty($old['doc_flags']['guardian']) ? 'checked' : '' ?>>
+                        <span>I am not living with my parents</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="reg-pair">
             <div class="form-group">
                 <label class="form-label" for="first_name">First Name <span>*</span></label>
                 <input type="text" id="first_name" name="first_name"
                     class="form-input <?= isset($errors['first_name']) ? 'error' : '' ?>"
                     value="<?= e($old['first_name'] ?? '') ?>"
-                    placeholder=""
                     autocomplete="given-name" required>
                 <?php if (!empty($errors['first_name'])): ?>
                     <span class="form-error"><?= e($errors['first_name']) ?></span>
@@ -465,33 +502,32 @@ ob_start();
                 <input type="text" id="middle_name" name="middle_name"
                     class="form-input"
                     value="<?= e($old['middle_name'] ?? '') ?>"
-                    placeholder=""
                     autocomplete="additional-name">
             </div>
+        </div>
+
+        <div class="reg-pair">
             <div class="form-group">
                 <label class="form-label" for="last_name">Last Name <span>*</span></label>
                 <input type="text" id="last_name" name="last_name"
                     class="form-input <?= isset($errors['last_name']) ? 'error' : '' ?>"
                     value="<?= e($old['last_name'] ?? '') ?>"
-                    placeholder=""
                     autocomplete="family-name" required>
                 <?php if (!empty($errors['last_name'])): ?>
                     <span class="form-error"><?= e($errors['last_name']) ?></span>
                 <?php endif; ?>
             </div>
-            <div class="form-group reg-suffix-col">
+            <div class="form-group">
                 <label class="form-label" for="suffix">Suffix</label>
                 <input type="text" id="suffix" name="suffix"
                     class="form-input"
                     value="<?= e($old['suffix'] ?? '') ?>"
-                    placeholder=""
                     autocomplete="honorific-suffix"
                     maxlength="8">
             </div>
         </div>
 
-        <!-- Row: Birthdate / Sex -->
-        <div class="reg-row reg-row-birthdate">
+        <div class="reg-pair">
             <div class="form-group">
                 <label class="form-label" for="birthdate">Birthdate <span>*</span></label>
                 <input type="date" id="birthdate" name="birthdate"
@@ -518,8 +554,7 @@ ob_start();
             </div>
         </div>
 
-        <!-- Row: Address / Barangay -->
-        <div class="reg-row reg-row-address">
+        <div class="reg-pair">
             <div class="form-group">
                 <label class="form-label" for="street_address">Address <span>*</span></label>
                 <input type="text" id="street_address" name="street_address"
@@ -559,14 +594,14 @@ ob_start();
             </div>
         </div>
 
-        <!-- Row: Email / Phone -->
-        <div class="reg-row">
+        <div class="reg-pair">
             <div class="form-group">
                 <label class="form-label" for="email">Email Address <span>*</span></label>
                 <input type="email" id="email" name="email"
                     class="form-input <?= isset($errors['email']) ? 'error' : '' ?>"
                     value="<?= e($old['email'] ?? '') ?>"
-                    placeholder=""
+                    placeholder="you@example.com"
+                    <?= $googleMode ? 'readonly' : '' ?>
                     autocomplete="email" required>
                 <?php if (!empty($errors['email'])): ?>
                     <span class="form-error"><?= e($errors['email']) ?></span>
@@ -589,61 +624,45 @@ ob_start();
             </div>
         </div>
 
-        <div class="reg-row">
-            <div class="form-group" style="margin-bottom:0">
+        <?php if (!$googleMode): ?>
+        <div class="reg-pair">
+            <div class="form-group">
                 <label class="form-label" for="password">Password <span>*</span></label>
-                <div class="input-wrapper has-suffix">
-                    <input type="password" id="password" name="password"
-                        class="form-input <?= isset($errors['password']) ? 'error' : '' ?>"
-                        placeholder="Min. 8 characters"
-                        autocomplete="new-password" required>
-                    <button type="button" class="input-suffix-icon btn-pw-toggle"
-                        onclick="togglePw('password',this)" tabindex="-1" aria-label="Show password">
-                        <?= icon('ic_fluent_eye_show_24_regular', 16) ?>
-                    </button>
-                </div>
+                <input type="password" id="password" name="password"
+                    class="form-input <?= isset($errors['password']) ? 'error' : '' ?>"
+                    placeholder="Min. 8 characters"
+                    autocomplete="new-password" required>
                 <?php if (!empty($errors['password'])): ?>
                     <span class="form-error"><?= e($errors['password']) ?></span>
                 <?php endif; ?>
             </div>
-            <div class="form-group" style="margin-bottom:0">
+            <div class="form-group">
                 <label class="form-label" for="password_confirm">Confirm Password <span>*</span></label>
-                <div class="input-wrapper has-suffix">
-                    <input type="password" id="password_confirm" name="password_confirm"
-                        class="form-input <?= isset($errors['password_confirm']) ? 'error' : '' ?>"
-                        placeholder=""
-                        autocomplete="new-password" required>
-                    <button type="button" class="input-suffix-icon btn-pw-toggle"
-                        onclick="togglePw('password_confirm',this)" tabindex="-1" aria-label="Show password">
-                        <?= icon('ic_fluent_eye_show_24_regular', 16) ?>
-                    </button>
-                </div>
+                <input type="password" id="password_confirm" name="password_confirm"
+                    class="form-input <?= isset($errors['password_confirm']) ? 'error' : '' ?>"
+                    placeholder="Repeat password"
+                    autocomplete="new-password" required>
                 <?php if (!empty($errors['password_confirm'])): ?>
                     <span class="form-error"><?= e($errors['password_confirm']) ?></span>
                 <?php endif; ?>
             </div>
         </div>
+        <?php endif; ?>
 
-        <?php if (!empty($errors['captcha'])): ?>
-            <div class="alert alert-error" style="margin-bottom:var(--space-4)">
+        <?php if (!$googleMode && !empty($errors['captcha'])): ?>
+            <div class="alert alert-error" role="alert" style="margin-top:var(--space-4)">
                 <?= icon('ic_fluent_info_24_regular', 16) ?>
                 <?= e($errors['captcha']) ?>
             </div>
         <?php endif; ?>
 
-        <?php if (CAPTCHA_ENABLED): ?>
-            <div class="cf-turnstile" data-sitekey="<?= e(TURNSTILE_SITE_KEY) ?>" data-theme="auto" style="margin-bottom:var(--space-4)"></div>
-        <?php endif; ?>
-
-        <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top:var(--space-6)">
-            Create account
-        </button>
+        <div class="reg-submit">
+            <?php if (!$googleMode && CAPTCHA_ENABLED): ?>
+                <div class="cf-turnstile" data-sitekey="<?= e(TURNSTILE_SITE_KEY) ?>" data-theme="auto"></div>
+            <?php endif; ?>
+            <button type="submit" class="btn btn-primary btn-lg">Create account</button>
+        </div>
     </form>
-
-    <div class="auth-footer">
-        Already have an account?
-        <a href="<?= url('/login') ?>">Sign in</a>
-    </div>
 
 </div>
 
@@ -661,7 +680,7 @@ function setSex(val) {
 function onTypeChange(type) {
     document.getElementById('qual-freshman').style.display   = type === 'freshman'   ? 'block' : 'none';
     document.getElementById('qual-transferee').style.display = type === 'transferee' ? 'block' : 'none';
-    document.getElementById('strand-group').style.display    = type === 'freshman'   ? 'block' : 'none';
+    document.getElementById('strand-group').style.display    = type === 'freshman'   ? 'flex'  : 'none';
     if (type !== 'freshman') document.getElementById('shs_strand').value = '';
     rebuildStrandOptions(document.getElementById('course_applied').value);
 }
@@ -705,13 +724,6 @@ function rebuildStrandOptions(course) {
     }
 }
 
-function togglePw(id, btn) {
-    const inp = document.getElementById(id);
-    const isText = inp.type === 'text';
-    inp.type = isText ? 'password' : 'text';
-    btn.querySelector('i').style.opacity = isText ? '1' : '0.5';
-}
-
 (function() {
     const t = document.getElementById('applicant_type').value;
     const c = document.getElementById('course_applied').value;
@@ -752,8 +764,11 @@ document.addEventListener('DOMContentLoaded', function () {
     syncFlags();
 
     // Live password checks (same rules as the server): 8+ chars, and both match.
+    // The layout wraps each password input in .auth-pw (show/hide button), so the
+    // message goes after that wrapper.
     function pwMsg($in, msg) {
-        var $box = $in.closest('.input-wrapper');
+        var $box = $in.closest('.auth-pw');
+        if (!$box.length) $box = $in;
         $box.siblings('.form-error').remove();
         $in.toggleClass('error', !!msg);
         if (msg) $('<span class="form-error"></span>').text(msg).insertAfter($box);
@@ -784,59 +799,45 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 
 <style>
-/* Name row: first / middle / last / suffix */
-.reg-row-names {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr 80px;
-    gap: var(--space-3);
-    margin-bottom: 0;
+/* Register head: title on the left, Google sign up on the right */
+.reg-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-4) var(--space-8);
+    margin-bottom: var(--space-6);
 }
-.reg-suffix-col .form-input {
-    max-width: 100%;
-}
+.reg-head .auth-header { margin-bottom: 0; }
+.auth-card .reg-head a.auth-google { width: auto; min-width: 280px; padding: 0 var(--space-6); }
 
-/* Standard 2-col row */
-.reg-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+/* Rows of two fields: both columns always line up, whatever is shown */
+.reg-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 0 var(--space-6); }
+.reg-pair > * { min-width: 0; }
+/* Info boxes (qualifications / which apply) share a row and match height */
+.reg-info { align-items: stretch; }
+.reg-info > .qual-box { margin-bottom: var(--space-4); }
+
+.reg-submit {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
     gap: var(--space-4);
+    margin-top: var(--space-2);
 }
-
-/* Birthdate/Sex: equal columns */
-.reg-row-birthdate {
-    grid-template-columns: 1fr 1fr;
-}
-
-/* Address: equal columns like all other rows */
-.reg-row-address {
-    grid-template-columns: 1fr 1fr;
-}
-
-/* Section labels */
-.reg-section-label {
-    font-size: var(--text-xs);
-    font-weight: var(--weight-semibold);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--text-tertiary);
-    margin-bottom: var(--space-3);
-    padding-bottom: var(--space-2);
-    border-bottom: 1px solid var(--border);
-    margin-top: var(--space-5);
-}
-.reg-section-label:first-of-type {
-    margin-top: 0;
-}
+.reg-submit .cf-turnstile { margin: 0 auto 0 0; }
+.reg-submit .btn { min-width: 240px; }
 
 .sex-toggle {
     display: flex;
     gap: var(--space-2);
-    height: 40px;
+    height: 44px;
 }
 .sex-btn {
-    width: 48px;
+    width: 56px;
     border: 1px solid var(--border);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius);
     background: var(--bg-elevated);
     color: var(--text-secondary);
     font-size: var(--text-sm);
@@ -854,7 +855,7 @@ document.addEventListener('DOMContentLoaded', function () {
 .qual-box {
     background: var(--bg-subtle);
     border: 1px solid var(--border);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius);
     padding: var(--space-3) var(--space-4);
     margin-bottom: var(--space-4);
     font-size: var(--text-sm);
@@ -873,16 +874,16 @@ document.addEventListener('DOMContentLoaded', function () {
 }
 .qual-list li::before { content: '· '; color: var(--accent); font-weight: var(--weight-semibold); }
 
-@media (max-width: 560px) {
-    .reg-row-names { grid-template-columns: 1fr 1fr; }
-    .reg-suffix-col { grid-column: span 1; }
-    .reg-row, .reg-row-address, .reg-row-birthdate { grid-template-columns: 1fr; }
-}
-@media (max-width: 380px) {
-    .reg-row-names { grid-template-columns: 1fr; }
+/* Narrow screens: one field per row */
+@media (max-width: 640px) {
+    .reg-pair { grid-template-columns: 1fr; }
+    .auth-card .reg-head a.auth-google { width: 100%; min-width: 0; }
+    .reg-submit .btn { width: 100%; min-width: 0; }
 }
 </style>
 <?php
-$content   = ob_get_clean();
-$pageTitle = 'Create Account';
+$content        = ob_get_clean();
+$pageTitle      = 'Create Account';
+$authWide       = true;
+$authTopbarLink = ['text' => 'Already have an account?', 'label' => 'Sign in', 'href' => url('/login')];
 include VIEWS_PATH . '/layouts/auth.php';

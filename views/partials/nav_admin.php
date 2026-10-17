@@ -76,7 +76,6 @@ $_navExamReschedPending = false;
 // Dean no longer sees the Interview Reschedules entry (reschedules
 // are an SSO/registrar action), so we skip the query for them too.
 try {
-    ensure_reschedule_requests_table();
     $_navReschedPending = (int)$_navDb->query(
         "SELECT COUNT(*) FROM reschedule_requests WHERE status='pending'"
     )->fetchColumn() > 0;
@@ -84,7 +83,6 @@ try {
 
 // Exam reschedule requests — pending count for SSO/Admin.
 try {
-    ensure_exam_reschedule_requests_table();
     $_navExamReschedPending = (int)$_navDb->query(
         "SELECT COUNT(*) FROM exam_reschedule_requests WHERE status='pending'"
     )->fetchColumn() > 0;
@@ -169,11 +167,6 @@ $items = [
         'roles' => [ROLE_ADMIN, ROLE_SSO]],
     ['href' => '/staff/results',     'key' => 'results',     'label' => 'Results',          'icon' => 'medal',   'pending' => $_navResPending,
         'roles' => [ROLE_ADMIN, ROLE_DEAN]],
-    // Export Results — SSO + Admin can pull the CSV / summary that
-    // the registrar files. Dean works the per-college Results page
-    // above, so they don't need a bulk-export entry.
-    ['href' => '/admin/results',     'key' => 'results-export', 'label' => 'Export Results', 'icon' => 'download-simple', 
-        'roles' => [ROLE_ADMIN, ROLE_SSO]],
 
     ['href' => '/admin/users',       'key' => 'users',       'label' => 'Users',            'icon' => 'shield-check',
         'roles' => [ROLE_ADMIN]],

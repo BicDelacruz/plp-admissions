@@ -1,0 +1,3 @@
+# Supabase service key committed in 6af1b7ae (file `env`, line 11, 2026-10-09).
+# Only add/keep this AFTER the key has been rotated; it silences the CI scan, it does not un-leak the key.
+6af1b7aead9860407be151938eae8905138c1165:env:jwt:11

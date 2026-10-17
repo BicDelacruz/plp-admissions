@@ -297,6 +297,25 @@ define('TURNSTILE_SECRET_KEY', getenv('TURNSTILE_SECRET_KEY') ?: '');
 // On only when both keys are set, so forms still work without keys.
 define('CAPTCHA_ENABLED', TURNSTILE_SITE_KEY !== '' && TURNSTILE_SECRET_KEY !== '');
 
+// -- Google sign in (students only) ---------------------------------
+define('GOOGLE_CLIENT_ID',     getenv('GOOGLE_CLIENT_ID')     ?: '');
+define('GOOGLE_CLIENT_SECRET', getenv('GOOGLE_CLIENT_SECRET') ?: '');
+// On only when both are set, so the button hides without keys.
+define('GOOGLE_ENABLED', GOOGLE_CLIENT_ID !== '' && GOOGLE_CLIENT_SECRET !== '');
+// Must match an authorized redirect URI in Google Cloud exactly (local base URL includes /public).
+// Order: GOOGLE_REDIRECT_URI env var, then (production) the host the visitor actually used,
+// then BASE_URL. Using the real host keeps the redirect and the session cookie on the same site,
+// so a wrong or missing APP_URL on Vercel no longer causes redirect_uri_mismatch.
+define('GOOGLE_REDIRECT_URI', (function (): string {
+    $override = trim((string) getenv('GOOGLE_REDIRECT_URI'));
+    if ($override !== '') return $override;
+    $host = (string) ($_SERVER['HTTP_HOST'] ?? '');
+    if (APP_ENV === 'production' && preg_match('/^[A-Za-z0-9.\-]+(:\d{1,5})?$/', $host)) {
+        return 'https://' . $host . '/auth/google/callback';
+    }
+    return BASE_URL . '/auth/google/callback';
+})());
+
 // -- Email (Gmail SMTP via PHPMailer) -----------------------------
 define('SMTP_HOST',       getenv('SMTP_HOST')       ?: 'smtp.gmail.com');
 define('SMTP_PORT',       getenv('SMTP_PORT')       ?: 587);

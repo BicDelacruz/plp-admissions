@@ -30,41 +30,8 @@ $sessions = $stmt->fetchAll();
 ob_start();
 ?>
 
-<div style="margin-bottom:var(--space-5)">
-    <a href="<?= url('/staff/interviews/queue') ?>" class="btn btn-ghost btn-sm">&larr; Back</a>
-</div>
-
 <style>
-@keyframes q-pulse-dot {
-    0%,100% { opacity: 1; transform: scale(1); }
-    50%     { opacity: .5; transform: scale(1.3); }
-}
-.q-sess-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: var(--space-4);
-}
-.q-sess-card {
-    display: flex; flex-direction: column;
-    gap: var(--space-3); padding: var(--space-5);
-    background: var(--bg-elevated); border: 1.5px solid var(--border);
-    border-radius: var(--radius-lg);
-    text-decoration: none; color: var(--text-primary);
-    transition: border-color .15s, box-shadow .15s;
-    position: relative; cursor: pointer; min-height: 220px;
-}
-.q-sess-card:hover { border-color: var(--accent); box-shadow: var(--shadow-sm); }
-.q-sess-card.is-live { border-color: var(--accent); background: var(--accent-muted); }
-.q-sess-card-title {
-    font-size: var(--text-base); font-weight: var(--weight-semibold);
-    color: var(--text-primary); line-height: 1.35;
-    padding-right: 70px;
-}
-.q-sess-meta {
-    display: flex; flex-direction: column; gap: 4px;
-    font-size: var(--text-xs); color: var(--text-tertiary);
-}
-.q-sess-meta-row { display: flex; align-items: center; gap: 5px; }
+/* Queue stats strip inside the shared selector card (select-card in app.css). */
 .q-sess-stats {
     display: grid; grid-template-columns: repeat(4, 1fr);
     gap: var(--space-2); margin-top: auto; padding-top: var(--space-3);
@@ -80,37 +47,22 @@ ob_start();
     text-transform: uppercase; letter-spacing: .05em;
     margin-top: 2px;
 }
-.q-sess-live-badge {
-    position: absolute; top: var(--space-4); right: var(--space-4);
-    display: inline-flex; align-items: center; gap: 4px;
-    padding: 2px 8px; border-radius: 999px;
-    background: var(--accent); color: #fff;
-    font-size: 10px; font-weight: var(--weight-semibold);
-    text-transform: uppercase; letter-spacing: .05em;
-}
-.q-sess-live-badge .dot {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: #fff;
-    animation: q-pulse-dot 1.4s infinite;
-}
 </style>
 
 <?php if (empty($sessions)): ?>
-    <div style="padding:var(--space-8) var(--space-4);background:var(--bg-subtle);
-                 border-radius:var(--radius-md);text-align:center;color:var(--text-tertiary)">
-        <?= icon('ic_fluent_calendar_24_regular', 32, 'color:var(--text-tertiary)') ?>
-        <div style="margin-top:var(--space-3);font-size:var(--text-sm)">
+    <div class="select-empty">
+        <div style="margin-top:var(--space-3)">
             No sessions scheduled for <?= e($selectedCollege) ?> today.
         </div>
         <div style="margin-top:var(--space-2);font-size:var(--text-xs)">
             <a href="<?= url('/staff/interviews/setup') ?>?college=<?= urlencode($selectedCollege) ?>"
                style="color:var(--accent)">
-                Add a session in setup &rarr;
+                Add a session in setup
             </a>
         </div>
     </div>
 <?php else: ?>
-    <div class="q-sess-grid">
+    <div class="select-grid q-sess-grid">
         <?php foreach ($sessions as $s):
             $isLive    = ((int) $s['in_progress']) > 0;
             $href      = url('/staff/interviews/queue') . '?slot=' . (int) $s['id'];
@@ -119,40 +71,38 @@ ob_start();
                 $timeLabel .= ' &ndash; ' . date('g:i A', strtotime($s['end_time']));
             }
         ?>
-            <a href="<?= e($href) ?>" class="q-sess-card <?= $isLive ? 'is-live' : '' ?>">
+            <a href="<?= e($href) ?>" class="select-card q-sess-card <?= $isLive ? 'is-live' : '' ?>">
                 <?php if ($isLive): ?>
-                    <div class="q-sess-live-badge"><span class="dot"></span> Live</div>
+                    <span class="select-card-badge"><span class="select-card-live"><span class="dot"></span> Live</span></span>
                 <?php endif; ?>
-                <div class="q-sess-card-title">
+                <div class="select-card-title">
                     <?= e($s['interviewer_name'] ?? 'Unassigned') ?>
                 </div>
-                <div class="q-sess-meta">
-                    <div class="q-sess-meta-row">
-                        <?= icon('clock', 12) ?>
+                <div class="select-card-meta">
+                    <div class="select-card-meta-row">
                         <?= $timeLabel ?>
                     </div>
                     <?php if (!empty($s['location_label'])): ?>
-                        <div class="q-sess-meta-row">
-                            <?= icon('map-pin', 12) ?>
+                        <div class="select-card-meta-row">
                             <?= e($s['location_label']) ?>
                         </div>
                     <?php endif; ?>
                 </div>
                 <div class="q-sess-stats">
                     <div class="q-sess-stat">
-                        <div class="q-sess-stat-num" style="color:var(--info)"><?= (int) $s['waiting'] ?></div>
+                        <div class="q-sess-stat-num"><?= (int) $s['waiting'] ?></div>
                         <div class="q-sess-stat-label">Waiting</div>
                     </div>
                     <div class="q-sess-stat">
-                        <div class="q-sess-stat-num" style="color:var(--accent)"><?= (int) $s['in_progress'] ?></div>
+                        <div class="q-sess-stat-num"><?= (int) $s['in_progress'] ?></div>
                         <div class="q-sess-stat-label">Live</div>
                     </div>
                     <div class="q-sess-stat">
-                        <div class="q-sess-stat-num" style="color:var(--success)"><?= (int) $s['completed'] ?></div>
+                        <div class="q-sess-stat-num"><?= (int) $s['completed'] ?></div>
                         <div class="q-sess-stat-label">Done</div>
                     </div>
                     <div class="q-sess-stat">
-                        <div class="q-sess-stat-num" style="color:var(--error)"><?= (int) $s['no_show'] ?></div>
+                        <div class="q-sess-stat-num"<?= ((int) $s['no_show']) > 0 ? ' style="color:var(--error)"' : '' ?>><?= (int) $s['no_show'] ?></div>
                         <div class="q-sess-stat-label">No-show</div>
                     </div>
                 </div>
@@ -163,6 +113,12 @@ ob_start();
 
 <?php
 $content   = ob_get_clean();
-$pageTitle = 'Live Queue · ' . $selectedCollege;
+$pageTitle = 'Live Queue';
+$pageHeading = $selectedCollege; // heading = the college, like every other picker's second level
+$pageBreadcrumb = [
+    ['label' => 'Interview Sessions', 'to' => '/staff/interviews'],
+    ['label' => 'Live Queue',         'to' => '/staff/interviews/queue'],
+];
 $activeNav = 'interviews';
+$pageWide  = true;
 include VIEWS_PATH . '/layouts/app.php';

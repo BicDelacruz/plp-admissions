@@ -433,10 +433,7 @@ ob_start();
        (this IS their primary view), so no back button.
 ============================================================ -->
 <?php if ($canSeeAll): ?>
-    <div style="display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-5);flex-wrap:wrap;flex-shrink:0">
-        <a href="<?= e(url('/staff/interviews/queue')) ?>" class="btn btn-ghost btn-sm">
-            ← Back to colleges
-        </a>
+    <div style="display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-5);flex-wrap:wrap">
         <span style="font-size:var(--text-sm);color:var(--text-secondary)">
             <?php if ($showAll): ?>
                 <strong>All colleges</strong>
@@ -457,7 +454,7 @@ ob_start();
     <div style="display:flex;align-items:center;gap:var(--space-3);flex-shrink:0;
                  padding:var(--space-3) var(--space-4);margin-bottom:var(--space-4);
                  background:var(--bg-elevated);border:1px solid var(--border);
-                 border-radius:var(--radius-md);font-size:var(--text-sm)">
+                 border-radius:var(--radius);font-size:var(--text-sm)">
         <?= icon('ic_fluent_location_24_regular', 13, 'color:var(--text-tertiary);flex-shrink:0') ?>
         <span style="font-weight:var(--weight-medium)"><?= e($deskLabel) ?></span>
         <?php if ($deskNotes): ?>
@@ -495,7 +492,7 @@ ob_start();
     -->
     <div class="card iq-table-card"
          style="padding:var(--space-12) var(--space-8);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--space-3);text-align:center">
-        <div style="width:56px;height:56px;border-radius:var(--radius-lg);background:var(--bg-subtle);color:var(--text-tertiary);display:flex;align-items:center;justify-content:center">
+        <div style="width:56px;height:56px;border-radius:var(--radius);background:var(--bg-subtle);color:var(--text-tertiary);display:flex;align-items:center;justify-content:center">
             <?= icon('ic_fluent_calendar_ltr_24_regular', 28) ?>
         </div>
         <div style="font-size:var(--text-base);font-weight:var(--weight-semibold);color:var(--text-primary)">
@@ -578,7 +575,6 @@ ob_start();
         </select>
         <?php endif; ?>
 
-        <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
         <?php if ($hasFilters): ?>
             <a href="<?= e($queueUrl(['q' => '', 'date' => '', 'slot' => '', 'page' => 1])) ?>" class="btn btn-ghost btn-sm">Clear</a>
         <?php endif; ?>
@@ -658,7 +654,7 @@ ob_start();
                                 }
                             }
                         ?>
-                        <span class="badge <?= $statusBadgeClass ?>" style="font-size:var(--text-xs)"
+                        <span class="badge <?= $statusBadgeClass ?>"
                               <?= ($isFinal && $existing !== '') ? 'title="' . e($existing) . '"' : '' ?>>
                             <?php if ($isInProg): ?>
                                 <span style="display:inline-block;width:6px;height:6px;border-radius:50%;
@@ -951,5 +947,12 @@ if ($canSeeAll) {
     $pageTitle = 'Live Queue';
 }
 $activeNav = 'interviews';
+$pageBreadcrumb = $canSeeAll
+    ? [
+        ['label' => 'Interview Sessions', 'to' => '/staff/interviews'],
+        ['label' => 'Live Queue',         'to' => '/staff/interviews/queue'],
+    ]
+    : [];
+$pageActions = '';
 $pageWide  = true;
 include VIEWS_PATH . '/layouts/app.php';

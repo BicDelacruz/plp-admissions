@@ -12,13 +12,36 @@ function url(string $path = ''): string
 
 function asset(string $path): string
 {
-    return url('assets/' . ltrim($path, '/'));
+    $path = ltrim($path, '/');
+    $href = url('assets/' . $path);
+    // Version by file time so a changed app.css / app.js is never served stale.
+    $file = dirname(__DIR__) . '/public/assets/' . $path;
+    return is_file($file) ? $href . '?v=' . filemtime($file) : $href;
 }
 
 function redirect(string $path): never
 {
     header('Location: ' . url($path));
     exit;
+}
+
+// -- Settings modal ----------------------------------------------
+// The settings pages are shown inside the settings modal (an iframe that
+// loads them with ?embed=1; views/partials/settings_modal.php). In embed mode
+// the layout draws only the page content: no sidebar, header or heading.
+function is_embed(): bool
+{
+    return ($_GET['embed'] ?? '') === '1';
+}
+
+// Settings no longer has a page of its own. Opening its URL directly sends
+// the user to their home page with the modal open. Embedded loads and form
+// posts (which stay on the embed URL) pass straight through.
+function settings_modal_gate(): void
+{
+    if (is_embed() || ($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') return;
+    require_once VIEWS_PATH . '/partials/page_header.php';
+    redirect(page_home_crumb()['to'] . '?settings=1');
 }
 
 // -- Output escaping ---------------------------------------------
@@ -713,6 +736,33 @@ function auth_csp(): string
         . "img-src 'self' data: blob: https:; frame-src $cf; connect-src 'self' $cf;";
 }
 
+// -- Google sign in ----------------------------------------------
+// Pure check of the id token claims (no network). The token came straight from
+// Google over TLS, so the signature is not verified (Google's own guidance).
+function google_claims_ok(array $c, string $clientId, ?int $now = null): bool
+{
+    $now ??= time();
+    if (!in_array($c['iss'] ?? '', ['https://accounts.google.com', 'accounts.google.com'], true)) return false;
+    $aud = $c['aud'] ?? '';
+    if (!(is_array($aud) ? in_array($clientId, $aud, true) : ($clientId !== '' && $aud === $clientId))) return false;
+    if ((int) ($c['exp'] ?? 0) <= $now) return false;
+    if (!in_array($c['email_verified'] ?? false, [true, 'true'], true)) return false;
+    foreach (['sub', 'email'] as $k) {
+        if (!is_string($c[$k] ?? null) || $c[$k] === '') return false;
+    }
+    return true;
+}
+
+function google_logo_svg(): string
+{
+    return '<svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">'
+        . '<path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/>'
+        . '<path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/>'
+        . '<path fill="#FBBC05" d="M10.5 28.7c-.5-1.4-.8-3-.8-4.7s.3-3.2.8-4.7l-7.9-6.1C.9 16.4 0 20.100 0 24s.9 7.600 2.600 10.800l7.900-6.100z"/>'
+        . '<path fill="#34A853" d="M24 48c6.500 0 11.900-2.100 15.900-5.800l-7.500-5.800c-2.100 1.400-4.800 2.300-8.400 2.300-6.300 0-11.600-4.100-13.500-9.800l-7.900 6.100C6.500 42.600 14.600 48 24 48z"/>'
+        . '</svg>';
+}
+
 // -- Email (PHPMailer + Gmail SMTP) ------------------------------
 function send_email(string $to, string $subject, string $htmlBody, string $toName = ''): bool
 {
@@ -822,7 +872,12 @@ function audit_log(
 function phosphor_head(): string
 {
     $b = 'https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src';
+    // The icon fonts are font-display:block, so icons stay invisible until the
+    // font arrives. Preloading them starts that download with the page, not
+    // after the CSS is parsed, so icons are there on first paint.
     return '<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>' . "\n"
+         . '    <link rel="preload" as="font" type="font/woff2" href="' . $b . '/bold/Phosphor-Bold.woff2" crossorigin>' . "\n"
+         . '    <link rel="preload" as="font" type="font/woff2" href="' . $b . '/fill/Phosphor-Fill.woff2" crossorigin>' . "\n"
          . '    <link rel="stylesheet" href="' . $b . '/bold/style.css">' . "\n"
          . '    <link rel="stylesheet" href="' . $b . '/fill/style.css">';
 }
@@ -1064,18 +1119,6 @@ function exam_password_seconds_remaining(array $row): int
 }
 
 /**
- * Return true if today's date matches the slot's exam date.
- * Schedule now lives on the slot, not the exam (per Chunk 7).
- *
- * @param  array  $slot  Row from `exam_slot_schedule` containing `exam_date`
- */
-function is_slot_today(array $slot): bool
-{
-    if (empty($slot['exam_date'])) return false;
-    return date('Y-m-d') === date('Y-m-d', strtotime($slot['exam_date']));
-}
-
-/**
  * Return the wall-clock open / close DateTimes for a slot.
  *
  *   opens  = exam_date + slot_time
@@ -1102,15 +1145,6 @@ function slot_window(array $slot): array
 }
 
 /**
- * Convenience: return the duration of a slot in minutes (closes − opens).
- */
-function slot_duration_minutes(array $slot): int
-{
-    $w = slot_window($slot);
-    return (int) round(($w['closes']->getTimestamp() - $w['opens']->getTimestamp()) / 60);
-}
-
-/**
  * How many minutes after `opens` an applicant can still enter the password
  * before being locked out for the day. Read from school setting
  * `exam_late_cutoff_minutes`, default 15.
@@ -1119,6 +1153,33 @@ function exam_late_cutoff_minutes(): int
 {
     $v = (int) school_setting('exam_late_cutoff_minutes', '15');
     return max(0, $v);
+}
+
+
+/**
+ * Segmented control used for page tabs. Renders as links so every tab is a
+ * normal page load / bookmarkable URL. Put it as the FIRST item of a table
+ * toolbar (left of the search box).
+ *
+ * $tabs = [ key => ['label' => 'Absent', 'href' => '?tab=absent',
+ *                   'count' => 3 (optional), 'tone' => 'warning' (optional)] ]
+ */
+function segmented_tabs(array $tabs, string $active, string $ariaLabel = 'Views'): string
+{
+    $html = '<div class="seg-control" role="tablist" aria-label="' . htmlspecialchars($ariaLabel) . '">';
+    foreach ($tabs as $key => $t) {
+        $isActive = ((string)$key === $active);
+        $count = $t['count'] ?? null;
+        $html .= '<a href="' . htmlspecialchars($t['href']) . '" role="tab" aria-selected="' . ($isActive ? 'true' : 'false') . '"'
+               . ' class="seg-control-item' . ($isActive ? ' active' : '') . '">'
+               . htmlspecialchars($t['label']);
+        if ($count !== null && (int)$count > 0) {
+            $tone = !empty($t['tone']) ? ' seg-control-count--' . htmlspecialchars($t['tone']) : '';
+            $html .= '<span class="seg-control-count' . $tone . '">' . (int)$count . '</span>';
+        }
+        $html .= '</a>';
+    }
+    return $html . '</div>';
 }
 
 /**
