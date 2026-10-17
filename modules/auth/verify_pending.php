@@ -186,6 +186,16 @@ ob_start();
 
 <script>
 (function () {
+    // Auto-submit when the user pastes/types a 6-digit code.
+    var input = document.getElementById('code');
+    if (input) {
+        input.addEventListener('input', function () {
+            var v = (input.value || '').replace(/\D/g, '');
+            if (v.length === 6) input.form.submit();
+        });
+    }
+
+    // Resend countdown (only when a wait is running).
     var btn   = document.getElementById('resend-btn');
     var label = document.getElementById('resend-label');
     var left  = <?= (int) $resendIn ?>;
@@ -201,15 +211,6 @@ ob_start();
             label.textContent = 'Resend in ' + left + 's';
         }
     }, 1000);
-
-    // Auto-submit when the user pastes/types a 6-digit code.
-    var input = document.getElementById('code');
-    if (input) {
-        input.addEventListener('input', function () {
-            var v = (input.value || '').replace(/\D/g, '');
-            if (v.length === 6) input.form.submit();
-        });
-    }
 })();
 </script>
 

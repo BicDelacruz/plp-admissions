@@ -95,20 +95,11 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
         </div>
         <div class="auth-aside-copy">
             <h2>Your application, in one place.</h2>
-            <p>Create an account, upload your requirements, and follow your application from documents to results.</p>
             <ul class="auth-points">
-                <li>Upload requirements online</li>
-                <li>See your exam and interview schedule</li>
-                <li>Get your result as soon as it is released</li>
+                <li>Upload your requirements (PDF, JPG, PNG or WEBP, 4 MB max)</li>
+                <li>See your exam and interview schedule, then your result</li>
+                <li>Verify your email with the code we send before signing in</li>
             </ul>
-            <div class="auth-advisory">
-                <p class="auth-advisory-title">Advisory</p>
-                <ul>
-                    <li>Upload PDF, JPG, PNG or WEBP files, 4 MB or smaller.</li>
-                    <li>Verify your email with the code we send before signing in.</li>
-                    <li>Too many failed sign-ins lock your account for 15 minutes.</li>
-                </ul>
-            </div>
         </div>
         <p class="auth-aside-foot">Admissions Office</p>
     </aside>

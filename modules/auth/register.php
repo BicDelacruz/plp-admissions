@@ -369,300 +369,285 @@ ob_start();
     <form method="POST" action="<?= url('/register' . ($googleMode ? '?google=1' : '')) ?>" data-once novalidate>
         <?= csrf_field() ?>
 
-        <div class="reg-cols">
-
-            <!-- Left column: application + contact -->
-            <div class="reg-col">
-                <section class="reg-section reg-section--application">
-                    <h2 class="reg-section-label">Application</h2>
-
-                    <!-- Applicant Type -->
-                    <div class="form-group">
-                        <label class="form-label" for="applicant_type">Applicant Type <span>*</span></label>
-                        <select id="applicant_type" name="applicant_type"
-                            class="form-select <?= isset($errors['applicant_type']) ? 'error' : '' ?>" required
-                            onchange="onTypeChange(this.value)">
-                            <option value="">Select…</option>
-                            <option value="freshman"   <?= ($old['applicant_type'] ?? '') === 'freshman'   ? 'selected' : '' ?>>Freshman (Graduating / Graduate of Senior HS)</option>
-                            <option value="transferee" <?= ($old['applicant_type'] ?? '') === 'transferee' ? 'selected' : '' ?>>Transferee (Incoming 2nd–3rd Year)</option>
-                            <option value="foreign"    <?= ($old['applicant_type'] ?? '') === 'foreign'    ? 'selected' : '' ?>>Foreign Student</option>
-                        </select>
-                        <?php if (!empty($errors['applicant_type'])): ?>
-                            <span class="form-error"><?= e($errors['applicant_type']) ?></span>
-                        <?php endif; ?>
-                    </div>
-
-                    <div id="qual-freshman" class="qual-box" style="display:<?= ($old['applicant_type'] ?? '') === 'freshman' ? 'block' : 'none' ?>">
-                        <div class="qual-box-title">Freshman Qualifications</div>
-                        <ul class="qual-list">
-                            <li>At least <strong>80% General Weighted Average (GWA)</strong></li>
-                            <li>Graduate of Senior High School or currently enrolled in Grade 12 SHS</li>
-                            <li>Applicant, Parent, or Guardian must be a resident of Pasig City for at least <strong>five (5) years</strong></li>
-                        </ul>
-                    </div>
-                    <div id="qual-transferee" class="qual-box" style="display:<?= ($old['applicant_type'] ?? '') === 'transferee' ? 'block' : 'none' ?>">
-                        <div class="qual-box-title">Transferee Qualifications</div>
-                        <ul class="qual-list">
-                            <li>Incoming 2nd–3rd year ONLY from any CHED-accredited college/university (at least 36 units taken)</li>
-                            <li>Graduated under the K–12 Program</li>
-                            <li>GWA of <strong>2.25 or higher</strong></li>
-                            <li>No Failing, Dropped, or Incomplete Grades</li>
-                            <li>No Shifting of Program</li>
-                            <li>Parent/Guardian or Applicant must be a resident of Pasig City for at least <strong>five (5) years</strong></li>
-                        </ul>
-                    </div>
-
-                    <!-- Course -->
-                    <div class="form-group">
-                        <label class="form-label" for="course_applied">Course Applying For <span>*</span></label>
-                        <select id="course_applied" name="course_applied"
-                            class="form-select <?= isset($errors['course_applied']) ? 'error' : '' ?>" required
-                            onchange="onCourseChange(this.value)">
-                            <option value="">Select…</option>
-                            <?php foreach (get_all_courses() as $course):
-                                $isFull = in_array($course, $fullCourses, true);
-                            ?>
-                                <option value="<?= e($course) ?>"
-                                    <?= ($old['course_applied'] ?? '') === $course ? 'selected' : '' ?>
-                                    <?= $isFull ? 'disabled' : '' ?>>
-                                    <?= e($course) ?><?= $isFull ? ' — FULL' : '' ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                        <?php if (!empty($errors['course_applied'])): ?>
-                            <span class="form-error"><?= e($errors['course_applied']) ?></span>
-                        <?php endif; ?>
-                        <?php if (!empty($fullCourses)): ?>
-                            <span class="form-hint">
-                                Courses marked <strong>FULL</strong> have reached their enrollment cap for <?= e($regSchoolYear) ?> and are no longer accepting applications.
-                            </span>
-                        <?php endif; ?>
-                    </div>
-
-                    <!-- SHS Strand — only shown for freshmen; options filtered by course via JS -->
-                    <div id="strand-group" class="form-group" style="display:<?= ($old['applicant_type'] ?? '') === 'freshman' ? 'flex' : 'none' ?>">
-                        <label class="form-label" for="shs_strand">SHS Strand <span>*</span></label>
-                        <select id="shs_strand" name="shs_strand"
-                            class="form-select <?= isset($errors['shs_strand']) ? 'error' : '' ?>">
-                            <option value="">Select…</option>
-                        </select>
-                        <?php if (!empty($errors['shs_strand'])): ?>
-                            <span class="form-error"><?= e($errors['shs_strand']) ?></span>
-                        <?php endif; ?>
-                    </div>
-
-                    <!-- Which conditional documents apply (shown by jQuery once a type is picked) -->
-                    <div id="doc-flags" class="qual-box" style="display:none">
-                        <div class="qual-box-title">Which of these apply to you?</div>
-                        <p class="form-hint" style="margin:0 0 var(--space-3)">
-                            This decides which documents you need to upload. You can change it later on the documents page until you submit.
-                        </p>
-                        <?php $_stage = doc_stage_of($old['doc_flags'] ?? []); ?>
-                        <!-- Freshmen pick exactly one (required); it decides Form 138 or Form 137 -->
-                        <div data-types="freshman" role="radiogroup" aria-required="true" style="margin-bottom:var(--space-3)">
-                            <div style="font-size:var(--text-xs);font-weight:var(--weight-medium);color:var(--text-secondary);margin-bottom:var(--space-2)">Select one <span style="color:var(--error)">*</span></div>
-                            <div style="display:flex;flex-direction:column;gap:var(--space-2)">
-                                <label class="form-check">
-                                    <input type="radio" name="flags[stage]" value="grade12" <?= $_stage === 'grade12' ? 'checked' : '' ?>>
-                                    <span>I am currently in Grade 12</span>
-                                </label>
-                                <label class="form-check">
-                                    <input type="radio" name="flags[stage]" value="shs_grad" <?= $_stage === 'shs_grad' ? 'checked' : '' ?>>
-                                    <span>I am a Senior High School graduate</span>
-                                </label>
-                            </div>
-                            <?php if (!empty($errors['stage'])): ?>
-                                <span class="form-error"><?= e($errors['stage']) ?></span>
-                            <?php endif; ?>
-                        </div>
-                        <div style="font-size:var(--text-xs);font-weight:var(--weight-medium);color:var(--text-secondary);margin-bottom:var(--space-2)">Also tick if they apply</div>
-                        <div style="display:flex;flex-direction:column;gap:var(--space-2)">
-                            <label class="form-check">
-                                <input type="checkbox" name="flags[married]" value="1" <?= !empty($old['doc_flags']['married']) ? 'checked' : '' ?>>
-                                <span>I am married</span>
-                            </label>
-                            <label class="form-check">
-                                <input type="checkbox" name="flags[guardian]" value="1" <?= !empty($old['doc_flags']['guardian']) ? 'checked' : '' ?>>
-                                <span>I am not living with my parents</span>
-                            </label>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="reg-section reg-section--contact">
-                    <h2 class="reg-section-label">Contact</h2>
-
-                    <div class="form-group">
-                        <label class="form-label" for="email">Email Address <span>*</span></label>
-                        <input type="email" id="email" name="email"
-                            class="form-input <?= isset($errors['email']) ? 'error' : '' ?>"
-                            value="<?= e($old['email'] ?? '') ?>"
-                            placeholder="you@example.com"
-                            <?= $googleMode ? 'readonly' : '' ?>
-                            autocomplete="email" required>
-                        <?php if (!empty($errors['email'])): ?>
-                            <span class="form-error"><?= e($errors['email']) ?></span>
-                        <?php endif; ?>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="phone">Phone Number <span>*</span></label>
-                        <input type="tel" id="phone" name="phone"
-                            class="form-input <?= isset($errors['phone']) ? 'error' : '' ?>"
-                            value="<?= e($old['phone'] ?? '') ?>"
-                            autocomplete="tel"
-                            maxlength="11"
-                            inputmode="numeric"
-                            placeholder="09123456789"
-                            oninput="this.value=this.value.replace(/\D/g,'').slice(0,11)"
-                            required>
-                        <?php if (!empty($errors['phone'])): ?>
-                            <span class="form-error"><?= e($errors['phone']) ?></span>
-                        <?php endif; ?>
-                    </div>
-                </section>
-            </div>
-
-            <!-- Right column: personal details + password -->
-            <div class="reg-col">
-                <section class="reg-section reg-section--personal">
-                    <h2 class="reg-section-label">Personal details</h2>
-
-                    <div class="reg-pair">
-                        <div class="form-group">
-                            <label class="form-label" for="first_name">First Name <span>*</span></label>
-                            <input type="text" id="first_name" name="first_name"
-                                class="form-input <?= isset($errors['first_name']) ? 'error' : '' ?>"
-                                value="<?= e($old['first_name'] ?? '') ?>"
-                                autocomplete="given-name" required>
-                            <?php if (!empty($errors['first_name'])): ?>
-                                <span class="form-error"><?= e($errors['first_name']) ?></span>
-                            <?php endif; ?>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="middle_name">Middle Name</label>
-                            <input type="text" id="middle_name" name="middle_name"
-                                class="form-input"
-                                value="<?= e($old['middle_name'] ?? '') ?>"
-                                autocomplete="additional-name">
-                        </div>
-                    </div>
-
-                    <div class="reg-pair">
-                        <div class="form-group">
-                            <label class="form-label" for="last_name">Last Name <span>*</span></label>
-                            <input type="text" id="last_name" name="last_name"
-                                class="form-input <?= isset($errors['last_name']) ? 'error' : '' ?>"
-                                value="<?= e($old['last_name'] ?? '') ?>"
-                                autocomplete="family-name" required>
-                            <?php if (!empty($errors['last_name'])): ?>
-                                <span class="form-error"><?= e($errors['last_name']) ?></span>
-                            <?php endif; ?>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="suffix">Suffix</label>
-                            <input type="text" id="suffix" name="suffix"
-                                class="form-input"
-                                value="<?= e($old['suffix'] ?? '') ?>"
-                                autocomplete="honorific-suffix"
-                                maxlength="8">
-                        </div>
-                    </div>
-
-                    <div class="reg-pair">
-                        <div class="form-group">
-                            <label class="form-label" for="birthdate">Birthdate <span>*</span></label>
-                            <input type="date" id="birthdate" name="birthdate"
-                                class="form-input <?= isset($errors['birthdate']) ? 'error' : '' ?>"
-                                value="<?= e($old['birthdate'] ?? '') ?>"
-                                max="<?= date('Y-m-d', strtotime('-15 years')) ?>"
-                                required>
-                            <?php if (!empty($errors['birthdate'])): ?>
-                                <span class="form-error"><?= e($errors['birthdate']) ?></span>
-                            <?php endif; ?>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Sex <span>*</span></label>
-                            <div class="sex-toggle <?= isset($errors['sex']) ? 'error' : '' ?>">
-                                <input type="hidden" name="sex" id="sex_value" value="<?= e($old['sex'] ?? '') ?>">
-                                <button type="button" class="sex-btn <?= ($old['sex'] ?? '') === 'M' ? 'active' : '' ?>"
-                                    onclick="setSex('M')">M</button>
-                                <button type="button" class="sex-btn <?= ($old['sex'] ?? '') === 'F' ? 'active' : '' ?>"
-                                    onclick="setSex('F')">F</button>
-                            </div>
-                            <?php if (!empty($errors['sex'])): ?>
-                                <span class="form-error"><?= e($errors['sex']) ?></span>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="street_address">Address <span>*</span></label>
-                        <input type="text" id="street_address" name="street_address"
-                            class="form-input <?= isset($errors['street_address']) ? 'error' : '' ?>"
-                            value="<?= e($old['street_address'] ?? '') ?>"
-                            placeholder="House No., Building, Street"
-                            autocomplete="street-address" required>
-                        <?php if (!empty($errors['street_address'])): ?>
-                            <span class="form-error"><?= e($errors['street_address']) ?></span>
-                        <?php endif; ?>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="barangay">Barangay <span>*</span></label>
-                        <select id="barangay" name="barangay"
-                            class="form-select <?= isset($errors['barangay']) ? 'error' : '' ?>" required>
-                            <option value="">Select…</option>
-                            <?php
-                            $pasigBarangays = [
-                                'Bagong Ilog', 'Bagong Katipunan', 'Bambang', 'Buting', 'Caniogan',
-                                'Dela Paz', 'Kalawaan', 'Kapasigan', 'Kapitolyo', 'Malinao',
-                                'Manggahan', 'Maybunga', 'Oranbo', 'Palatiw', 'Pinagbuhatan',
-                                'Pineda', 'Rosario', 'Sagad', 'San Antonio', 'San Joaquin',
-                                'San Jose', 'San Miguel', 'San Nicolas', 'Santa Cruz',
-                                'Santa Lucia', 'Santa Rosa', 'Santo Tomas', 'Santolan',
-                                'Sumilang', 'Ugong',
-                            ];
-                            foreach ($pasigBarangays as $brgy): ?>
-                                <option value="<?= e($brgy) ?>"
-                                    <?= ($old['barangay'] ?? '') === $brgy ? 'selected' : '' ?>>
-                                    <?= e($brgy) ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                        <?php if (!empty($errors['barangay'])): ?>
-                            <span class="form-error"><?= e($errors['barangay']) ?></span>
-                        <?php endif; ?>
-                    </div>
-                </section>
-
-                <?php if (!$googleMode): ?>
-                <section class="reg-section reg-section--account">
-                    <h2 class="reg-section-label">Account</h2>
-
-                    <div class="form-group">
-                        <label class="form-label" for="password">Password <span>*</span></label>
-                        <input type="password" id="password" name="password"
-                            class="form-input <?= isset($errors['password']) ? 'error' : '' ?>"
-                            placeholder="Min. 8 characters"
-                            autocomplete="new-password" required>
-                        <?php if (!empty($errors['password'])): ?>
-                            <span class="form-error"><?= e($errors['password']) ?></span>
-                        <?php endif; ?>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="password_confirm">Confirm Password <span>*</span></label>
-                        <input type="password" id="password_confirm" name="password_confirm"
-                            class="form-input <?= isset($errors['password_confirm']) ? 'error' : '' ?>"
-                            placeholder="Repeat password"
-                            autocomplete="new-password" required>
-                        <?php if (!empty($errors['password_confirm'])): ?>
-                            <span class="form-error"><?= e($errors['password_confirm']) ?></span>
-                        <?php endif; ?>
-                    </div>
-                </section>
+        <!-- Rows of two, so both columns always line up -->
+        <div class="reg-pair">
+            <!-- Applicant Type -->
+            <div class="form-group">
+                <label class="form-label" for="applicant_type">Applicant Type <span>*</span></label>
+                <select id="applicant_type" name="applicant_type"
+                    class="form-select <?= isset($errors['applicant_type']) ? 'error' : '' ?>" required
+                    onchange="onTypeChange(this.value)">
+                    <option value="">Select…</option>
+                    <option value="freshman"   <?= ($old['applicant_type'] ?? '') === 'freshman'   ? 'selected' : '' ?>>Freshman (Graduating / Graduate of Senior HS)</option>
+                    <option value="transferee" <?= ($old['applicant_type'] ?? '') === 'transferee' ? 'selected' : '' ?>>Transferee (Incoming 2nd–3rd Year)</option>
+                    <option value="foreign"    <?= ($old['applicant_type'] ?? '') === 'foreign'    ? 'selected' : '' ?>>Foreign Student</option>
+                </select>
+                <?php if (!empty($errors['applicant_type'])): ?>
+                    <span class="form-error"><?= e($errors['applicant_type']) ?></span>
                 <?php endif; ?>
             </div>
-
+            <!-- Course -->
+            <div class="form-group">
+                <label class="form-label" for="course_applied">Course Applying For <span>*</span></label>
+                <select id="course_applied" name="course_applied"
+                    class="form-select <?= isset($errors['course_applied']) ? 'error' : '' ?>" required
+                    onchange="onCourseChange(this.value)">
+                    <option value="">Select…</option>
+                    <?php foreach (get_all_courses() as $course):
+                        $isFull = in_array($course, $fullCourses, true);
+                    ?>
+                        <option value="<?= e($course) ?>"
+                            <?= ($old['course_applied'] ?? '') === $course ? 'selected' : '' ?>
+                            <?= $isFull ? 'disabled' : '' ?>>
+                            <?= e($course) ?><?= $isFull ? ' — FULL' : '' ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+                <?php if (!empty($errors['course_applied'])): ?>
+                    <span class="form-error"><?= e($errors['course_applied']) ?></span>
+                <?php endif; ?>
+                <?php if (!empty($fullCourses)): ?>
+                    <span class="form-hint">
+                        Courses marked <strong>FULL</strong> have reached their enrollment cap for <?= e($regSchoolYear) ?> and are no longer accepting applications.
+                    </span>
+                <?php endif; ?>
+            </div>
         </div>
+
+        <div class="reg-pair">
+            <!-- SHS Strand — only shown for freshmen; options filtered by course via JS -->
+            <div id="strand-group" class="form-group" style="display:<?= ($old['applicant_type'] ?? '') === 'freshman' ? 'flex' : 'none' ?>">
+                <label class="form-label" for="shs_strand">SHS Strand <span>*</span></label>
+                <select id="shs_strand" name="shs_strand"
+                    class="form-select <?= isset($errors['shs_strand']) ? 'error' : '' ?>">
+                    <option value="">Select…</option>
+                </select>
+                <?php if (!empty($errors['shs_strand'])): ?>
+                    <span class="form-error"><?= e($errors['shs_strand']) ?></span>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <div class="reg-pair reg-info">
+            <div id="qual-freshman" class="qual-box" style="display:<?= ($old['applicant_type'] ?? '') === 'freshman' ? 'block' : 'none' ?>">
+                <div class="qual-box-title">Freshman Qualifications</div>
+                <ul class="qual-list">
+                    <li>At least <strong>80% General Weighted Average (GWA)</strong></li>
+                    <li>Graduate of Senior High School or currently enrolled in Grade 12 SHS</li>
+                    <li>Applicant, Parent, or Guardian must be a resident of Pasig City for at least <strong>five (5) years</strong></li>
+                </ul>
+            </div>
+            <div id="qual-transferee" class="qual-box" style="display:<?= ($old['applicant_type'] ?? '') === 'transferee' ? 'block' : 'none' ?>">
+                <div class="qual-box-title">Transferee Qualifications</div>
+                <ul class="qual-list">
+                    <li>Incoming 2nd–3rd year ONLY from any CHED-accredited college/university (at least 36 units taken)</li>
+                    <li>Graduated under the K–12 Program</li>
+                    <li>GWA of <strong>2.25 or higher</strong></li>
+                    <li>No Failing, Dropped, or Incomplete Grades</li>
+                    <li>No Shifting of Program</li>
+                    <li>Parent/Guardian or Applicant must be a resident of Pasig City for at least <strong>five (5) years</strong></li>
+                </ul>
+            </div>
+            <!-- Which conditional documents apply (shown by jQuery once a type is picked) -->
+            <div id="doc-flags" class="qual-box" style="display:none">
+                <div class="qual-box-title">Which of these apply to you?</div>
+                <p class="form-hint" style="margin:0 0 var(--space-3)">
+                    This decides which documents you need to upload. You can change it later on the documents page until you submit.
+                </p>
+                <?php $_stage = doc_stage_of($old['doc_flags'] ?? []); ?>
+                <!-- Freshmen pick exactly one (required); it decides Form 138 or Form 137 -->
+                <div data-types="freshman" role="radiogroup" aria-required="true" style="margin-bottom:var(--space-3)">
+                    <div style="font-size:var(--text-xs);font-weight:var(--weight-medium);color:var(--text-secondary);margin-bottom:var(--space-2)">Select one <span style="color:var(--error)">*</span></div>
+                    <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+                        <label class="form-check">
+                            <input type="radio" name="flags[stage]" value="grade12" <?= $_stage === 'grade12' ? 'checked' : '' ?>>
+                            <span>I am currently in Grade 12</span>
+                        </label>
+                        <label class="form-check">
+                            <input type="radio" name="flags[stage]" value="shs_grad" <?= $_stage === 'shs_grad' ? 'checked' : '' ?>>
+                            <span>I am a Senior High School graduate</span>
+                        </label>
+                    </div>
+                    <?php if (!empty($errors['stage'])): ?>
+                        <span class="form-error"><?= e($errors['stage']) ?></span>
+                    <?php endif; ?>
+                </div>
+                <div style="font-size:var(--text-xs);font-weight:var(--weight-medium);color:var(--text-secondary);margin-bottom:var(--space-2)">Also tick if they apply</div>
+                <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+                    <label class="form-check">
+                        <input type="checkbox" name="flags[married]" value="1" <?= !empty($old['doc_flags']['married']) ? 'checked' : '' ?>>
+                        <span>I am married</span>
+                    </label>
+                    <label class="form-check">
+                        <input type="checkbox" name="flags[guardian]" value="1" <?= !empty($old['doc_flags']['guardian']) ? 'checked' : '' ?>>
+                        <span>I am not living with my parents</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="reg-pair">
+            <div class="form-group">
+                <label class="form-label" for="first_name">First Name <span>*</span></label>
+                <input type="text" id="first_name" name="first_name"
+                    class="form-input <?= isset($errors['first_name']) ? 'error' : '' ?>"
+                    value="<?= e($old['first_name'] ?? '') ?>"
+                    autocomplete="given-name" required>
+                <?php if (!empty($errors['first_name'])): ?>
+                    <span class="form-error"><?= e($errors['first_name']) ?></span>
+                <?php endif; ?>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="middle_name">Middle Name</label>
+                <input type="text" id="middle_name" name="middle_name"
+                    class="form-input"
+                    value="<?= e($old['middle_name'] ?? '') ?>"
+                    autocomplete="additional-name">
+            </div>
+        </div>
+
+        <div class="reg-pair">
+            <div class="form-group">
+                <label class="form-label" for="last_name">Last Name <span>*</span></label>
+                <input type="text" id="last_name" name="last_name"
+                    class="form-input <?= isset($errors['last_name']) ? 'error' : '' ?>"
+                    value="<?= e($old['last_name'] ?? '') ?>"
+                    autocomplete="family-name" required>
+                <?php if (!empty($errors['last_name'])): ?>
+                    <span class="form-error"><?= e($errors['last_name']) ?></span>
+                <?php endif; ?>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="suffix">Suffix</label>
+                <input type="text" id="suffix" name="suffix"
+                    class="form-input"
+                    value="<?= e($old['suffix'] ?? '') ?>"
+                    autocomplete="honorific-suffix"
+                    maxlength="8">
+            </div>
+        </div>
+
+        <div class="reg-pair">
+            <div class="form-group">
+                <label class="form-label" for="birthdate">Birthdate <span>*</span></label>
+                <input type="date" id="birthdate" name="birthdate"
+                    class="form-input <?= isset($errors['birthdate']) ? 'error' : '' ?>"
+                    value="<?= e($old['birthdate'] ?? '') ?>"
+                    max="<?= date('Y-m-d', strtotime('-15 years')) ?>"
+                    required>
+                <?php if (!empty($errors['birthdate'])): ?>
+                    <span class="form-error"><?= e($errors['birthdate']) ?></span>
+                <?php endif; ?>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Sex <span>*</span></label>
+                <div class="sex-toggle <?= isset($errors['sex']) ? 'error' : '' ?>">
+                    <input type="hidden" name="sex" id="sex_value" value="<?= e($old['sex'] ?? '') ?>">
+                    <button type="button" class="sex-btn <?= ($old['sex'] ?? '') === 'M' ? 'active' : '' ?>"
+                        onclick="setSex('M')">M</button>
+                    <button type="button" class="sex-btn <?= ($old['sex'] ?? '') === 'F' ? 'active' : '' ?>"
+                        onclick="setSex('F')">F</button>
+                </div>
+                <?php if (!empty($errors['sex'])): ?>
+                    <span class="form-error"><?= e($errors['sex']) ?></span>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <div class="reg-pair">
+            <div class="form-group">
+                <label class="form-label" for="street_address">Address <span>*</span></label>
+                <input type="text" id="street_address" name="street_address"
+                    class="form-input <?= isset($errors['street_address']) ? 'error' : '' ?>"
+                    value="<?= e($old['street_address'] ?? '') ?>"
+                    placeholder="House No., Building, Street"
+                    autocomplete="street-address" required>
+                <?php if (!empty($errors['street_address'])): ?>
+                    <span class="form-error"><?= e($errors['street_address']) ?></span>
+                <?php endif; ?>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="barangay">Barangay <span>*</span></label>
+                <select id="barangay" name="barangay"
+                    class="form-select <?= isset($errors['barangay']) ? 'error' : '' ?>" required>
+                    <option value="">Select…</option>
+                    <?php
+                    $pasigBarangays = [
+                        'Bagong Ilog', 'Bagong Katipunan', 'Bambang', 'Buting', 'Caniogan',
+                        'Dela Paz', 'Kalawaan', 'Kapasigan', 'Kapitolyo', 'Malinao',
+                        'Manggahan', 'Maybunga', 'Oranbo', 'Palatiw', 'Pinagbuhatan',
+                        'Pineda', 'Rosario', 'Sagad', 'San Antonio', 'San Joaquin',
+                        'San Jose', 'San Miguel', 'San Nicolas', 'Santa Cruz',
+                        'Santa Lucia', 'Santa Rosa', 'Santo Tomas', 'Santolan',
+                        'Sumilang', 'Ugong',
+                    ];
+                    foreach ($pasigBarangays as $brgy): ?>
+                        <option value="<?= e($brgy) ?>"
+                            <?= ($old['barangay'] ?? '') === $brgy ? 'selected' : '' ?>>
+                            <?= e($brgy) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+                <?php if (!empty($errors['barangay'])): ?>
+                    <span class="form-error"><?= e($errors['barangay']) ?></span>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <div class="reg-pair">
+            <div class="form-group">
+                <label class="form-label" for="email">Email Address <span>*</span></label>
+                <input type="email" id="email" name="email"
+                    class="form-input <?= isset($errors['email']) ? 'error' : '' ?>"
+                    value="<?= e($old['email'] ?? '') ?>"
+                    placeholder="you@example.com"
+                    <?= $googleMode ? 'readonly' : '' ?>
+                    autocomplete="email" required>
+                <?php if (!empty($errors['email'])): ?>
+                    <span class="form-error"><?= e($errors['email']) ?></span>
+                <?php endif; ?>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="phone">Phone Number <span>*</span></label>
+                <input type="tel" id="phone" name="phone"
+                    class="form-input <?= isset($errors['phone']) ? 'error' : '' ?>"
+                    value="<?= e($old['phone'] ?? '') ?>"
+                    autocomplete="tel"
+                    maxlength="11"
+                    inputmode="numeric"
+                    placeholder="09123456789"
+                    oninput="this.value=this.value.replace(/\D/g,'').slice(0,11)"
+                    required>
+                <?php if (!empty($errors['phone'])): ?>
+                    <span class="form-error"><?= e($errors['phone']) ?></span>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <?php if (!$googleMode): ?>
+        <div class="reg-pair">
+            <div class="form-group">
+                <label class="form-label" for="password">Password <span>*</span></label>
+                <input type="password" id="password" name="password"
+                    class="form-input <?= isset($errors['password']) ? 'error' : '' ?>"
+                    placeholder="Min. 8 characters"
+                    autocomplete="new-password" required>
+                <?php if (!empty($errors['password'])): ?>
+                    <span class="form-error"><?= e($errors['password']) ?></span>
+                <?php endif; ?>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="password_confirm">Confirm Password <span>*</span></label>
+                <input type="password" id="password_confirm" name="password_confirm"
+                    class="form-input <?= isset($errors['password_confirm']) ? 'error' : '' ?>"
+                    placeholder="Repeat password"
+                    autocomplete="new-password" required>
+                <?php if (!empty($errors['password_confirm'])): ?>
+                    <span class="form-error"><?= e($errors['password_confirm']) ?></span>
+                <?php endif; ?>
+            </div>
+        </div>
+        <?php endif; ?>
 
         <?php if (!$googleMode && !empty($errors['captcha'])): ?>
             <div class="alert alert-error" role="alert" style="margin-top:var(--space-4)">
@@ -826,30 +811,12 @@ document.addEventListener('DOMContentLoaded', function () {
 .reg-head .auth-header { margin-bottom: 0; }
 .auth-card .reg-head a.auth-google { width: auto; min-width: 280px; padding: 0 var(--space-6); }
 
-/* Two independent columns: a tall left column (freshman boxes) never leaves
-   gaps in the right one. */
-.reg-cols {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: var(--space-6) var(--space-12);
-    align-items: start;
-}
-.reg-col { display: flex; flex-direction: column; gap: var(--space-4); min-width: 0; }
-
-.reg-section-label {
-    margin: 0 0 var(--space-4);
-    padding-bottom: var(--space-2);
-    border-bottom: 1px solid var(--border);
-    font-size: var(--text-xs);
-    font-weight: var(--weight-semibold);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--text-tertiary);
-}
-
-/* Two fields side by side inside a column */
-.reg-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 0 var(--space-4); }
+/* Rows of two fields: both columns always line up, whatever is shown */
+.reg-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 0 var(--space-6); }
 .reg-pair > * { min-width: 0; }
+/* Info boxes (qualifications / which apply) share a row and match height */
+.reg-info { align-items: stretch; }
+.reg-info > .qual-box { margin-bottom: var(--space-4); }
 
 .reg-submit {
     display: flex;
@@ -857,9 +824,7 @@ document.addEventListener('DOMContentLoaded', function () {
     justify-content: flex-end;
     flex-wrap: wrap;
     gap: var(--space-4);
-    margin-top: var(--space-6);
-    padding-top: var(--space-6);
-    border-top: 1px solid var(--border);
+    margin-top: var(--space-2);
 }
 .reg-submit .cf-turnstile { margin: 0 auto 0 0; }
 .reg-submit .btn { min-width: 240px; }
@@ -909,16 +874,8 @@ document.addEventListener('DOMContentLoaded', function () {
 }
 .qual-list li::before { content: '· '; color: var(--accent); font-weight: var(--weight-semibold); }
 
-/* Narrow screens: one column, in the order a person fills it in */
-@media (max-width: 900px) {
-    .reg-cols { display: flex; flex-direction: column; gap: var(--space-4); }
-    .reg-col { display: contents; }
-    .reg-section--application { order: 1; }
-    .reg-section--personal    { order: 2; }
-    .reg-section--contact     { order: 3; }
-    .reg-section--account     { order: 4; }
-}
-@media (max-width: 560px) {
+/* Narrow screens: one field per row */
+@media (max-width: 640px) {
     .reg-pair { grid-template-columns: 1fr; }
     .auth-card .reg-head a.auth-google { width: 100%; min-width: 0; }
     .reg-submit .btn { width: 100%; min-width: 0; }
