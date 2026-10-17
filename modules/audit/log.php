@@ -197,7 +197,6 @@ ob_start();
         <input type="date" name="date" class="form-input" style="width:160px" value="<?= e($filterDate) ?>"
                onchange="this.form.submit()">
 
-        <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
         <?php if ($hasFilters): ?>
             <a href="<?= url('/admin/audit-log') ?>" class="btn btn-ghost btn-sm">Clear</a>
         <?php endif; ?>
@@ -240,7 +239,7 @@ ob_start();
                         ?>
                         <span style="display:inline-flex;align-items:center;gap:var(--space-2);max-width:100%">
                             <span class="auto-table-clip" style="font-size:var(--text-sm);font-weight:var(--weight-medium)"><?= e($log['user_name']) ?></span>
-                            <span class="badge badge-<?= $roleBadge ?>" style="font-size:10px;flex-shrink:0"><?= e($roleLabel) ?></span>
+                            <span class="badge badge-<?= $roleBadge ?>" style="flex-shrink:0"><?= e($roleLabel) ?></span>
                         </span>
                     </td>
                     <?php endif; ?>

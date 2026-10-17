@@ -336,7 +336,7 @@ ob_start();
             <?php elseif ($admissionsOpen || $admissionsClose): ?>
                 <span class="badge badge-pending">Closed</span>
             <?php else: ?>
-                <span class="badge" style="background:var(--bg-subtle);color:var(--text-tertiary)">Not set</span>
+                <span class="badge">Not set</span>
             <?php endif; ?>
         </div>
 
@@ -414,7 +414,7 @@ ob_start();
             <?php if ($enrollmentDate && $enrollmentTime && $enrollmentVenue): ?>
                 <span class="badge badge-approved">Set</span>
             <?php else: ?>
-                <span class="badge" style="background:var(--bg-subtle);color:var(--text-tertiary)">Not set</span>
+                <span class="badge">Not set</span>
             <?php endif; ?>
         </div>
 
@@ -449,8 +449,6 @@ ob_start();
         </form>
     </div>
 
-</div><!-- /sy-col -->
-<div class="sy-col">
 
     <!-- ── Import Historical Records ──────────────────────────────── -->
     <div class="sy-sec">
@@ -458,7 +456,7 @@ ob_start();
             <div class="card-title" style="margin:0">Import Historical Records</div>
             <button class="btn btn-secondary" onclick="openLegacyImportModal()" style="display:flex;align-items:center;gap:6px">
                 <?= icon('arrow-circle-down', 14) ?>
-                Import with AI ✨
+                Import with AI
             </button>
         </div>
         <p style="font-size:var(--text-sm);color:var(--text-secondary);margin:0">
@@ -468,15 +466,29 @@ ob_start();
         </p>
     </div>
 
+    <!-- New cycle — destructive, so the action sits behind a confirmation popup -->
+    <div class="sy-sec sy-danger">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);margin-bottom:var(--space-2)">
+            <div class="card-title" style="margin:0">Start New Admission Cycle</div>
+            <button type="button" class="btn btn-danger" onclick="openNewCycleModal()">Start New Cycle</button>
+        </div>
+        <p class="card-description" style="margin:0">
+            Starts a new admissions cycle. The current exam is deactivated and all previous applicant data is preserved.
+        </p>
+    </div>
+
+</div><!-- /sy-col -->
+<div class="sy-col">
+
     <!-- Historical summary -->
     <?php if (!empty($statsByYear)): ?>
     <div class="sy-sec sy-grow">
         <div class="card-title" style="margin-bottom:var(--space-5)">Applicant History</div>
-        <div style="display:flex;flex-direction:column;gap:var(--space-4)">
+        <div class="sy-years">
         <?php foreach ($statsByYear as $year => $statuses):
             $total = array_sum($statuses);
         ?>
-            <div style="padding:var(--space-4);background:var(--bg-subtle);border-radius:var(--radius-md)">
+            <div class="sy-year">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-3)">
                     <div>
                         <span style="font-weight:var(--weight-semibold)"><?= e($year) ?></span>
@@ -503,27 +515,12 @@ ob_start();
         <?php endforeach; ?>
         </div>
     </div>
-    <?php endif; ?>
-
-    <!-- New cycle — danger zone -->
-    <div class="sy-sec sy-danger">
-        <div class="card-title" style="color:var(--error);margin-bottom:var(--space-1)">Start New Admission Cycle</div>
-        <p class="card-description" style="margin-bottom:var(--space-5)">
-            Starts a new admissions cycle. The current exam is deactivated and all previous applicant data is preserved.
-        </p>
-        <form method="POST">
-            <?= csrf_field() ?>
-            <input type="hidden" name="action" value="new_cycle">
-            <div>
-                <label class="form-label">Type <strong>Start new cycle</strong> to confirm</label>
-                <input type="text" name="confirm_text" class="form-input"
-                       placeholder="Start new cycle" autocomplete="off" style="max-width:280px">
-            </div>
-            <div style="margin-top:var(--space-5)">
-                <button type="submit" class="btn btn-danger">Start New Cycle</button>
-            </div>
-        </form>
+    <?php else: ?>
+    <div class="sy-sec sy-grow">
+        <div class="card-title" style="margin-bottom:var(--space-3)">Applicant History</div>
+        <p class="card-description" style="margin:0">No applicant history yet.</p>
     </div>
+    <?php endif; ?>
 
 </div><!-- /sy-col -->
 </div><!-- /sy-card -->
@@ -534,25 +531,56 @@ ob_start();
 ════════════════════════════════════════════════════════════ -->
 <style>
 @keyframes ai-pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-.ai-status-bar { display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--radius-md);font-size:var(--text-sm);border:1px solid; }
+.sy-years { display:flex; flex-direction:column; }
+.sy-year { padding:var(--space-4) 0; border-radius:0 !important; background:none; }
+.sy-year:first-child { padding-top:0; }
+.ai-status-bar { display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--radius);font-size:var(--text-sm);border:1px solid; }
 .ai-status-bar.connected { background:#f0faf4;border-color:#a7d9b8;color:#1a5c32; }
 .ai-status-bar.disconnected { background:#fafafa;border-color:var(--border);color:var(--text-secondary); }
 .ai-status-dot { width:8px;height:8px;border-radius:50%;flex-shrink:0; }
 .ai-status-bar.connected .ai-status-dot { background:#22c55e; }
 .ai-status-bar.disconnected .ai-status-dot { background:var(--neutral-400);animation:ai-pulse 2s ease-in-out infinite; }
-.ai-dropzone { border:2px dashed var(--border);border-radius:var(--radius-md);padding:var(--space-6) var(--space-5);text-align:center;cursor:pointer;transition:border-color .15s,background .15s; }
+.ai-dropzone { border:2px dashed var(--border);border-radius:var(--radius);padding:var(--space-6) var(--space-5);text-align:center;cursor:pointer;transition:border-color .15s,background .15s; }
 .ai-dropzone:hover,.ai-dropzone.dragover { border-color:var(--accent);background:rgba(45,106,79,.03); }
 .ai-dropzone.has-file { border-style:solid;border-color:var(--accent);background:rgba(45,106,79,.04); }
-.ai-dropzone-icon { width:40px;height:40px;margin:0 auto var(--space-2);border-radius:var(--radius-md);background:var(--neutral-100);display:flex;align-items:center;justify-content:center; }
-.ai-file-tag { display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:#fff;border-radius:var(--radius-sm);padding:4px 10px;font-size:var(--text-xs);font-weight:var(--weight-medium);margin-top:var(--space-2); }
+.ai-dropzone-icon { width:40px;height:40px;margin:0 auto var(--space-2);border-radius:var(--radius);background:var(--neutral-100);display:flex;align-items:center;justify-content:center; }
+.ai-file-tag { display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:#fff;border-radius:var(--radius);padding:4px 10px;font-size:var(--text-xs);font-weight:var(--weight-medium);margin-top:var(--space-2); }
 .ai-file-tag .rm { cursor:pointer;opacity:.7;background:none;border:none;color:#fff;padding:0;font-size:14px;display:flex;align-items:center;line-height:1; }
 .ai-file-tag .rm:hover { opacity:1; }
 .ai-progress-wrap { padding:var(--space-2) 0; }
-.ai-progress-track { height:5px;background:var(--border);border-radius:99px;overflow:hidden;margin-bottom:var(--space-3); }
-.ai-progress-fill { height:100%;background:var(--accent);border-radius:99px;width:0%;transition:width .4s cubic-bezier(.4,0,.2,1); }
+.ai-progress-track { height:5px;background:var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:var(--space-3); }
+.ai-progress-fill { height:100%;background:var(--accent);border-radius:var(--radius);width:0%;transition:width .4s cubic-bezier(.4,0,.2,1); }
 .ai-progress-step { font-size:var(--text-xs);color:var(--text-tertiary);margin-top:2px; }
-.ai-warn-strip { display:flex;align-items:flex-start;gap:8px;background:#fffbeb;border:1px solid #fcd34d;border-radius:var(--radius-md);padding:10px 12px;font-size:var(--text-xs);color:#92400e;line-height:1.5; }
+.ai-warn-strip { display:flex;align-items:flex-start;gap:8px;background:#fffbeb;border:1px solid #fcd34d;border-radius:var(--radius);padding:10px 12px;font-size:var(--text-xs);color:#92400e;line-height:1.5; }
 </style>
+
+<!-- Confirm: start new cycle (destructive) -->
+<div id="new-cycle-modal" class="modal-backdrop" style="display:none">
+    <div class="modal" style="max-width:440px">
+        <form method="POST" autocomplete="off">
+            <?= csrf_field() ?>
+            <input type="hidden" name="action" value="new_cycle">
+            <div class="modal-header" style="padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--border)">
+                <div style="font-weight:var(--weight-semibold);font-size:var(--text-base);color:var(--error)">Start New Admission Cycle</div>
+                <button type="button" class="btn-icon" onclick="closeNewCycleModal()">
+                    <?= icon('ic_fluent_dismiss_24_regular', 18) ?>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:var(--text-sm);color:var(--text-secondary);margin:0 0 var(--space-4)">
+                    The current exam will be deactivated. Previous applicant data is preserved.
+                </p>
+                <label class="form-label" for="new-cycle-confirm">Type <strong>Start new cycle</strong> to confirm</label>
+                <input type="text" id="new-cycle-confirm" name="confirm_text" class="form-input"
+                       placeholder="Start new cycle" autocomplete="off">
+            </div>
+            <div class="modal-footer" style="border-top:1px solid var(--border)">
+                <button type="button" class="btn btn-ghost" onclick="closeNewCycleModal()">Cancel</button>
+                <button type="submit" class="btn btn-danger">Start New Cycle</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <div id="legacy-import-modal" class="modal-backdrop" style="display:none">
     <div class="modal" style="max-width:600px;max-height:90vh;display:flex;flex-direction:column">
@@ -561,7 +589,7 @@ ob_start();
         <!-- Header — same accent-box + subtitle pattern as exam import -->
         <div class="modal-header" style="padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--border)">
             <div style="display:flex;align-items:center;gap:var(--space-3)">
-                <div style="width:34px;height:34px;border-radius:var(--radius-md);background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <div style="width:34px;height:34px;border-radius:var(--radius);background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0">
                     <?= icon('sparkle', 17, 'color:#fff') ?>
                 </div>
                 <div>
@@ -581,8 +609,8 @@ ob_start();
             <div id="legacy-puter-status" class="ai-status-bar disconnected">
                 <div class="ai-status-dot"></div>
                 <div id="legacy-puter-status-text" style="flex:1">Checking Puter connection…</div>
-                <a id="legacy-puter-link" href="https://puter.com" target="_blank" style="display:none;font-size:var(--text-xs);font-weight:var(--weight-medium);color:var(--accent);text-decoration:none;white-space:nowrap">Create account →</a>
-                <button id="legacy-puter-signin-btn" onclick="legacyPuterSignIn()" style="display:none;font-size:var(--text-xs);font-weight:var(--weight-medium);color:var(--accent);background:none;border:none;cursor:pointer;padding:0;white-space:nowrap">Sign in →</button>
+                <a id="legacy-puter-link" href="https://puter.com" target="_blank" style="display:none;font-size:var(--text-xs);font-weight:var(--weight-medium);color:var(--accent);text-decoration:none;white-space:nowrap">Create account <?= icon('ic_fluent_arrow_right_24_regular', 14) ?></a>
+                <button id="legacy-puter-signin-btn" onclick="legacyPuterSignIn()" style="display:none;font-size:var(--text-xs);font-weight:var(--weight-medium);color:var(--accent);background:none;border:none;cursor:pointer;padding:0;white-space:nowrap">Sign in <?= icon('ic_fluent_arrow_right_24_regular', 14) ?></button>
                 <button id="legacy-puter-signout-btn" onclick="legacyPuterSignOut()" style="display:none;font-size:var(--text-xs);color:var(--text-tertiary);background:none;border:none;cursor:pointer;padding:0">Sign out</button>
             </div>
 
@@ -620,7 +648,7 @@ ob_start();
                         <span class="ai-file-tag">
                             <?= icon('file', 12, 'color:#fff') ?>
                             <span id="legacy-file-tag-name"></span>
-                            <button class="rm" onclick="event.stopPropagation();clearLegacyFile()" title="Remove">✕</button>
+                            <button class="rm" onclick="event.stopPropagation();clearLegacyFile()" title="Remove"><?= icon('x', 12) ?></button>
                         </span>
                     </div>
                     <input type="file" id="legacy-file-input"
@@ -647,7 +675,7 @@ ob_start();
             <div id="legacy-step-preview" style="display:none;flex-direction:column;gap:var(--space-3)">
                 <div style="display:flex;align-items:center;justify-content:space-between">
                     <div style="font-size:var(--text-sm);font-weight:var(--weight-semibold)" id="legacy-preview-count"></div>
-                    <button class="btn btn-ghost btn-sm" onclick="resetLegacyImport()">← Try again</button>
+                    <button class="btn btn-ghost btn-sm" onclick="resetLegacyImport()"><?= icon('ic_fluent_arrow_left_24_regular', 16) ?> Try again</button>
                 </div>
                 <div class="ai-warn-strip">
                     <?= icon('warning:fill', 14, 'margin-top:1px;color:#d97706') ?>
@@ -658,7 +686,7 @@ ob_start();
                         <input type="checkbox" id="legacy-check-all" checked onchange="toggleAllLegacyRows(this.checked)"> Select all
                     </label>
                 </div>
-                <div style="max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-md)">
+                <div style="max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius)">
                     <table style="width:100%;border-collapse:collapse;font-size:var(--text-sm)">
                         <thead>
                             <tr style="background:var(--bg-subtle);position:sticky;top:0;z-index:1">
@@ -677,11 +705,11 @@ ob_start();
 
             <!-- Step: error -->
             <div id="legacy-step-error" style="display:none;flex-direction:column;gap:var(--space-3)">
-                <div style="display:flex;align-items:flex-start;gap:10px;background:#fef2f2;border:1px solid #fca5a5;border-radius:var(--radius-md);padding:12px 14px;font-size:var(--text-sm);color:#991b1b">
+                <div style="display:flex;align-items:flex-start;gap:10px;background:#fef2f2;border:1px solid #fca5a5;border-radius:var(--radius);padding:12px 14px;font-size:var(--text-sm);color:#991b1b">
                     <?= icon('warning-circle:fill', 16, 'margin-top:1px') ?>
                     <span id="legacy-error-msg"></span>
                 </div>
-                <button class="btn btn-ghost btn-sm" style="align-self:flex-start" onclick="resetLegacyImport()">← Try again</button>
+                <button class="btn btn-ghost btn-sm" style="align-self:flex-start" onclick="resetLegacyImport()"><?= icon('ic_fluent_arrow_left_24_regular', 16) ?> Try again</button>
             </div>
 
         </div><!-- /modal-body -->
@@ -798,6 +826,14 @@ async function legacyPuterSignOut() { await loadPuterIfNeeded(); try { await put
 let legacySelectedFile = null;
 let legacyExtractedRows = [];
 
+function openNewCycleModal() {
+    document.getElementById('new-cycle-modal').style.display = '';
+    var i = document.getElementById('new-cycle-confirm');
+    if (i) { i.value = ''; i.focus(); }
+}
+function closeNewCycleModal() {
+    document.getElementById('new-cycle-modal').style.display = 'none';
+}
 function openLegacyImportModal() {
     resetLegacyImport(true);
     document.getElementById('legacy-import-modal').style.display = '';
@@ -1419,6 +1455,7 @@ async function saveLegacyRows() {
 <?php
 $content   = ob_get_clean();
 $pageTitle = 'Admissions';
+$pageHeading = 'School Year';
 $pageWide  = true;
 $activeNav = 'school-year';
 include VIEWS_PATH . '/layouts/app.php';

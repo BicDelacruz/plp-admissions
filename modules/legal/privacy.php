@@ -2,7 +2,7 @@
 // ============================================================
 // modules/legal/privacy.php
 // Public privacy policy (RA 10173, Data Privacy Act of 2012).
-// No login needed. Uses the auth layout.
+// No login needed. Uses the shared auth layout.
 // DRAFT: the school and its DPO must review this. Not legal advice.
 // Demo values are filled in (date, region, roles, retention). The school must confirm them before real use.
 // ============================================================
@@ -14,11 +14,6 @@ $schoolName = school_setting('school_name', 'Pamantasan ng Lungsod ng Pasig');
 ob_start();
 ?>
 <div class="auth-card auth-card-read animate-fade-in">
-
-    <button class="auth-theme-toggle" onclick="Theme.toggle()" aria-label="Toggle theme">
-        <?= icon('ic_fluent_weather_sunny_24_regular', 16, '', 'data-theme-icon="dark" class="hidden"') ?>
-        <?= icon('ic_fluent_weather_moon_24_regular', 16, '', 'data-theme-icon="light"') ?>
-    </button>
 
     <div class="auth-header">
         <h1 class="auth-title">Privacy Policy</h1>
@@ -82,7 +77,7 @@ ob_start();
     </div>
 
     <div class="auth-footer">
-        <a href="<?= url('/login') ?>">← Back to sign in</a>
+        <a class="auth-back" href="<?= url('/login') ?>"><?= icon('ic_fluent_arrow_left_24_regular', 16) ?> Back to sign in</a>
     </div>
 
 </div>

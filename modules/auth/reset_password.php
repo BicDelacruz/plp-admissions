@@ -69,11 +69,8 @@ ob_start();
 <div class="auth-card animate-fade-in">
 
     <div class="auth-header">
-        <div class="auth-logo">
-            <?= icon('shield-check:fill', 26) ?>
-        </div>
         <h1 class="auth-title">New password</h1>
-        <p class="auth-subtitle">Choose a strong password for your account</p>
+        <p class="auth-subtitle">Choose a new password for your account.</p>
     </div>
 
     <form method="POST" action="<?= url('/reset-password') ?>" id="reset-form" data-once novalidate>
@@ -81,18 +78,11 @@ ob_start();
 
         <div class="form-group">
             <label class="form-label" for="password">New password</label>
-            <div style="position:relative">
-                <input type="password" id="password" name="password"
-                    class="form-input <?= isset($errors['password']) ? 'error' : '' ?>"
-                    style="padding-right:44px"
-                    placeholder="Min. 8 characters"
-                    autocomplete="new-password" required>
-                <button type="button" class="pw-eye" data-target="password" aria-label="Show password"
-                    style="position:absolute;right:6px;top:50%;transform:translateY(-50%);width:36px;height:36px;border:0;background:none;cursor:pointer;color:var(--text-tertiary);display:grid;place-items:center">
-                    <i class="ph-bold ph-eye" aria-hidden="true" style="font-size:20px"></i>
-                </button>
-            </div>
-            <span class="form-hint" id="pw-hint" style="font-size:var(--text-xs);color:var(--text-tertiary)">At least 8 characters.</span>
+            <input type="password" id="password" name="password"
+                class="form-input <?= isset($errors['password']) ? 'error' : '' ?>"
+                placeholder="Min. 8 characters"
+                autocomplete="new-password" required>
+            <span class="form-hint" id="pw-hint">At least 8 characters.</span>
             <?php if (!empty($errors['password'])): ?>
                 <span class="form-error"><?= e($errors['password']) ?></span>
             <?php endif; ?>
@@ -100,18 +90,11 @@ ob_start();
 
         <div class="form-group">
             <label class="form-label" for="password_confirm">Re-enter new password</label>
-            <div style="position:relative">
-                <input type="password" id="password_confirm" name="password_confirm"
-                    class="form-input <?= isset($errors['password_confirm']) ? 'error' : '' ?>"
-                    style="padding-right:44px"
-                    placeholder="Repeat password"
-                    autocomplete="new-password" required>
-                <button type="button" class="pw-eye" data-target="password_confirm" aria-label="Show password"
-                    style="position:absolute;right:6px;top:50%;transform:translateY(-50%);width:36px;height:36px;border:0;background:none;cursor:pointer;color:var(--text-tertiary);display:grid;place-items:center">
-                    <i class="ph-bold ph-eye" aria-hidden="true" style="font-size:20px"></i>
-                </button>
-            </div>
-            <span id="match-msg" role="status" style="font-size:var(--text-xs)"></span>
+            <input type="password" id="password_confirm" name="password_confirm"
+                class="form-input <?= isset($errors['password_confirm']) ? 'error' : '' ?>"
+                placeholder="Repeat password"
+                autocomplete="new-password" required>
+            <span class="form-hint" id="match-msg" role="status"></span>
             <?php if (!empty($errors['password_confirm'])): ?>
                 <span class="form-error"><?= e($errors['password_confirm']) ?></span>
             <?php endif; ?>
@@ -121,7 +104,7 @@ ob_start();
     </form>
 
     <div class="auth-footer">
-        <a href="<?= url('/forgot-password?new=1') ?>">← Start over</a>
+        <a class="auth-back" href="<?= url('/forgot-password?new=1') ?>"><?= icon('ic_fluent_arrow_left_24_regular', 16) ?> Start over</a>
     </div>
 
 </div>
@@ -137,33 +120,26 @@ ob_start();
     function update() {
         var long = pw.value.length >= 8;
         hint.textContent = long ? 'Length looks good.' : 'At least 8 characters (' + pw.value.length + '/8).';
-        hint.style.color = long ? 'var(--success, #2d6a4f)' : 'var(--text-tertiary)';
+        hint.classList.toggle('ok', long);
 
         var match = pc.value.length > 0 && pw.value === pc.value;
         if (pc.value.length === 0) {
             msg.textContent = '';
+            msg.classList.remove('ok', 'bad');
         } else if (match) {
             msg.textContent = 'Passwords match';
-            msg.style.color = 'var(--success, #2d6a4f)';
+            msg.classList.add('ok');
+            msg.classList.remove('bad');
         } else {
             msg.textContent = 'Passwords do not match';
-            msg.style.color = 'var(--danger, #c0392b)';
+            msg.classList.add('bad');
+            msg.classList.remove('ok');
         }
         btn.disabled = !(long && match);
     }
     pw.addEventListener('input', update);
     pc.addEventListener('input', update);
     update();
-
-    document.querySelectorAll('.pw-eye').forEach(function (b) {
-        b.addEventListener('click', function () {
-            var input = document.getElementById(b.dataset.target);
-            var show = input.type === 'password';
-            input.type = show ? 'text' : 'password';
-            b.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
-            b.firstElementChild.className = show ? 'ph-bold ph-eye-slash' : 'ph-bold ph-eye';
-        });
-    });
 })();
 </script>
 <?php

@@ -321,8 +321,19 @@ if ($college !== '') {
     ob_start();
     include __DIR__ . '/_setup_sessions.php';
     $content   = ob_get_clean();
-    $pageTitle = e($college) . ' — Interview Sessions';
+    $pageTitle   = e($college) . ' — Interview Sessions';
+    $pageHeading = $college;
+    // SSO has no Interview Sessions landing (it redirects to setup), so start at Setup.
+    $pageBreadcrumb = $isSSO
+        ? [['label' => 'Interview Setup', 'to' => '/staff/interviews/setup']]
+        : ($canManage
+            ? [
+                ['label' => 'Interview Sessions', 'to' => '/staff/interviews'],
+                ['label' => 'Interview Setup',    'to' => '/staff/interviews/setup'],
+            ]
+            : [['label' => 'Interview Sessions', 'to' => '/staff/interviews']]);
     $activeNav = 'interviews';
+    $pageWide  = true;
     include VIEWS_PATH . '/layouts/app.php';
     exit;
 }
@@ -349,5 +360,7 @@ ob_start();
 include __DIR__ . '/_setup_colleges.php';
 $content   = ob_get_clean();
 $pageTitle = 'Interview Setup';
+$pageBreadcrumb = $isSSO ? [] : [['label' => 'Interview Sessions', 'to' => '/staff/interviews']];
 $activeNav = 'interviews';
+$pageWide  = true;
 include VIEWS_PATH . '/layouts/app.php';

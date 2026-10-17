@@ -12,13 +12,36 @@ function url(string $path = ''): string
 
 function asset(string $path): string
 {
-    return url('assets/' . ltrim($path, '/'));
+    $path = ltrim($path, '/');
+    $href = url('assets/' . $path);
+    // Version by file time so a changed app.css / app.js is never served stale.
+    $file = dirname(__DIR__) . '/public/assets/' . $path;
+    return is_file($file) ? $href . '?v=' . filemtime($file) : $href;
 }
 
 function redirect(string $path): never
 {
     header('Location: ' . url($path));
     exit;
+}
+
+// -- Settings modal ----------------------------------------------
+// The settings pages are shown inside the settings modal (an iframe that
+// loads them with ?embed=1; views/partials/settings_modal.php). In embed mode
+// the layout draws only the page content: no sidebar, header or heading.
+function is_embed(): bool
+{
+    return ($_GET['embed'] ?? '') === '1';
+}
+
+// Settings no longer has a page of its own. Opening its URL directly sends
+// the user to their home page with the modal open. Embedded loads and form
+// posts (which stay on the embed URL) pass straight through.
+function settings_modal_gate(): void
+{
+    if (is_embed() || ($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') return;
+    require_once VIEWS_PATH . '/partials/page_header.php';
+    redirect(page_home_crumb()['to'] . '?settings=1');
 }
 
 // -- Output escaping ---------------------------------------------
@@ -849,7 +872,12 @@ function audit_log(
 function phosphor_head(): string
 {
     $b = 'https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src';
+    // The icon fonts are font-display:block, so icons stay invisible until the
+    // font arrives. Preloading them starts that download with the page, not
+    // after the CSS is parsed, so icons are there on first paint.
     return '<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>' . "\n"
+         . '    <link rel="preload" as="font" type="font/woff2" href="' . $b . '/bold/Phosphor-Bold.woff2" crossorigin>' . "\n"
+         . '    <link rel="preload" as="font" type="font/woff2" href="' . $b . '/fill/Phosphor-Fill.woff2" crossorigin>' . "\n"
          . '    <link rel="stylesheet" href="' . $b . '/bold/style.css">' . "\n"
          . '    <link rel="stylesheet" href="' . $b . '/fill/style.css">';
 }
@@ -1091,18 +1119,6 @@ function exam_password_seconds_remaining(array $row): int
 }
 
 /**
- * Return true if today's date matches the slot's exam date.
- * Schedule now lives on the slot, not the exam (per Chunk 7).
- *
- * @param  array  $slot  Row from `exam_slot_schedule` containing `exam_date`
- */
-function is_slot_today(array $slot): bool
-{
-    if (empty($slot['exam_date'])) return false;
-    return date('Y-m-d') === date('Y-m-d', strtotime($slot['exam_date']));
-}
-
-/**
  * Return the wall-clock open / close DateTimes for a slot.
  *
  *   opens  = exam_date + slot_time
@@ -1129,15 +1145,6 @@ function slot_window(array $slot): array
 }
 
 /**
- * Convenience: return the duration of a slot in minutes (closes − opens).
- */
-function slot_duration_minutes(array $slot): int
-{
-    $w = slot_window($slot);
-    return (int) round(($w['closes']->getTimestamp() - $w['opens']->getTimestamp()) / 60);
-}
-
-/**
  * How many minutes after `opens` an applicant can still enter the password
  * before being locked out for the day. Read from school setting
  * `exam_late_cutoff_minutes`, default 15.
@@ -1146,6 +1153,33 @@ function exam_late_cutoff_minutes(): int
 {
     $v = (int) school_setting('exam_late_cutoff_minutes', '15');
     return max(0, $v);
+}
+
+
+/**
+ * Segmented control used for page tabs. Renders as links so every tab is a
+ * normal page load / bookmarkable URL. Put it as the FIRST item of a table
+ * toolbar (left of the search box).
+ *
+ * $tabs = [ key => ['label' => 'Absent', 'href' => '?tab=absent',
+ *                   'count' => 3 (optional), 'tone' => 'warning' (optional)] ]
+ */
+function segmented_tabs(array $tabs, string $active, string $ariaLabel = 'Views'): string
+{
+    $html = '<div class="seg-control" role="tablist" aria-label="' . htmlspecialchars($ariaLabel) . '">';
+    foreach ($tabs as $key => $t) {
+        $isActive = ((string)$key === $active);
+        $count = $t['count'] ?? null;
+        $html .= '<a href="' . htmlspecialchars($t['href']) . '" role="tab" aria-selected="' . ($isActive ? 'true' : 'false') . '"'
+               . ' class="seg-control-item' . ($isActive ? ' active' : '') . '">'
+               . htmlspecialchars($t['label']);
+        if ($count !== null && (int)$count > 0) {
+            $tone = !empty($t['tone']) ? ' seg-control-count--' . htmlspecialchars($t['tone']) : '';
+            $html .= '<span class="seg-control-count' . $tone . '">' . (int)$count . '</span>';
+        }
+        $html .= '</a>';
+    }
+    return $html . '</div>';
 }
 
 /**

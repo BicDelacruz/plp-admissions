@@ -56,136 +56,66 @@ $todayActive = $todayWaiting + $todayInProgress;
 ob_start();
 ?>
 
-<style>
-    @keyframes pulse-dot {
-        0%,100%{opacity:1;transform:scale(1)}
-        50%{opacity:.5;transform:scale(1.3)}
-    }
-    .intv-landing-wrap {
-        display:flex;align-items:center;justify-content:center;
-        min-height:calc(100vh - 200px);padding-bottom:var(--space-16);
-    }
-    .intv-landing-grid {
-        display:grid;grid-template-columns:1fr 1fr;gap:var(--space-6);
-        max-width:640px;width:100%;
-    }
-    .intv-landing-card {
-        display:flex;flex-direction:column;align-items:center;text-align:center;
-        gap:var(--space-4);padding:var(--space-10) var(--space-6);
-        background:var(--bg-elevated);border:1.5px solid var(--border);
-        border-radius:var(--radius-lg);text-decoration:none;color:var(--text-primary);
-        transition:border-color .18s,box-shadow .18s,transform .15s;cursor:pointer;
-    }
-    .intv-landing-card:hover {
-        border-color:var(--accent);box-shadow:0 8px 24px rgba(0,0,0,.08);transform:translateY(-4px);
-    }
-    /* Disabled queue card — when no interview setup exists yet, the
-       Queue card has nothing to call from. We dim it, kill the hover
-       lift, and swap the cursor to "not-allowed" so the click obviously
-       goes nowhere. */
-    .intv-landing-card.is-disabled {
-        opacity:.55;cursor:not-allowed;
-        background:var(--bg-subtle);
-    }
-    .intv-landing-card.is-disabled:hover {
-        border-color:var(--border);box-shadow:none;transform:none;
-    }
-    .intv-landing-icon {
-        width:60px;height:60px;border-radius:var(--radius-lg);
-        background:var(--accent-muted);color:var(--accent);
-        display:flex;align-items:center;justify-content:center;flex-shrink:0;
-    }
-    .intv-landing-title {
-        font-size:var(--text-lg);font-weight:var(--weight-semibold);
-        color:var(--text-primary);letter-spacing:-0.2px;margin-top:var(--space-1);
-    }
-    .intv-landing-desc {
-        font-size:var(--text-sm);color:var(--text-secondary);line-height:1.55;
-        margin-top:var(--space-1);
-    }
-    .intv-landing-meta {
-        font-size:var(--text-xs);color:var(--text-tertiary);
-        display:flex;align-items:center;gap:var(--space-2);
-        justify-content:center;flex-wrap:wrap;margin-top:var(--space-2);
-    }
-    @media (max-width:640px) { .intv-landing-grid { grid-template-columns:1fr;max-width:320px; } }
-</style>
+<?php
+// No interview sessions at all means setup hasn't happened yet, and the Queue
+// page has nothing to drive: dim the card and route the click into Setup so
+// the user is led through the only useful next step.
+$queueDisabled = ($totalSessions === 0);
+$queueHref     = $queueDisabled
+    ? url('/staff/interviews/setup')
+    : url('/staff/interviews/queue');
+$queueClasses  = 'select-card' . ($queueDisabled ? ' is-disabled' : '');
+$queueTitle    = $queueDisabled
+    ? 'Set up interview sessions before opening the queue.'
+    : '';
+?>
 
-<div class="intv-landing-wrap">
-<div class="intv-landing-grid">
+<div class="select-grid">
 
-    <!-- Interview Setup (left) -->
-    <a href="<?= url('/staff/interviews/setup') ?>" class="intv-landing-card">
-        <div class="intv-landing-icon">
-            <?= icon('ic_fluent_settings_24_regular', 28) ?>
-        </div>
-        <div class="intv-landing-title">Interview Setup</div>
-        <div class="intv-landing-desc">
-            Schedule sessions and assign interviewers per college.
-        </div>
-        <div class="intv-landing-meta">
-            <?= icon('ic_fluent_calendar_ltr_24_regular', 13) ?>
-            <?= $totalUpcoming ?> upcoming session<?= $totalUpcoming !== 1 ? 's' : '' ?>
-            <?php if ($totalSessions !== $totalUpcoming): ?>
-                &nbsp;·&nbsp;
-                <?= $totalSessions ?> total
-            <?php endif; ?>
+    <!-- Interview Setup -->
+    <a href="<?= url('/staff/interviews/setup') ?>" class="select-card">
+        <div class="select-card-title">Interview Setup</div>
+        <div class="select-card-desc">Schedule sessions and assign interviewers per college.</div>
+        <div class="select-card-meta">
+            <div class="select-card-meta-row">
+                <?= $totalUpcoming ?> upcoming session<?= $totalUpcoming !== 1 ? 's' : '' ?>
+                <?php if ($totalSessions !== $totalUpcoming): ?>
+                    &nbsp;&middot;&nbsp; <?= $totalSessions ?> total
+                <?php endif; ?>
+            </div>
         </div>
     </a>
 
-    <!-- Interview Queue (right) -->
-    <?php
-        // No interview sessions at all means setup hasn't happened yet,
-        // and the Queue page has literally nothing to drive — disable
-        // the card and route the click into Setup so the user is led
-        // through the only useful next step.
-        $queueDisabled = ($totalSessions === 0);
-        $queueHref     = $queueDisabled
-            ? url('/staff/interviews/setup')
-            : url('/staff/interviews/queue');
-        $queueClasses  = 'intv-landing-card' . ($queueDisabled ? ' is-disabled' : '');
-        $queueTitle    = $queueDisabled
-            ? 'Set up interview sessions before opening the queue.'
-            : '';
-    ?>
-    <a href="<?= e($queueHref) ?>" class="<?= e($queueClasses) ?>"
+    <!-- Interview Queue -->
+    <a href="<?= e($queueHref) ?>" class="<?= e($queueClasses) ?><?= ($todayActive > 0 && !$queueDisabled) ? ' is-live' : '' ?>"
        <?php if ($queueDisabled): ?>aria-disabled="true" title="<?= e($queueTitle) ?>"<?php endif; ?>>
-        <div class="intv-landing-icon">
-            <?php if ($todayActive > 0 && !$queueDisabled): ?>
-                <span style="display:inline-block;width:10px;height:10px;border-radius:50%;
-                              background:var(--accent);animation:pulse-dot 1.8s ease-in-out infinite;
-                              position:absolute;top:12px;right:12px"></span>
-            <?php endif; ?>
-            <?= icon('ic_fluent_people_24_regular', 28) ?>
+        <?php if ($todayActive > 0 && !$queueDisabled): ?>
+            <span class="select-card-badge"><span class="select-card-live"><span class="dot"></span> Live</span></span>
+        <?php endif; ?>
+        <div class="select-card-title">Interview Queue</div>
+        <div class="select-card-desc">
+            <?= $queueDisabled
+                ? 'Set up sessions first to start calling students.'
+                : 'Call students and record evaluations.' ?>
         </div>
-        <div class="intv-landing-title">Interview Queue</div>
-        <div class="intv-landing-desc">
-            <?php if ($queueDisabled): ?>
-                Set up sessions first to start calling students.
-            <?php else: ?>
-                Call students and record evaluations.
-            <?php endif; ?>
-        </div>
-        <div class="intv-landing-meta">
-            <?php if ($queueDisabled): ?>
-                <?= icon('ic_fluent_lock_closed_24_regular', 13) ?>
-                Setup required
-            <?php elseif ($todayActive > 0): ?>
-                <span style="display:inline-block;width:6px;height:6px;border-radius:50%;
-                              background:var(--accent);animation:pulse-dot 1.8s ease-in-out infinite"></span>
-                <?= $todayWaiting ?> waiting · <?= $todayInProgress ?> in progress
-            <?php else: ?>
-                <?= icon('ic_fluent_people_24_regular', 13) ?>
-                No active interviews
-            <?php endif; ?>
+        <div class="select-card-meta">
+            <div class="select-card-meta-row">
+                <?php if ($queueDisabled): ?>
+                    Setup required
+                <?php elseif ($todayActive > 0): ?>
+                    <?= $todayWaiting ?> waiting · <?= $todayInProgress ?> in progress
+                <?php else: ?>
+                    No active interviews
+                <?php endif; ?>
+            </div>
         </div>
     </a>
 
-</div>
 </div>
 
 <?php
 $content   = ob_get_clean();
 $pageTitle = 'Interview Sessions';
+$pageWide  = true; // every picker page uses the same wide container
 $activeNav = 'interviews';
 include VIEWS_PATH . '/layouts/app.php';

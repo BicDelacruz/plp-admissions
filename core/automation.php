@@ -101,7 +101,7 @@ function notify_stage_transition(int $applicantId, string $newStatus, string $ex
             $emailBody = '<p>' . e($message) . '</p>'
                 . '<p style="margin-top:16px"><a href="' . e($fullLink) . '" '
                 . 'style="display:inline-block;padding:10px 24px;background:' . e(school_setting('accent_color', '#2d6a4f')) . ';color:#fff;'
-                . 'text-decoration:none;border-radius:6px;font-weight:bold">View Details</a></p>';
+                . 'text-decoration:none;border-radius:8px;font-weight:bold">View Details</a></p>';
             send_email(
                 $user['email'],
                 $title . ' — ' . school_setting('school_name', 'PLP Admissions'),
@@ -123,7 +123,7 @@ function send_registration_email(string $email, string $name): void
         . '<p>Your account has been created successfully. Please log in and upload your required documents to continue with your application.</p>'
         . '<p style="margin-top:16px"><a href="' . e(rtrim(BASE_URL, '/')) . '/student/documents" '
         . 'style="display:inline-block;padding:10px 24px;background:' . e(school_setting('accent_color', '#2d6a4f')) . ';color:#fff;'
-        . 'text-decoration:none;border-radius:6px;font-weight:bold">Upload Documents</a></p>';
+        . 'text-decoration:none;border-radius:8px;font-weight:bold">Upload Documents</a></p>';
     send_email(
         $email,
         'Welcome to ' . school_setting('school_name', 'PLP Admissions'),
@@ -714,19 +714,6 @@ function get_idle_summary(int $days = 7): array
 // EMAIL VERIFICATION
 // ----------------------------------------------------------------
 
-// Schema now lives in database/schema.sql. The ensure_* functions below
-// do nothing. They only exist so files that still call them keep working,
-// and each call is removed when its file is next edited.
-
-function ensure_email_verification_columns(): void {}
-
-function generate_verify_token(int $userId): string
-{
-    $token = bin2hex(random_bytes(16));
-    db()->prepare('UPDATE users SET email_verify_token = ? WHERE id = ?')->execute([$token, $userId]);
-    return $token;
-}
-
 /**
  * Generate a fresh token + 6-digit code for the email-verification flow,
  * persist them on the user row, and return both so the caller can email them.
@@ -857,7 +844,7 @@ function send_verification_email(string $email, string $name, string $token, ?st
 
     $body .= '<p style="margin-top:16px"><a href="' . e($verifyUrl) . '" '
         . 'style="display:inline-block;padding:12px 32px;background:' . $accent . ';color:#fff;'
-        . 'text-decoration:none;border-radius:6px;font-weight:bold;font-size:16px">Verify Email</a></p>'
+        . 'text-decoration:none;border-radius:8px;font-weight:bold;font-size:16px">Verify Email</a></p>'
         . '<p style="margin-top:16px;color:#6b7280;font-size:13px">If the button doesn\'t work, copy this link:<br>'
         . '<a href="' . e($verifyUrl) . '" style="color:' . $accent . '">' . e($verifyUrl) . '</a></p>';
 
@@ -956,64 +943,6 @@ function is_login_locked(string $email): bool
 }
 
 // ----------------------------------------------------------------
-// EXAM AUTO-SAVE
-// ----------------------------------------------------------------
-
-function ensure_exam_drafts_table(): void {}
-
-// ----------------------------------------------------------------
-// INTERVIEW CHECK-IN CODES
-// ----------------------------------------------------------------
-
-function ensure_checkin_code_column(): void {}
-
-/**
- * Generate a memorable check-in code like PLP-STAR-42
- */
-function generate_checkin_code(): string
-{
-    $words = [
-        'STAR','BLUE','HAWK','PINE','WAVE','BOLT','SAGE','PEAK',
-        'DAWN','FERN','GLOW','JADE','LAKE','MINT','ONYX','RUBY',
-        'VALE','WIND','ARCH','COVE','DOVE','ECHO','FLAX','HAZE',
-        'IRIS','KITE','LARK','MIST','NOVA','OPAL','PALM','REEF',
-        'SILK','TIDE','WREN','AURA','BIRCH','CLAY','DUSK','FAWN',
-        'GILT','HAZE','IVY','LUNA','MOSS','NOOK','OAK','PIER',
-        'RAIN','SKY','TEAL','VINE','WOLF','ZEST','REED','ROSE',
-        'SAGE','SNOW','SAND','LUSH','CREST','DRIFT','FLAME','GROVE'
-    ];
-
-    $maxAttempts = 20;
-    for ($i = 0; $i < $maxAttempts; $i++) {
-        $word = $words[array_rand($words)];
-        $num  = rand(10, 99);
-        $code = "PLP-{$word}-{$num}";
-
-        $stmt = db()->prepare('SELECT id FROM interview_queue WHERE checkin_code = ? LIMIT 1');
-        $stmt->execute([$code]);
-        if (!$stmt->fetch()) {
-            return $code;
-        }
-    }
-    // Fallback: use timestamp-based code
-    return 'PLP-' . strtoupper(substr(base_convert(time(), 10, 36), -4)) . '-' . rand(10, 99);
-}
-
-// ----------------------------------------------------------------
-// INTERVIEW RESCHEDULE REQUESTS
-// ----------------------------------------------------------------
-
-function ensure_reschedule_requests_table(): void {}
-
-// ----------------------------------------------------------------
-// EXAM RESCHEDULE REQUESTS
-// ----------------------------------------------------------------
-//
-// Mirror of reschedule_requests but for exam slots.
-//
-function ensure_exam_reschedule_requests_table(): void {}
-
-// ----------------------------------------------------------------
 // RESCHEDULE: shared decision notification (in-app + email)
 // ----------------------------------------------------------------
 
@@ -1067,7 +996,7 @@ function notify_reschedule_decision(
             $emailBody = '<p>' . e($msg) . '</p>'
                        . '<p style="margin-top:16px"><a href="' . e($fullLink) . '" '
                        . 'style="display:inline-block;padding:10px 24px;background:' . e(school_setting('accent_color', '#2d6a4f')) . ';color:#fff;'
-                       . 'text-decoration:none;border-radius:6px;font-weight:bold">View Details</a></p>';
+                       . 'text-decoration:none;border-radius:8px;font-weight:bold">View Details</a></p>';
             send_email(
                 (string)$user['email'],
                 $title . ' — ' . school_setting('school_name', 'PLP Admissions'),
@@ -1100,32 +1029,6 @@ function notify_staff(string $type, string $title, string $message = '', string 
 }
 
 /**
- * Notify staff when new documents are uploaded and awaiting review.
- */
-function notify_staff_new_documents(int $applicantId, string $applicantName): void
-{
-    notify_staff(
-        'staff_docs_uploaded',
-        'New Documents Uploaded',
-        "{$applicantName} has uploaded documents awaiting review.",
-        '/staff/applicants/' . $applicantId
-    );
-}
-
-/**
- * Notify staff when an interview session is about to start (30 min reminder).
- */
-function notify_staff_interview_reminder(int $slotId, string $date, string $time, string $dept): void
-{
-    notify_staff(
-        'staff_interview_reminder',
-        'Interview Starting Soon',
-        "Interview session for {$dept} on " . date('M j', strtotime($date)) . " at " . date('g:i A', strtotime($time)) . " starts in 30 minutes.",
-        '/staff/interviews/queue'
-    );
-}
-
-/**
  * Notify staff when a no-show is detected.
  */
 function notify_staff_no_show(int $applicantId, string $applicantName): void
@@ -1135,19 +1038,6 @@ function notify_staff_no_show(int $applicantId, string $applicantName): void
         'No-Show Detected',
         "{$applicantName} was marked as a no-show for their interview.",
         '/staff/interviews/absent'
-    );
-}
-
-/**
- * Notify staff when results are pending release.
- */
-function notify_staff_results_pending(int $count): void
-{
-    notify_staff(
-        'staff_results_pending',
-        'Results Pending Release',
-        "{$count} applicant(s) have completed interviews but don't have a decision yet.",
-        '/staff/results?result=pending'
     );
 }
 
@@ -1467,140 +1357,3 @@ function auto_expire_accepted(): int
     return $expired;
 }
 
-// ----------------------------------------------------------------
-// B7: SMART EXAM SCHEDULING
-// ----------------------------------------------------------------
-
-/**
- * Smart exam slot assignment — assigns to least-filled slot instead of first available.
- * Enhanced version of auto_assign_exam_slot().
- */
-function smart_assign_exam_slot(int $applicantId): ?int
-{
-    if (school_setting('auto_assign_exam_slots', '1') !== '1') return null;
-
-    $pdo = db();
-
-    // Check if already assigned
-    $stmt = $pdo->prepare('SELECT id FROM applicant_exam_slots WHERE applicant_id = ?');
-    $stmt->execute([$applicantId]);
-    if ($stmt->fetch()) return null;
-
-    // Get applicant's department
-    $stmt = $pdo->prepare(
-        'SELECT a.course_applied, u.department
-         FROM applicants a JOIN users u ON u.id = a.user_id
-         WHERE a.id = ?'
-    );
-    $stmt->execute([$applicantId]);
-    $appl = $stmt->fetch();
-    if (!$appl) return null;
-
-    $dept = $appl['department'] ?: course_to_department($appl['course_applied']);
-
-    // Find the LEAST FILLED slot (smart load balancing) instead of first available
-    $params = [$dept];
-    $sql = 'SELECT t.id, t.capacity, t.filled FROM (
-                SELECT ess.id, ess.capacity, ess.exam_date, ess.slot_time,
-                       (SELECT COUNT(*) FROM applicant_exam_slots WHERE slot_id = ess.id) AS filled
-                FROM exam_slot_schedule ess
-                WHERE ess.exam_date >= CURRENT_DATE';
-
-    if ($dept) {
-        $sql .= ' AND (ess.department = ? OR ess.department = \'\')';
-    } else {
-        $sql .= ' AND 1=1';
-        $params = [];
-    }
-    $sql .= ') t
-              WHERE t.filled < t.capacity
-              ORDER BY (CAST(t.filled AS numeric) / t.capacity) ASC, t.exam_date ASC, t.slot_time ASC
-              LIMIT 1';
-
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
-    $slot = $stmt->fetch();
-
-    if (!$slot) return null;
-
-    $slotId = (int) $slot['id'];
-
-    try {
-        $pdo->prepare(
-            'INSERT INTO applicant_exam_slots (applicant_id, slot_id) VALUES (?, ?)'
-        )->execute([$applicantId, $slotId]);
-
-        $pdo->prepare(
-            'UPDATE exam_slot_schedule SET filled = filled + 1 WHERE id = ?'
-        )->execute([$slotId]);
-
-        // Notification
-        $stmt = $pdo->prepare('SELECT exam_date, slot_time, room_label FROM exam_slot_schedule WHERE id = ?');
-        $stmt->execute([$slotId]);
-        $slotInfo = $stmt->fetch();
-
-        if ($slotInfo) {
-            $stmt = $pdo->prepare('SELECT user_id FROM applicants WHERE id = ?');
-            $stmt->execute([$applicantId]);
-            $userId = (int) $stmt->fetchColumn();
-
-            // Day-before reminder
-            create_notification(
-                $userId,
-                'exam_slot_assigned',
-                'Exam Slot Assigned',
-                "You have been assigned to take the exam on "
-                    . date('F j, Y', strtotime($slotInfo['exam_date']))
-                    . " at " . date('g:i A', strtotime($slotInfo['slot_time']))
-                    . " in {$slotInfo['room_label']}.",
-                '/student/exam'
-            );
-        }
-
-        audit_log('smart_exam_slot_assigned', "Smart-assigned applicant {$applicantId} to least-filled slot {$slotId}", 'applicant', $applicantId);
-        return $slotId;
-    } catch (\Throwable $e) {
-        error_log('Smart assign exam slot error: ' . $e->getMessage());
-        return null;
-    }
-}
-
-/**
- * Send exam day-before reminder notifications.
- */
-function send_exam_reminders(): int
-{
-    $pdo = db();
-    $tomorrow = date('Y-m-d', strtotime('+1 day'));
-    $notified = 0;
-
-    $stmt = $pdo->prepare(
-        "SELECT aes.applicant_id, a.user_id, ess.exam_date, ess.slot_time, ess.room_label
-         FROM applicant_exam_slots aes
-         JOIN exam_slot_schedule ess ON ess.id = aes.slot_id
-         JOIN applicants a ON a.id = aes.applicant_id
-         WHERE ess.exam_date = ?
-           AND NOT EXISTS (
-               SELECT 1 FROM notifications n
-               WHERE n.user_id = a.user_id
-                 AND n.type = 'exam_reminder'
-                 AND n.created_at > NOW() - INTERVAL '1 day'
-           )"
-    );
-    $stmt->execute([$tomorrow]);
-
-    foreach ($stmt->fetchAll() as $row) {
-        create_notification(
-            (int)$row['user_id'],
-            'exam_reminder',
-            'Exam Tomorrow',
-            'Your exam is tomorrow, ' . date('F j, Y', strtotime($row['exam_date']))
-                . ' at ' . date('g:i A', strtotime($row['slot_time']))
-                . ' in ' . $row['room_label'] . '. Good luck!',
-            '/student/exam'
-        );
-        $notified++;
-    }
-
-    return $notified;
-}

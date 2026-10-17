@@ -32,9 +32,6 @@ $canReschedule = in_array($role, [ROLE_SSO, ROLE_ADMIN], true);
 $errors  = [];
 $success = [];
 
-// Ensure the reschedule_requests table exists.
-ensure_reschedule_requests_table();
-
 // Active tab: absent (default) or requests. Dean is forced onto the
 // absent tab — the Reschedule Requests tab is hidden from them and
 // any direct ?tab=requests link from a bookmark is silently snapped
@@ -557,6 +554,13 @@ $absUrl = function (array $merge = []) use ($activeTab, $search, $filterDept, $f
 ob_start();
 ?>
 
+<style>
+.page:has(.sa-table-card) { display:flex; flex-direction:column; }
+.sa-table-card { flex:1; min-height:300px; display:flex; flex-direction:column; }
+.sa-table-card table { flex:0 0 auto; }
+.sa-table-card .sa-filler { flex:1; border-top:1px solid var(--border); }
+</style>
+
 <?php foreach ($errors as $err): ?>
     <div class="alert alert-error" style="margin-bottom:var(--space-4);flex-shrink:0"><?= e($err) ?></div>
 <?php endforeach; ?>
@@ -564,51 +568,13 @@ ob_start();
     <div class="alert alert-success" style="margin-bottom:var(--space-4);flex-shrink:0"><?= e($s) ?></div>
 <?php endforeach; ?>
 
-<div style="margin-bottom:var(--space-5);display:flex;justify-content:space-between;align-items:center;gap:var(--space-3);flex-wrap:wrap;flex-shrink:0">
-    <a href="<?= url('/staff/interviews') ?>" class="btn btn-ghost btn-sm">← Back</a>
-    <?php if ($canReschedule): ?>
-        <a href="<?= url('/staff/interviews/cancel-slot') ?>" class="btn btn-ghost btn-sm">
-            Cancel a slot (bulk move) →
-        </a>
-    <?php else: ?>
-        <span style="font-size:var(--text-xs);color:var(--text-tertiary)">
-            <?= $activeTab === 'requests'
-                ? 'Only SSO and Admin can approve or deny reschedule requests.'
-                : 'Only SSO and Admin can reschedule students.' ?>
-        </span>
-    <?php endif; ?>
-</div>
-
-<!-- ============================================================
-     TAB NAVIGATION
-============================================================ -->
-<div style="display:flex;gap:var(--space-1);margin-bottom:var(--space-5);border-bottom:1.5px solid var(--border);flex-shrink:0">
-    <a href="<?= url('/staff/interviews/absent?tab=absent') ?>"
-       style="padding:var(--space-2) var(--space-4);font-size:var(--text-sm);font-weight:var(--weight-medium);
-              text-decoration:none;border-bottom:2px solid <?= $activeTab === 'absent' ? 'var(--accent)' : 'transparent' ?>;
-              color:<?= $activeTab === 'absent' ? 'var(--accent)' : 'var(--text-secondary)' ?>;
-              margin-bottom:-1.5px">
-        Absent Students
-        <?php if ($absentTotal > 0): ?>
-            <span style="background:var(--bg-subtle);padding:1px 7px;border-radius:999px;font-size:var(--text-xs);
-                          margin-left:var(--space-1)"><?= $absentTotal ?></span>
-        <?php endif; ?>
-    </a>
-    <?php if (!$isDean): ?>
-    <a href="<?= url('/staff/interviews/absent?tab=requests') ?>"
-       style="padding:var(--space-2) var(--space-4);font-size:var(--text-sm);font-weight:var(--weight-medium);
-              text-decoration:none;border-bottom:2px solid <?= $activeTab === 'requests' ? 'var(--accent)' : 'transparent' ?>;
-              color:<?= $activeTab === 'requests' ? 'var(--accent)' : 'var(--text-secondary)' ?>;
-              margin-bottom:-1.5px">
-        Reschedule Requests
-        <?php if ($reschedTotal > 0): ?>
-            <span style="background:var(--warning-bg);color:var(--warning);padding:1px 7px;border-radius:999px;
-                          font-size:var(--text-xs);margin-left:var(--space-1)"><?= $reschedTotal ?></span>
-        <?php endif; ?>
-    </a>
-    <?php endif; ?>
-</div>
-
+<?php
+// Page tabs — shown as a segmented control inside each table toolbar.
+$segTabs = ['absent' => ['label' => 'Absent Students', 'href' => url('/staff/interviews/absent?tab=absent'), 'count' => $absentTotal]];
+if (!$isDean) {
+    $segTabs['requests'] = ['label' => 'Reschedule Requests', 'href' => url('/staff/interviews/absent?tab=requests'), 'count' => $reschedTotal, 'tone' => 'warning'];
+}
+?>
 <?php if ($activeTab === 'absent'): ?>
 <!-- ============================================================
      TAB 1: ABSENT STUDENTS
@@ -636,6 +602,8 @@ ob_start();
         <input type="hidden" name="tab"      value="absent">
         <input type="hidden" name="per_page" value="<?= (int)$perPage ?>">
 
+        <?= segmented_tabs($segTabs, 'absent', 'Interview reschedules') ?>
+
         <div class="auto-table-search">
             <?= icon('ic_fluent_search_24_filled', 14) ?>
             <input type="text" name="q" class="form-input" placeholder="Search name, email, course…" value="<?= e($search) ?>">
@@ -653,7 +621,6 @@ ob_start();
         <input type="date" name="date" class="form-input" style="width:160px" value="<?= e($filterDate) ?>"
                onchange="this.form.submit()" aria-label="Missed on" title="Missed on">
 
-        <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
         <?php if ($hasFilters): ?>
             <a href="<?= e(url('/staff/interviews/absent') . '?' . http_build_query(['tab' => 'absent', 'per_page' => $perPage])) ?>" class="btn btn-ghost btn-sm">Clear</a>
         <?php endif; ?>
@@ -794,6 +761,8 @@ ob_start();
         <input type="hidden" name="tab"      value="requests">
         <input type="hidden" name="per_page" value="<?= (int)$perPage ?>">
 
+        <?= segmented_tabs($segTabs, 'requests', 'Interview reschedules') ?>
+
         <div class="auto-table-search">
             <?= icon('ic_fluent_search_24_filled', 14) ?>
             <input type="text" name="q" class="form-input" placeholder="Search student, course, reason…" value="<?= e($search) ?>">
@@ -811,7 +780,6 @@ ob_start();
         <input type="date" name="date" class="form-input" style="width:160px" value="<?= e($filterDate) ?>"
                onchange="this.form.submit()" aria-label="Submitted on" title="Submitted on">
 
-        <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
         <?php if ($hasFilters): ?>
             <a href="<?= e(url('/staff/interviews/absent') . '?' . http_build_query(['tab' => 'requests', 'per_page' => $perPage])) ?>" class="btn btn-ghost btn-sm">Clear</a>
         <?php endif; ?>
@@ -869,8 +837,7 @@ ob_start();
                     </td>
                     <?php if ($canReschedule): ?>
                     <td>
-                        <select name="target_slot_id" form="<?= $approveFormId ?>" class="form-control"
-                                style="font-size:var(--text-xs);height:30px;min-height:30px;padding:0 var(--space-2)">
+                        <select name="target_slot_id" form="<?= $approveFormId ?>" class="form-control">
                             <option value="0">Auto-assign</option>
                             <?php foreach ($openSlots as $s):
                                 $spotsLeft = (int)$s['capacity'] - (int)$s['booked'];
@@ -890,7 +857,7 @@ ob_start();
                                title="Reason shown to the student if you deny"
                                maxlength="500"
                                class="form-control"
-                               style="font-size:var(--text-xs);height:30px;min-height:30px;padding:0 var(--space-2)">
+                               style="font-size:var(--text-xs);height:var(--control-height);min-height:var(--control-height);padding:0 var(--space-2)">
                     </td>
                     <td>
                         <div style="display:flex;gap:var(--space-2);align-items:center">
@@ -899,7 +866,7 @@ ob_start();
                                 <input type="hidden" name="action" value="approve_reschedule">
                                 <input type="hidden" name="request_id" value="<?= (int)$rr['id'] ?>">
                                 <button type="submit" class="btn btn-sm btn-primary"
-                                        style="height:30px;min-height:30px;padding:0 var(--space-3);font-size:var(--text-xs)"
+                                        style="height:var(--control-height);min-height:var(--control-height);padding:0 var(--space-3);font-size:var(--text-xs)"
                                         title="Approve and assign new slot">Approve</button>
                             </form>
                             <form id="<?= $denyFormId ?>" method="POST" style="margin:0"
@@ -908,7 +875,7 @@ ob_start();
                                 <input type="hidden" name="action" value="deny_reschedule">
                                 <input type="hidden" name="request_id" value="<?= (int)$rr['id'] ?>">
                                 <button type="submit" class="btn btn-sm btn-ghost"
-                                        style="height:30px;min-height:30px;padding:0 var(--space-3);font-size:var(--text-xs);color:var(--error)"
+                                        style="height:var(--control-height);min-height:var(--control-height);padding:0 var(--space-3);font-size:var(--text-xs);color:var(--error)"
                                         title="Deny request">Deny</button>
                             </form>
                         </div>
@@ -937,10 +904,13 @@ ob_start();
 
 </div><!-- /.auto-table-wrap -->
 <?php endif; /* end activeTab */ ?>
+</div>
 
 <?php
 $content   = ob_get_clean();
 $pageTitle = $activeTab === 'requests' ? 'Reschedule Requests' : 'Absent Students';
+$pageBreadcrumb = [['label' => 'Interview Sessions', 'to' => '/staff/interviews']];
+$pageActions = ($canReschedule ? ui_button('Cancel a slot (bulk move)', ['href' => url('/staff/interviews/cancel-slot'), 'variant' => 'ghost', 'icon' => 'ic_fluent_arrow_right_24_regular', 'icon_pos' => 'after']) : '');
 $activeNav = $activeTab === 'requests' ? 'reschedule' : 'interviews';
 $pageWide  = true; // table-heavy page — match staff_slots / staff_review / staff_manage
 include VIEWS_PATH . '/layouts/app.php';

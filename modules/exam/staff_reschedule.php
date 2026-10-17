@@ -436,18 +436,12 @@ $hasFilters = ($search !== '' || $filterDept !== '' || $filterDate !== '');
 ob_start();
 ?>
 
-<div style="margin-bottom:var(--space-5);display:flex;justify-content:space-between;align-items:center;gap:var(--space-3);flex-wrap:wrap;flex-shrink:0">
-    <a href="<?= url('/staff/exam/slots') ?>" class="btn btn-ghost btn-sm">← Back to Exam Slots</a>
-    <?php if ($canReschedule): ?>
-        <a href="<?= url('/staff/exam/cancel-slot') ?>" class="btn btn-ghost btn-sm">
-            Cancel a slot (bulk move) →
-        </a>
-    <?php else: ?>
-        <span style="font-size:var(--text-xs);color:var(--text-tertiary)">
-            Only SSO and Admin can approve or deny exam reschedule requests.
-        </span>
-    <?php endif; ?>
-</div>
+<style>
+.page:has(.sa-table-card) { display:flex; flex-direction:column; }
+.sa-table-card { flex:1; min-height:300px; display:flex; flex-direction:column; }
+.sa-table-card table { flex:0 0 auto; }
+.sa-table-card .sa-filler { flex:1; border-top:1px solid var(--border); }
+</style>
 
 <?php
 // Same structure as the audit log (and lakbay-pasig's AdminDataTable): one
@@ -481,7 +475,6 @@ ob_start();
         <input type="date" name="date" class="form-input" style="width:160px" value="<?= e($filterDate) ?>"
                onchange="this.form.submit()" aria-label="Submitted on">
 
-        <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
         <?php if ($hasFilters): ?>
             <a href="<?= e(url('/staff/exam/reschedule') . '?' . http_build_query(['per_page' => $perPage])) ?>" class="btn btn-ghost btn-sm">Clear</a>
         <?php endif; ?>
@@ -544,8 +537,7 @@ ob_start();
                     </td>
                     <?php if ($canReschedule): ?>
                     <td>
-                        <select name="target_slot_id" form="<?= $approveFormId ?>" class="form-control"
-                                style="font-size:var(--text-xs);height:30px;min-height:30px;padding:0 var(--space-2)">
+                        <select name="target_slot_id" form="<?= $approveFormId ?>" class="form-control">
                             <option value="0">Auto-assign</option>
                             <?php foreach ($openSlots as $s):
                                 if ((int)$s['id'] === (int)$rr['slot_id']) continue;
@@ -567,7 +559,7 @@ ob_start();
                                title="Reason shown to the student if you deny"
                                maxlength="500"
                                class="form-control"
-                               style="font-size:var(--text-xs);height:30px;min-height:30px;padding:0 var(--space-2)">
+                               style="font-size:var(--text-xs);height:var(--control-height);min-height:var(--control-height);padding:0 var(--space-2)">
                     </td>
                     <td>
                         <div style="display:flex;gap:var(--space-2);align-items:center">
@@ -576,7 +568,7 @@ ob_start();
                                 <input type="hidden" name="action" value="approve_reschedule">
                                 <input type="hidden" name="request_id" value="<?= (int)$rr['id'] ?>">
                                 <button type="submit" class="btn btn-sm btn-primary"
-                                        style="height:30px;min-height:30px;padding:0 var(--space-3);font-size:var(--text-xs)"
+                                        style="height:var(--control-height);min-height:var(--control-height);padding:0 var(--space-3);font-size:var(--text-xs)"
                                         title="Approve and assign new slot">Approve</button>
                             </form>
                             <form id="<?= $denyFormId ?>" method="POST" style="margin:0"
@@ -585,7 +577,7 @@ ob_start();
                                 <input type="hidden" name="action" value="deny_reschedule">
                                 <input type="hidden" name="request_id" value="<?= (int)$rr['id'] ?>">
                                 <button type="submit" class="btn btn-sm btn-ghost"
-                                        style="height:30px;min-height:30px;padding:0 var(--space-3);font-size:var(--text-xs);color:var(--error)"
+                                        style="height:var(--control-height);min-height:var(--control-height);padding:0 var(--space-3);font-size:var(--text-xs);color:var(--error)"
                                         title="Deny request">Deny</button>
                             </form>
                         </div>
@@ -617,6 +609,8 @@ ob_start();
 <?php
 $content   = ob_get_clean();
 $pageTitle = 'Exam Reschedule Requests';
+$pageBreadcrumb = [['label' => 'Exam Slots', 'to' => '/staff/exam/slots']];
+$pageActions = ($canReschedule ? ui_button('Cancel a slot (bulk move)', ['href' => url('/staff/exam/cancel-slot'), 'variant' => 'ghost', 'icon' => 'ic_fluent_arrow_right_24_regular', 'icon_pos' => 'after']) : '');
 $activeNav = 'exam-reschedule';
 $pageWide  = true; // table-heavy page — match staff_slots / staff_review / staff_manage
 include VIEWS_PATH . '/layouts/app.php';

@@ -30,6 +30,8 @@ if (!str_ends_with(rtrim($path, '/'), '/callback')) {
     $state = bin2hex(random_bytes(16));
     Session::set('google_state', $state);
     Session::set('google_remember', !empty($_GET['remember']));
+    // Remember the exact URI sent to Google; the token exchange must repeat it character for character.
+    Session::set('google_redirect', GOOGLE_REDIRECT_URI);
     header('Location: https://accounts.google.com/o/oauth2/v2/auth?' . http_build_query([
         'prompt'        => 'select_account',
         'client_id'     => GOOGLE_CLIENT_ID,
@@ -44,8 +46,10 @@ if (!str_ends_with(rtrim($path, '/'), '/callback')) {
 // -- Callback ----------------------------------------------------
 $expected = (string) Session::get('google_state', '');
 $remember = (bool) Session::get('google_remember', false);
+$redirect = (string) Session::get('google_redirect', '') ?: GOOGLE_REDIRECT_URI;
 Session::remove('google_state');
 Session::remove('google_remember');
+Session::remove('google_redirect');
 
 if (!empty($_GET['error'])) {
     google_fail('Google sign in was cancelled.');
@@ -70,7 +74,7 @@ $raw = @file_get_contents('https://oauth2.googleapis.com/token', false, stream_c
             'code'          => $code,
             'client_id'     => GOOGLE_CLIENT_ID,
             'client_secret' => GOOGLE_CLIENT_SECRET,
-            'redirect_uri'  => GOOGLE_REDIRECT_URI,
+            'redirect_uri'  => $redirect,
             'grant_type'    => 'authorization_code',
         ]),
     ],

@@ -228,6 +228,7 @@ if ($format === 'print') {
 <style>
   /* ── Screen styles ──────────────────────────────────────── */
   :root {
+        --radius: 8px;
     --ink: #111827;
     --muted: #6b7280;
     --line: #d1d5db;
@@ -235,6 +236,7 @@ if ($format === 'print') {
     --bg: #f9fafb;
   }
   * { box-sizing: border-box; }
+    :where(*) { border-radius:var(--radius) !important; }
   body { margin:0; padding:0; background:var(--bg); color:var(--ink);
          font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
          font-size: 12pt; line-height: 1.45; }
@@ -247,14 +249,14 @@ if ($format === 'print') {
   .toolbar .right { margin-left:auto; display:flex; gap:8px; }
   .btn {
     display:inline-flex; align-items:center; gap:6px;
-    padding:8px 16px; border:1px solid var(--line); border-radius:6px;
+    padding:8px 16px; border:1px solid var(--line); border-radius:var(--radius);
     background:#fff; color:var(--ink); cursor:pointer;
     font-size: 11pt; font-family: inherit; text-decoration: none;
   }
   .btn-primary { background: var(--accent); color:#fff; border-color: var(--accent); }
   .btn:hover { filter: brightness(.96); }
   select, input[type=date] {
-    padding:7px 10px; border:1px solid var(--line); border-radius:6px;
+    padding:7px 10px; border:1px solid var(--line); border-radius:var(--radius);
     background:#fff; font-size:11pt; font-family: inherit; color: var(--ink);
   }
   /* Pagewrap sized to render close to actual A4 width (210mm ≈ 794px @ 96dpi).
@@ -263,7 +265,7 @@ if ($format === 'print') {
   .empty { padding: 64px 24px; text-align:center; color: var(--muted); }
   .room-sheet {
     background:#fff; padding: 32px 40px 40px;
-    margin-bottom: 24px; border:1px solid var(--line); border-radius:8px;
+    margin-bottom: 24px; border:1px solid var(--line); border-radius:var(--radius);
   }
   .sheet-header {
     display:flex; align-items:center; gap:20px;
@@ -281,7 +283,7 @@ if ($format === 'print') {
     grid-template-columns: minmax(0, 1.7fr) minmax(0, 1.1fr) minmax(0, 0.9fr) minmax(0, 1.3fr);
     gap: 12px;
     margin-bottom: 20px; padding: 14px 16px;
-    background: #f3f4f6; border-radius: 6px;
+    background: #f3f4f6; border-radius: var(--radius);
   }
   .room-info .label { font-size: 8.5pt; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
   .room-info .value { font-size: 12pt; font-weight: 600; margin-top: 2px; line-height: 1.25; }
@@ -305,12 +307,19 @@ if ($format === 'print') {
     .toolbar, .no-print { display: none !important; }
     .pagewrap { margin: 0; padding: 0; max-width: none; }
     .room-sheet {
-      border: none; border-radius: 0; padding: 0;
+    border: none; border-radius: var(--radius); padding: 0;
       margin: 0; page-break-after: always;
     }
     .room-sheet:last-child { page-break-after: auto; }
     @page { size: A4; margin: 18mm 16mm; }
   }
+    @media (max-width:600px) {
+        .toolbar { padding:10px 12px; }
+        .toolbar .right { margin-left:0; }
+        .pagewrap { margin:16px auto; padding:0 10px; }
+        .room-sheet { padding:20px 16px; }
+        .room-info { grid-template-columns:repeat(2,minmax(0,1fr));gap:10px; }
+    }
 </style>
 </head>
 <body>
@@ -318,7 +327,30 @@ if ($format === 'print') {
 <!-- ── Toolbar (hidden when printing) ──────────────────────── -->
 <div class="toolbar no-print">
     <div class="left">
-        <a href="<?= e($backUrl) ?>" class="btn">← Back to Roster</a>
+        <a href="<?= url('/staff/exam/slots') ?>" class="btn">← Back to Slots</a>
+        <form method="GET" action="" style="display:flex;gap:8px;align-items:center;margin-left:8px">
+            <label style="font-size:10pt;color:var(--muted)">Date:</label>
+            <select name="date" onchange="this.form.submit()">
+                <option value="">All upcoming</option>
+                <?php foreach ($datesAvail as $d): ?>
+                    <option value="<?= e($d) ?>" <?= $filterDate === $d ? 'selected' : '' ?>>
+                        <?= e(date('M j, Y (D)', strtotime($d))) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            <?php if ($isAdmin && $deptsAvail): ?>
+                <label style="font-size:10pt;color:var(--muted);margin-left:8px">College:</label>
+                <select name="dept" onchange="this.form.submit()">
+                    <option value="">All colleges</option>
+                    <?php foreach ($deptsAvail as $d): ?>
+                        <option value="<?= e($d) ?>" <?= $filterDept === $d ? 'selected' : '' ?>>
+                            <?= e($d) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            <?php endif; ?>
+            <noscript><button class="btn" type="submit">Apply</button></noscript>
+        </form>
     </div>
     <div class="right">
         <a class="btn" href="<?= e($csvUrl) ?>"
@@ -326,7 +358,8 @@ if ($format === 'print') {
             ↓ CSV
         </a>
         <button class="btn btn-primary" onclick="window.print()">
-            🖨 Print / Save as PDF
+            <?= icon('printer', 14) ?>
+            Print / Save as PDF
         </button>
     </div>
 </div>
@@ -522,10 +555,6 @@ $hasFilters = ($search !== '' || $filterDate !== '' || ($isAdmin && $filterDept 
 ob_start();
 ?>
 
-<div style="margin-bottom:var(--space-5);flex-shrink:0">
-    <a href="<?= url('/staff/exam/slots') ?>" class="btn btn-ghost btn-sm">← Back to Exam Slots</a>
-</div>
-
 <?php
 // Same structure as the audit log (and lakbay-pasig's AdminDataTable): one
 // .auto-table-wrap that AutoPageSize measures, the card with the toolbar and
@@ -575,7 +604,6 @@ ob_start();
             <?php endforeach; ?>
         </select>
 
-        <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
         <?php if ($hasFilters): ?>
             <a href="<?= e(url('/staff/exam/export-rooms') . '?' . http_build_query(['per_page' => $perPage])) ?>" class="btn btn-ghost btn-sm">Clear</a>
         <?php endif; ?>
@@ -656,6 +684,7 @@ ob_start();
 <?php
 $content   = ob_get_clean();
 $pageTitle = 'Exam Room Roster';
+$pageBreadcrumb = [['label' => 'Exam Slots', 'to' => '/staff/exam/slots']];
 $activeNav = 'exam';
 $pageWide  = true; // table-heavy page — match staff_slots / staff_review / staff_manage
 include VIEWS_PATH . '/layouts/app.php';

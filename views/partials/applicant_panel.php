@@ -188,7 +188,7 @@ $_panelStatusColor = function (string $s): string {
             <?php endforeach; ?>
         </div>
         <a href="<?= url('/staff/applicants/' . $panelApplicantId) ?>"
-           class="ap-section-link">Open full document review →</a>
+           class="ap-section-link">Open full document review <?= icon('arrow-right', 14) ?></a>
     </section>
 
     <!-- ─── Exam ───────────────────────────────────────────── -->

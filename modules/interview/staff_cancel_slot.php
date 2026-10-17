@@ -161,7 +161,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Log a bulk reschedule_requests row per applicant so the
             // student-facing history block shows what happened.
-            ensure_reschedule_requests_table();
             $logStmt = $db->prepare(
                 "INSERT INTO reschedule_requests
                     (applicant_id, queue_id, reason, status, reviewed_by, reviewed_at)
@@ -288,10 +287,6 @@ $pageUrl  = fn(int $p): string => url('/staff/interviews/cancel-slot') . '?' . h
 ob_start();
 ?>
 
-<div style="margin-bottom:var(--space-5);flex-shrink:0">
-    <a href="<?= url('/staff/interviews/setup') ?>" class="btn btn-ghost btn-sm">← Back to Interview Slots</a>
-</div>
-
 <div class="card" style="padding:var(--space-6);margin-bottom:var(--space-5);flex-shrink:0">
     <h2 style="font-size:var(--text-xl);font-weight:var(--weight-semibold);margin:0 0 var(--space-2)">
         Cancel an interview slot
@@ -325,7 +320,6 @@ ob_start();
             <input type="text" name="q" class="form-input" placeholder="Search by date, interviewer, department or room…" value="<?= e($search) ?>">
         </div>
 
-        <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
         <?php if ($search !== ''): ?>
             <a href="<?= url('/staff/interviews/cancel-slot') ?>" class="btn btn-ghost btn-sm">Clear</a>
         <?php endif; ?>
@@ -384,8 +378,7 @@ ob_start();
                     </td>
                     <?php else: ?>
                     <td>
-                        <select name="target_slot_id" form="<?= $formId ?>" required class="form-control"
-                                style="font-size:var(--text-xs);height:30px;min-height:30px;padding:0 var(--space-2)">
+                        <select name="target_slot_id" form="<?= $formId ?>" required class="form-control">
                             <option value="">Pick a replacement slot…</option>
                             <?php foreach ($options as $r):
                                 $left = (int)$r['capacity'] - (int)$r['booked'];
@@ -403,7 +396,7 @@ ob_start();
                         <input type="text" name="reason" form="<?= $formId ?>" required maxlength="500"
                                placeholder="Reason shown to students (e.g. Typhoon Pepito)"
                                class="form-control"
-                               style="font-size:var(--text-xs);height:30px;min-height:30px;padding:0 var(--space-2)">
+                               style="font-size:var(--text-xs);height:var(--control-height);min-height:var(--control-height);padding:0 var(--space-2)">
                     </td>
                     <td>
                         <form id="<?= $formId ?>" method="POST" style="margin:0"
@@ -412,7 +405,7 @@ ob_start();
                             <input type="hidden" name="action" value="cancel_slot">
                             <input type="hidden" name="source_slot_id" value="<?= (int)$s['id'] ?>">
                             <button type="submit" class="btn btn-sm btn-primary"
-                                    style="height:30px;min-height:30px;padding:0 var(--space-3);font-size:var(--text-xs)">
+                                    style="height:var(--control-height);min-height:var(--control-height);padding:0 var(--space-3);font-size:var(--text-xs)">
                                 Cancel slot &amp; move all
                             </button>
                         </form>
@@ -442,6 +435,10 @@ ob_start();
 <?php
 $content   = ob_get_clean();
 $pageTitle = 'Cancel Interview Slot (Bulk)';
+$pageBreadcrumb = [
+    ['label' => 'Interview Sessions', 'to' => '/staff/interviews'],
+    ['label' => 'Interview Setup',    'to' => '/staff/interviews/setup'],
+];
 $activeNav = 'interview';
 $pageWide  = true; // table-heavy page — match staff_slots / staff_review / staff_manage
 include VIEWS_PATH . '/layouts/app.php';
