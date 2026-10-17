@@ -7,7 +7,7 @@
 //
 // Expected from the including file (layouts/app.php):
 //   $sidebarHome  — where the logo + school name link to
-//   $schoolName, $schoolLogo
+//   $schoolName
 //
 // Lakbay renders ONE of two trees depending on React state. Here both are
 // in the DOM and CSS picks one from the wrapper's data-state (see the
@@ -28,13 +28,10 @@
 // collapse button there closes the drawer (Sidebar.toggle() does that when
 // isMobile), same as Lakbay's sheet.
 
-$_logoSrc = $schoolLogo !== ''
-    ? (str_starts_with($schoolLogo, 'http') ? $schoolLogo : url('/' . $schoolLogo))
-    : '';
-
-$_logoHtml = $_logoSrc !== ''
-    ? '<img src="' . e($_logoSrc) . '" alt="' . e($schoolName) . '" class="sidebar-logo">'
-    : '<span class="sidebar-logo-placeholder">' . icon('bank:fill', 14) . '</span>';
+// The sidebar always shows the PLP seal (the brand name beside it is fixed
+// to "PLP Admissions"), same file the login page uses.
+$_logoSrc  = asset('img/' . rawurlencode('plp logo.png'));
+$_logoHtml = '<img src="' . e($_logoSrc) . '" alt="PLP" class="sidebar-logo">';
 ?>
 <div class="sidebar-logo-row sidebar-logo-row--expanded">
     <a href="<?= e(url($sidebarHome)) ?>" class="sidebar-brand-link" title="PLP Admissions">

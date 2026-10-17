@@ -233,8 +233,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                     Withdraw Application
                 </a>
                 <?php endif; ?>
-                <div class="dropdown-separator"></div>
-                <a href="<?= url('/logout') ?>" class="dropdown-item danger">
+                <a href="<?= url('/logout') ?>" class="dropdown-item">
                     <?= icon('sign-out', 15) ?>
                     Log out
                 </a>
@@ -340,8 +339,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                             .theme-pill[data-theme='dark'] { background: var(--accent) !important; }
                             .theme-pill[data-theme='dark'] div { transform: translateX(14px) !important; }
                         </style>
-                        <div class="dropdown-separator"></div>
-                        <a href="<?= url('/logout') ?>" class="dropdown-item danger">
+                        <a href="<?= url('/logout') ?>" class="dropdown-item">
                             <?= icon('sign-out', 15) ?>
                             Log out
                         </a>

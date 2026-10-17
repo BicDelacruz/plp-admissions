@@ -73,20 +73,34 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
             a.overall_status,
             a.school_year,
             COALESCE(ar.result, 'pending')                                                   AS result,
+            ar.remarks,
             ar.released_at,
+            er.score,
+            er.total_items,
             a.created_at
         FROM applicants a
         JOIN  users u              ON u.id = a.user_id
         LEFT JOIN admission_results ar ON ar.applicant_id = a.id
+        LEFT JOIN LATERAL (
+            SELECT score, total_items
+            FROM exam_results
+            WHERE applicant_id = a.id
+            ORDER BY submitted_at DESC, id DESC
+            LIMIT 1
+        ) er ON true
         WHERE a.school_year = ? $dateFilter $deptFilter
         ORDER BY a.created_at DESC
     ");
     $csvStmt->execute(array_merge([$schoolYear], $dateExtra, $deptParams));
     $rows = $csvStmt->fetchAll(PDO::FETCH_ASSOC);
+    // The file follows the dashboard: same school year, same date range (on the
+    // date the applicant applied), same college scope. The range is in the name.
+    $rangeSlug = ($range === 'custom' && $fromDate && $toDate) ? $fromDate . '_to_' . $toDate : $range;
     header('Content-Type: text/csv; charset=utf-8');
-    header('Content-Disposition: attachment; filename="plp-admissions-' . $schoolYear . '.csv"');
+    header('Content-Disposition: attachment; filename="plp-admissions-' . $schoolYear . '-' . $rangeSlug . '.csv"');
     $out = fopen('php://output', 'w');
-    fputcsv($out, ['Name','Email','Sex','Age','Barangay','Type','Course','Stage','School Year','Result','Released At','Applied At']);
+    fprintf($out, chr(0xEF) . chr(0xBB) . chr(0xBF)); // UTF-8 BOM so Excel reads names with ñ / accents
+    fputcsv($out, ['Name','Email','Sex','Age','Barangay','Type','Course','Stage','School Year','Result','Remarks','Released At','Exam Score','Total Items','Applied At']);
     foreach ($rows as $r) fputcsv($out, array_values($r));
     fclose($out);
     exit;
@@ -253,14 +267,17 @@ ob_start();
    ───────────────────────────────────── */
 .db-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    /* minmax(0, 1fr), not 1fr: a bare 1fr can't shrink below its content, so
+       after the sidebar collapsed and re-expanded the charts' old pixel width
+       held the columns open and the cards ran off to the right. */
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-template-rows: auto 1fr;
     gap: var(--space-4);
     align-items: stretch;
     min-height: 0;
     flex: 1;
 }
-.db-grid > .card { display: flex; flex-direction: column; }
+.db-grid > .card { display: flex; flex-direction: column; min-width: 0; }
 
 /* Make the dashboard fill the .page so the bottom gap matches the
    left/right gap (var(--space-8) = 32px from .page padding). */
@@ -270,7 +287,7 @@ ob_start();
 /* KPI cards — 4 equal squares, single accent color */
 .db-kpi-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: var(--space-3);
     margin-top: var(--space-4);
     flex: 1;
@@ -364,10 +381,10 @@ ob_start();
 }
 
 @media (max-width:960px) {
-    .db-grid { grid-template-columns:1fr; }
+    .db-grid { grid-template-columns:minmax(0, 1fr); }
 }
 @media (max-width:560px) {
-    .db-grid { grid-template-columns:1fr; }
+    .db-grid { grid-template-columns:minmax(0, 1fr); }
 }
 @media (max-width:768px) {
     .db-kpi-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }

@@ -99,7 +99,6 @@ $router->get( '/admin/courses',    'settings/admin_courses');
 $router->post('/admin/courses',    'settings/admin_courses');
 $router->get( '/admin/settings',   'settings/admin');
 $router->post('/admin/settings',   'settings/admin');
-$router->get( '/admin/results',    'results/admin_export');
 
 $router->get( '/admin/audit-log',  'audit/log');
 $router->get( '/staff/audit-log',  'audit/log');

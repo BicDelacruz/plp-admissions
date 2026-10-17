@@ -167,11 +167,6 @@ $items = [
         'roles' => [ROLE_ADMIN, ROLE_SSO]],
     ['href' => '/staff/results',     'key' => 'results',     'label' => 'Results',          'icon' => 'medal',   'pending' => $_navResPending,
         'roles' => [ROLE_ADMIN, ROLE_DEAN]],
-    // Export Results — SSO + Admin can pull the CSV / summary that
-    // the registrar files. Dean works the per-college Results page
-    // above, so they don't need a bulk-export entry.
-    ['href' => '/admin/results',     'key' => 'results-export', 'label' => 'Export Results', 'icon' => 'download-simple', 
-        'roles' => [ROLE_ADMIN, ROLE_SSO]],
 
     ['href' => '/admin/users',       'key' => 'users',       'label' => 'Users',            'icon' => 'shield-check',
         'roles' => [ROLE_ADMIN]],
