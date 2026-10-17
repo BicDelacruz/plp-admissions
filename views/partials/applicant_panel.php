@@ -12,6 +12,10 @@
 //   $panelStandalone (bool) — if true, render only the inner sections
 //                             (used by the drawer fetch endpoint).
 //                             Caller is responsible for the wrapper.
+//   $panelPrint      (bool) — paper view: no evaluation form, no review
+//                             links; saved interview notes as plain text.
+//   $panelStudent    (bool) — the viewer is the applicant: no notes, no
+//                             recent activity, no review links.
 //
 // Read-only everywhere except the Evaluation section, which posts
 // to the existing /staff/interviews/{queue_id} action endpoints
@@ -20,6 +24,9 @@
 
 $panelDb = db();
 $panelApplicantId = (int) ($applicantId ?? 0);
+$panelPrint       = !empty($panelPrint);
+$panelStudent     = !empty($panelStudent);
+$_showLinks       = !$panelPrint && !$panelStudent;
 
 // ── Applicant + user ────────────────────────────────────────
 $_aStmt = $panelDb->prepare(
@@ -113,11 +120,14 @@ $_audStmt = $panelDb->prepare(
       ORDER BY created_at DESC
       LIMIT 12"
 );
-try {
-    $_audStmt->execute([$panelApplicantId, $panelApplicantId, $panelApplicantId, $panelApplicantId]);
-    $_audit = $_audStmt->fetchAll();
-} catch (\Throwable $e) {
-    $_audit = [];
+$_audit = [];
+if (!$panelStudent) {
+    try {
+        $_audStmt->execute([$panelApplicantId, $panelApplicantId, $panelApplicantId, $panelApplicantId]);
+        $_audit = $_audStmt->fetchAll();
+    } catch (\Throwable $e) {
+        $_audit = [];
+    }
 }
 
 // Helpers (panel-scoped)
@@ -176,19 +186,21 @@ $_panelStatusColor = function (string $s): string {
                 <div class="ap-doc-row">
                     <span class="ap-doc-label"><?= e($label) ?></span>
                     <span class="badge <?= $_badge ?>"><?= e(ucfirst(str_replace('_',' ',$_status))) ?></span>
-                    <?php if ($_doc && $_doc['file_path']): ?>
+                    <?php if ($_showLinks && $_doc && $_doc['file_path']): ?>
                         <a href="<?= e(file_url($_doc['file_path'])) ?>" target="_blank" rel="noopener"
                            class="ap-doc-link" title="Open file">
                             <?= icon('ic_fluent_eye_show_24_regular', 14) ?>
                         </a>
-                    <?php else: ?>
+                    <?php elseif ($_showLinks): ?>
                         <span class="ap-muted">—</span>
                     <?php endif; ?>
                 </div>
             <?php endforeach; ?>
         </div>
+        <?php if ($_showLinks): ?>
         <a href="<?= url('/staff/applicants/' . $panelApplicantId) ?>"
            class="ap-section-link">Open full document review <?= icon('arrow-right', 14) ?></a>
+        <?php endif; ?>
     </section>
 
     <!-- ─── Exam ───────────────────────────────────────────── -->
@@ -283,7 +295,7 @@ $_panelStatusColor = function (string $s): string {
             </div>
 
             <!-- ─── Edit Evaluation ─────────────────────────── -->
-            <?php if ($_qStatus !== 'no_show'): ?>
+            <?php if (!$panelStudent && !$panelPrint && $_qStatus !== 'no_show'): ?>
             <form class="ap-eval-form"
                   method="POST"
                   action="<?= e(url('/staff/interviews/' . (int)$_int['id'])) ?>"
@@ -323,6 +335,10 @@ $_panelStatusColor = function (string $s): string {
                     <?php endif; ?>
                 </div>
             </form>
+            <?php elseif (!$panelStudent && $panelPrint && trim((string) ($_int['interview_notes'] ?? '')) !== ''): ?>
+            <div class="ap-kv">
+                <div><span class="ap-k">Notes</span> <?= nl2br(e($_int['interview_notes'])) ?></div>
+            </div>
             <?php endif; ?>
         <?php endif; ?>
     </section>
@@ -364,6 +380,7 @@ $_panelStatusColor = function (string $s): string {
     </section>
 
     <!-- ─── Audit trail ────────────────────────────────────── -->
+    <?php if (!$panelStudent): ?>
     <section class="ap-section">
         <div class="ap-section-title">Recent Activity</div>
         <?php if (empty($_audit)): ?>
@@ -389,5 +406,6 @@ $_panelStatusColor = function (string $s): string {
             </ul>
         <?php endif; ?>
     </section>
+    <?php endif; ?>
 
 </div>

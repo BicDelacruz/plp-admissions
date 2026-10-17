@@ -103,5 +103,8 @@ $router->post('/admin/settings',   'settings/admin');
 $router->get( '/admin/audit-log',  'audit/log');
 $router->get( '/staff/audit-log',  'audit/log');
 
+// -- Print -------------------------------------------------------
+$router->get( '/print/admission', 'results/print_admission');
+
 // -- Root redirect -----------------------------------------------
 $router->get('/', 'auth/login');
