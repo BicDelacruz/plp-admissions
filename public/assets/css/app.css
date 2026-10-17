@@ -29,9 +29,9 @@
     --border-strong:  #c8c8c2;
 
     --text-primary:   #1a1a18;
-    --text-secondary: #5a5a54;
-    --text-tertiary:  #9a9a92;
-    --text-placeholder:#b0b0a8;
+    --text-secondary: #2e2e2a;
+    --text-tertiary:  #45453f;
+    --text-placeholder:#5e5e57;
 
     /* Semantic */
     --success:        #2d6a4f;
@@ -106,6 +106,17 @@
     /* Selector cards (college / session / slot / exam pickers) */
     --select-card-min: 260px;
 
+    /* Shared dropdown (<select>) tokens — the dashboard School Year
+       dropdown is the reference. Every select in the app reads these. */
+    --select-height:       32px;
+    --select-border-width: 1px;
+    --select-radius:       var(--radius);
+    --select-font-size:    var(--text-sm);
+    --select-pad-x:        var(--space-3);
+    --select-pad-right:    calc(var(--space-3) + 20px);
+    --select-bg:           var(--bg-elevated);
+    --select-chevron:      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M6 9l6 6 6-6' stroke='%2345453f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+
     /* Shadows — minimal, functional */
     --shadow-xs:  0 1px 2px rgba(0,0,0,0.06);
     --shadow-sm:  0 1px 4px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04);
@@ -159,9 +170,10 @@
     --border-strong:  #444440;
 
     --text-primary:   #f0f0ec;
-    --text-secondary: #a0a09a;
-    --text-tertiary:  #686862;
-    --text-placeholder:#50504a;
+    --text-secondary: #d8d8d2;
+    --text-tertiary:  #bdbdb6;
+    --text-placeholder:#9a9a93;
+    --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M6 9l6 6 6-6' stroke='%23bdbdb6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 
     --accent-muted:   #1b4332;
 
@@ -4042,41 +4054,49 @@ html[data-font-size="xlarge"] { font-size: 22px; --height-table-row: 68px; --hei
 
 
 /* ============================================================
-   SHARED DROPDOWN (<select>) — same look as the dashboard's
-   School Year dropdown: 1px border, elevated surface, 8px radius,
-   small text, custom chevron. Applies to every <select>.
+   SHARED DROPDOWN (<select>) — one look for every dropdown, taken
+   from the dashboard's School Year dropdown and driven entirely by
+   the --select-* tokens in :root. The `html` prefix lifts the
+   specificity above .form-input / .form-control / .form-select,
+   .status-select, .select-toolbar select and the toolbar / auth
+   overrides, so no per-page rule or inline size is needed.
+   Width stays a layout decision and is left to each page.
    ============================================================ */
 
-select:not([multiple]):not([size]) {
+html select:not([multiple]):not([size]) {
     appearance: none;
     -webkit-appearance: none;
-    padding: 0 calc(var(--space-3) + 20px) 0 var(--space-3);
-    background-color: var(--bg-elevated);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M6 9l6 6 6-6' stroke='%239a9a92' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    box-sizing: border-box;
+    height: var(--select-height);
+    min-height: var(--select-height);
+    padding: 0 var(--select-pad-right) 0 var(--select-pad-x);
+    background-color: var(--select-bg);
+    background-image: var(--select-chevron);
     background-repeat: no-repeat;
     background-position: right var(--space-2) center;
     background-size: 16px 16px;
     color: var(--text-primary);
     font-family: var(--font-sans);
-    font-size: var(--text-sm);
+    font-size: var(--select-font-size);
     line-height: 1.2;
-    text-transform: none;
-    border-radius: var(--radius);
+    border: var(--select-border-width) solid var(--border);
+    border-radius: var(--select-radius);
     cursor: pointer;
+    text-overflow: ellipsis;
 }
-/* Standalone dropdowns (filters, header controls) are 32px like the dashboard */
-select:not([multiple]):not([size]):not(.form-input):not(.form-control):not(.form-select) {
-    height: 32px;
-    border: 1px solid var(--border);
+html select:not([multiple]):not([size]),
+html select:not([multiple]):not([size]) option {
+    text-transform: none !important;
 }
-/* Dropdowns inside forms keep the height of the fields next to them */
-select.form-input:not([multiple]),
-select.form-control:not([multiple]),
-select.form-select:not([multiple]) {
-    min-height: 42px;
+html select:not([multiple]):not([size]):hover:not(:disabled):not(:focus) { border-color: var(--border-strong); }
+html select:not([multiple]):not([size]):focus {
+    border-color: var(--accent);
+    outline: 1px solid var(--accent);
+    outline-offset: 0;
 }
-select:not([multiple]):not([size]):hover:not(:disabled) { border-color: var(--border-strong); }
-select:not([multiple]):not([size]):disabled { opacity: .6; cursor: not-allowed; }
+html select.error:not([multiple]):not([size]) { border-color: var(--error); }
+html select.success:not([multiple]):not([size]) { border-color: var(--success); }
+html select:not([multiple]):not([size]):disabled { opacity: .6; cursor: not-allowed; }
 
 /* ============================================================
    PAGE HEADER — heading on the left, page buttons on the right.

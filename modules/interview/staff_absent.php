@@ -842,8 +842,7 @@ if (!$isDean) {
                     </td>
                     <?php if ($canReschedule): ?>
                     <td>
-                        <select name="target_slot_id" form="<?= $approveFormId ?>" class="form-control"
-                                style="font-size:var(--text-xs);height:30px;min-height:30px;padding:0 var(--space-2)">
+                        <select name="target_slot_id" form="<?= $approveFormId ?>" class="form-control">
                             <option value="0">Auto-assign</option>
                             <?php foreach ($openSlots as $s):
                                 $spotsLeft = (int)$s['capacity'] - (int)$s['booked'];

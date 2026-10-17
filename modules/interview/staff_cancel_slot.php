@@ -380,8 +380,7 @@ ob_start();
                     </td>
                     <?php else: ?>
                     <td>
-                        <select name="target_slot_id" form="<?= $formId ?>" required class="form-control"
-                                style="font-size:var(--text-xs);height:30px;min-height:30px;padding:0 var(--space-2)">
+                        <select name="target_slot_id" form="<?= $formId ?>" required class="form-control">
                             <option value="">Pick a replacement slot…</option>
                             <?php foreach ($options as $r):
                                 $left = (int)$r['capacity'] - (int)$r['booked'];

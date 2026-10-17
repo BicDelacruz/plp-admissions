@@ -110,24 +110,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Filter: department
+// Filters: search + department
 $filterDept = trim($_GET['department'] ?? '');
+$filterQ    = trim($_GET['q'] ?? '');
 $availableDepts = departments_list();
 if ($filterDept !== '' && !in_array($filterDept, $availableDepts, true)) {
     $filterDept = '';
 }
+$hasFilters = ($filterDept !== '' || $filterQ !== '');
 
-$sql     = 'SELECT * FROM users WHERE role IN (\'staff\',\'proctor\',\'sso\',\'dean\',\'admin\')';
-$params  = [];
+// Page size — driven by AutoPageSize (app.js), same as the audit log.
+$page    = max(1, (int)($_GET['page'] ?? 1));
+$perPage = isset($_GET['per_page'])
+    ? (int)$_GET['per_page']
+    : (int)($_COOKIE['plp_auto_page_size_admin_users'] ?? 0);
+if ($perPage <= 0) {
+    $perPage = 50;
+}
+$perPage = max(3, min(100, $perPage));
+
+$where  = ['role IN (\'staff\',\'proctor\',\'sso\',\'dean\',\'admin\')'];
+$params = [];
 if ($filterDept !== '') {
-    $sql    .= ' AND department = ?';
+    $where[]  = 'department = ?';
     $params[] = $filterDept;
 }
-$sql    .= ' ORDER BY CASE role WHEN \'student\' THEN 1 WHEN \'staff\' THEN 2 WHEN \'proctor\' THEN 3 WHEN \'sso\' THEN 4 WHEN \'dean\' THEN 5 ELSE 6 END, name';
+if ($filterQ !== '') {
+    $where[]  = '(name ILIKE ? OR email ILIKE ?)';
+    $params[] = '%' . $filterQ . '%';
+    $params[] = '%' . $filterQ . '%';
+}
+$whereClause = 'WHERE ' . implode(' AND ', $where);
 
-$stmt = $db->prepare($sql);
+$countStmt = $db->prepare("SELECT COUNT(*) FROM users {$whereClause}");
+$countStmt->execute($params);
+$total  = (int)$countStmt->fetchColumn();
+$pages  = max(1, (int)ceil($total / $perPage));
+$page   = min($page, $pages);
+$offset = ($page - 1) * $perPage;
+
+$stmt = $db->prepare(
+    "SELECT * FROM users {$whereClause}
+     ORDER BY CASE role WHEN 'student' THEN 1 WHEN 'staff' THEN 2 WHEN 'proctor' THEN 3 WHEN 'sso' THEN 4 WHEN 'dean' THEN 5 ELSE 6 END, name
+     LIMIT {$perPage} OFFSET {$offset}"
+);
 $stmt->execute($params);
 $staffUsers = $stmt->fetchAll();
+
+function usersUrl(array $merge = []): string
+{
+    global $filterDept, $filterQ, $perPage;
+    $base = ['q' => $filterQ, 'department' => $filterDept, 'per_page' => $perPage, 'page' => 1];
+    return url('/admin/users') . '?' . http_build_query(array_filter(
+        array_merge($base, $merge),
+        fn($v) => $v !== '' && $v !== null
+    ));
+}
 
 ob_start();
 ?>
@@ -139,11 +177,18 @@ ob_start();
     <div class="alert alert-success" style="margin-bottom:var(--space-3);flex-shrink:0"><?= e($suc) ?></div>
 <?php endforeach; ?>
 
-<div style="margin-bottom:var(--space-6)">
-    <form method="GET" style="display:flex;align-items:center;gap:var(--space-2)">
-        <label for="dept-filter" style="font-size:var(--text-sm);color:var(--text-secondary)">Department:</label>
-        <select id="dept-filter" name="department" class="form-control"
-                style="width:auto;min-width:240px" onchange="this.form.submit()">
+<div class="auto-table-wrap" data-auto-page-size="admin-users" data-current-per-page="<?= (int)$perPage ?>">
+<div class="auto-table-card">
+
+    <form method="GET" action="<?= url('/admin/users') ?>" class="auto-table-toolbar" id="users-filter-form">
+        <input type="hidden" name="per_page" value="<?= (int)$perPage ?>">
+
+        <div class="auto-table-search">
+            <?= icon('ic_fluent_search_24_filled', 14) ?>
+            <input type="text" name="q" class="form-input" placeholder="Search by name or email…" value="<?= e($filterQ) ?>">
+        </div>
+
+        <select name="department" class="form-input" style="width:240px">
             <option value="">All departments</option>
             <?php foreach ($availableDepts as $deptName): ?>
                 <option value="<?= e($deptName) ?>" <?= $filterDept === $deptName ? 'selected' : '' ?>>
@@ -151,40 +196,32 @@ ob_start();
                 </option>
             <?php endforeach; ?>
         </select>
-        <?php if ($filterDept !== ''): ?>
+
+        <button type="submit" id="users-filter-btn" class="btn btn-secondary btn-sm" style="display:none">Filter</button>
+        <?php if ($hasFilters): ?>
             <a href="<?= url('/admin/users') ?>" class="btn btn-ghost btn-sm">Clear</a>
         <?php endif; ?>
     </form>
-</div>
 
-<?php foreach ($errors as $e): ?>
-    <div class="alert alert-error" style="margin-bottom:var(--space-3)"><?= e($e) ?></div>
-<?php endforeach; ?>
-<?php foreach ($success as $s): ?>
-    <div class="alert alert-success" style="margin-bottom:var(--space-3)"><?= e($s) ?></div>
-<?php endforeach; ?>
-
-<div class="card" style="padding:0;overflow:hidden;width:100%">
-    <table class="table" style="width:100%">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Department</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th style="width:140px"></th>
-            </tr>
-        </thead>
-        <tbody>
-        <?php if (empty($staffUsers)): ?>
-            <tr><td colspan="7" style="text-align:center;padding:var(--space-8);color:var(--text-tertiary)">No staff or admin accounts.</td></tr>
-        <?php else: ?>
+    <div class="auto-table-body">
+        <table class="auto-table">
+            <thead>
+                <tr>
+                    <th style="width:200px">Name</th>
+                    <th>Email</th>
+                    <th style="width:120px">Role</th>
+                    <th style="width:240px">Department</th>
+                    <th style="width:100px">Status</th>
+                    <th style="width:120px">Created</th>
+                    <th style="width:220px"></th>
+                </tr>
+            </thead>
+            <?php if (!empty($staffUsers)): ?>
+            <tbody>
             <?php foreach ($staffUsers as $u): ?>
                 <tr>
-                    <td style="font-weight:var(--weight-medium)"><?= e($u['name']) ?></td>
-                    <td style="font-size:var(--text-sm);color:var(--text-tertiary)"><?= e($u['email']) ?></td>
+                    <td style="font-weight:var(--weight-medium)"><span class="auto-table-clip"><?= e($u['name']) ?></span></td>
+                    <td style="font-size:var(--text-sm);color:var(--text-secondary)"><span class="auto-table-clip"><?= e($u['email']) ?></span></td>
                     <td>
                         <?php
                             $roleBadge = match ($u['role']) {
@@ -200,13 +237,13 @@ ob_start();
                     </td>
                     <td style="font-size:var(--text-sm)">
                         <?php if (in_array($u['role'], [ROLE_ADMIN, ROLE_SSO], true)): ?>
-                            <span style="color:var(--text-tertiary);font-size:var(--text-xs)">—</span>
+                            <span style="color:var(--text-secondary);font-size:var(--text-xs)">—</span>
                         <?php else: ?>
-                        <form method="POST" style="display:inline-flex;align-items:center;gap:var(--space-1)">
+                        <form method="POST" style="display:block">
                             <?= csrf_field() ?>
                             <input type="hidden" name="action" value="update_department">
                             <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
-                            <select name="department" class="form-control" style="font-size:var(--text-xs);padding:var(--space-1) var(--space-2);width:100%"
+                            <select name="department" class="form-control" style="width:100%"
                                     onchange="this.form.submit()">
                                 <option value="">— none —</option>
                                 <?php foreach ($availableDepts as $deptName): ?>
@@ -226,9 +263,9 @@ ob_start();
                             <span class="badge badge-neutral">Inactive</span>
                         <?php endif; ?>
                     </td>
-                    <td style="font-size:var(--text-sm);color:var(--text-tertiary)"><?= format_date($u['created_at'], 'M j, Y') ?></td>
+                    <td style="font-size:var(--text-sm);color:var(--text-secondary)"><?= format_date($u['created_at'], 'M j, Y') ?></td>
                     <td>
-                        <div style="display:flex;gap:var(--space-2)">
+                        <div style="display:flex;gap:var(--space-2);align-items:center">
                             <button class="btn btn-secondary btn-sm"
                                     onclick="openResetModal(<?= $u['id'] ?>, <?= json_encode($u['name']) ?>)">
                                 Reset PW
@@ -248,10 +285,54 @@ ob_start();
                     </td>
                 </tr>
             <?php endforeach; ?>
+            </tbody>
+            <?php endif; ?>
+        </table>
+
+        <?php if (empty($staffUsers)): ?>
+        <div class="auto-table-empty">
+            <?= icon('ic_fluent_document_24_regular', 32) ?>
+            <div><?= $hasFilters ? 'No accounts match your filters.' : 'No staff or admin accounts.' ?></div>
+        </div>
         <?php endif; ?>
-        </tbody>
-    </table>
+    </div>
+</div><!-- /.auto-table-card -->
+
+<?php if ($pages > 1): ?>
+<div class="auto-table-pagination">
+    <p class="auto-table-pagination-info">
+        Showing <strong><?= number_format(($page - 1) * $perPage + 1) ?>–<?= number_format(min($page * $perPage, $total)) ?></strong>
+        of <strong><?= number_format($total) ?></strong> accounts
+    </p>
+    <div class="auto-table-pagination-controls">
+        <?php if ($page > 1): ?>
+            <a href="<?= usersUrl(['page' => $page - 1]) ?>" class="auto-table-page-btn" aria-label="Previous page">
+                <?= icon('ic_fluent_chevron_left_24_regular', 16) ?>
+            </a>
+        <?php else: ?>
+            <span class="auto-table-page-btn" aria-disabled="true" aria-label="Previous page">
+                <?= icon('ic_fluent_chevron_left_24_regular', 16) ?>
+            </span>
+        <?php endif; ?>
+
+        <span style="padding:0 var(--space-1);font-size:var(--text-sm);color:var(--text-tertiary);white-space:nowrap">
+            Page <strong style="color:var(--text-primary);font-weight:var(--weight-semibold)"><?= $page ?></strong>
+            of <strong style="color:var(--text-primary);font-weight:var(--weight-semibold)"><?= $pages ?></strong>
+        </span>
+
+        <?php if ($page < $pages): ?>
+            <a href="<?= usersUrl(['page' => $page + 1]) ?>" class="auto-table-page-btn" aria-label="Next page">
+                <?= icon('ic_fluent_chevron_right_24_regular', 16) ?>
+            </a>
+        <?php else: ?>
+            <span class="auto-table-page-btn" aria-disabled="true" aria-label="Next page">
+                <?= icon('ic_fluent_chevron_right_24_regular', 16) ?>
+            </span>
+        <?php endif; ?>
+    </div>
 </div>
+<?php endif; ?>
+</div><!-- /.auto-table-wrap -->
 
 <!-- New User — moved into the page heading (top right) by the layout -->
 <div data-page-actions>
@@ -341,6 +422,22 @@ ob_start();
         </form>
     </div>
 </div>
+
+<script>
+// Show the Filter button only once a filter value differs from what is applied.
+(function(){
+    var form = document.getElementById('users-filter-form');
+    var btn  = document.getElementById('users-filter-btn');
+    if (!form || !btn) return;
+    var q = form.elements['q'], d = form.elements['department'];
+    var q0 = q.value, d0 = d.value;
+    function sync() {
+        btn.style.display = (q.value.trim() !== q0.trim() || d.value !== d0) ? '' : 'none';
+    }
+    q.addEventListener('input', sync);
+    d.addEventListener('change', sync);
+})();
+</script>
 
 <script>
 function openResetModal(uid, name) {

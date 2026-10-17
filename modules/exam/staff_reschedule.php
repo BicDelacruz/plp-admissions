@@ -538,8 +538,7 @@ ob_start();
                     </td>
                     <?php if ($canReschedule): ?>
                     <td>
-                        <select name="target_slot_id" form="<?= $approveFormId ?>" class="form-control"
-                                style="font-size:var(--text-xs);height:30px;min-height:30px;padding:0 var(--space-2)">
+                        <select name="target_slot_id" form="<?= $approveFormId ?>" class="form-control">
                             <option value="0">Auto-assign</option>
                             <?php foreach ($openSlots as $s):
                                 if ((int)$s['id'] === (int)$rr['slot_id']) continue;

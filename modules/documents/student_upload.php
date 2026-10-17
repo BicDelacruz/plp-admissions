@@ -758,7 +758,7 @@ ob_start();
     <form method="POST" style="display:flex;align-items:center;gap:var(--space-2)">
         <?= csrf_field() ?>
         <input type="hidden" name="action" value="change_type">
-        <select name="applicant_type" class="form-select" style="width:auto;min-height:36px;font-size:var(--text-sm)">
+        <select name="applicant_type" class="form-select" style="width:auto">
             <option value="freshman" <?= $applicant['applicant_type'] === 'freshman' ? 'selected' : '' ?>>Freshman</option>
             <option value="transferee" <?= $applicant['applicant_type'] === 'transferee' ? 'selected' : '' ?>>Transferee</option>
             <option value="foreign" <?= $applicant['applicant_type'] === 'foreign' ? 'selected' : '' ?>>Foreign</option>
@@ -1594,7 +1594,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function dropdown(r, cats, pre) {
-        var $sel = $('<select class="form-select batch-select" style="min-height:32px;font-size:var(--text-sm)">').append($('<option value="">').text('Choose document type…'));
+        var $sel = $('<select class="form-select batch-select">').append($('<option value="">').text('Choose document type…'));
         $.each(cats, function (_, c) {
             var $o = $('<option>').val(c.category).text(c.label + (c.note ? ' — ' + c.note : ''));
             if (!c.available) $o.prop('disabled', true);
