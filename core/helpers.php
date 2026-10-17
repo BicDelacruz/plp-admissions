@@ -25,6 +25,25 @@ function redirect(string $path): never
     exit;
 }
 
+// -- Settings modal ----------------------------------------------
+// The settings pages are shown inside the settings modal (an iframe that
+// loads them with ?embed=1; views/partials/settings_modal.php). In embed mode
+// the layout draws only the page content: no sidebar, header or heading.
+function is_embed(): bool
+{
+    return ($_GET['embed'] ?? '') === '1';
+}
+
+// Settings no longer has a page of its own. Opening its URL directly sends
+// the user to their home page with the modal open. Embedded loads and form
+// posts (which stay on the embed URL) pass straight through.
+function settings_modal_gate(): void
+{
+    if (is_embed() || ($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') return;
+    require_once VIEWS_PATH . '/partials/page_header.php';
+    redirect(page_home_crumb()['to'] . '?settings=1');
+}
+
 // -- Output escaping ---------------------------------------------
 function e(mixed $value): string
 {

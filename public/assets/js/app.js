@@ -845,6 +845,90 @@ const SelectMenu = (() => {
 window.SelectMenu = SelectMenu;
 
 // ============================================================
+// SettingsModal — Settings in a modal
+//
+// The modal (views/partials/settings_modal.php) holds a section list and an
+// iframe. The iframe loads the role's settings page with ?embed=1&section=<key>
+// (the layout then draws only that page's content, and only that card).
+// Open it from any [data-settings-open] link, or with ?settings=1 in the URL
+// (settings URLs redirect to the home page with it). The embedded page tells
+// us when something was saved; the page behind reloads on close so the name,
+// branding and theme shown there are current.
+// ============================================================
+const SettingsModal = (() => {
+    let modal, frame, dirty = false, section = null;
+
+    function frameUrl(key) {
+        return frame.dataset.base + '?embed=1&section=' + encodeURIComponent(key);
+    }
+
+    function show(key) {
+        section = key;
+        modal.querySelectorAll('[data-settings-nav]').forEach((b) => {
+            const on = b.dataset.settingsNav === key;
+            b.classList.toggle('active', on);
+            if (on) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current');
+        });
+        frame.src = frameUrl(key);
+    }
+
+    function open(key) {
+        key = key || frame.dataset.first;
+        document.querySelectorAll('.dropdown.open').forEach((d) => d.classList.remove('open'));
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        if (section !== key || !frame.getAttribute('src')) show(key);
+    }
+
+    function isOpen() { return modal.style.display === 'flex'; }
+
+    function close() {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+        if (dirty) { dirty = false; window.location.reload(); }
+    }
+
+    function init() {
+        modal = document.getElementById('settings-modal');
+        if (!modal) return;
+        frame = document.getElementById('settings-modal-frame');
+
+        document.addEventListener('click', (e) => {
+            const link = e.target.closest('[data-settings-open]');
+            if (!link) return;
+            e.preventDefault();
+            open();
+        });
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal || e.target.closest('[data-settings-close]')) { close(); return; }
+            const nav = e.target.closest('[data-settings-nav]');
+            if (nav) show(nav.dataset.settingsNav);
+        });
+        // Capture phase: runs before the global Escape-to-close, which would
+        // hide the modal without the reload-on-save step in close().
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && isOpen()) { e.stopPropagation(); close(); }
+        }, true);
+        window.addEventListener('message', (e) => {
+            if (e.origin !== window.location.origin || e.source !== frame.contentWindow) return;
+            if (e.data && e.data.type === 'settings:saved') dirty = true;
+            if (e.data && e.data.type === 'settings:close' && isOpen()) close();
+        });
+
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('settings')) {
+            params.delete('settings');
+            const qs = params.toString();
+            history.replaceState(null, '', window.location.pathname + (qs ? '?' + qs : '') + window.location.hash);
+            open();
+        }
+    }
+
+    return { init, open, close };
+})();
+window.SettingsModal = SettingsModal;
+
+// ============================================================
 // Bootstrap
 // ============================================================
 document.addEventListener('DOMContentLoaded', () => {
@@ -852,6 +936,7 @@ document.addEventListener('DOMContentLoaded', () => {
     FontSize.init();
     Dropdown.init();
     SelectMenu.init();
+    SettingsModal.init();
     Sidebar.init();
     FileDropZone.init();
     initAlerts();
@@ -862,6 +947,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // Poll for new notifications every 30 seconds
     if (document.getElementById('notif-dropdown')) {
         setInterval(pollNotifications, 30000);
+    }
+});
+
+// The settings modal's iframe changes theme / text size in its own document.
+// localStorage writes there fire 'storage' here, so the page behind follows
+// (this also keeps other open tabs in step).
+window.addEventListener('storage', (e) => {
+    if (window.PLP_FORCE_LIGHT || !e.newValue) return;
+    if (e.key === 'plp_theme') {
+        document.documentElement.dataset.theme = e.newValue;
+        document.querySelectorAll('.theme-pill').forEach((p) => { p.dataset.theme = e.newValue; });
+    } else if (e.key === 'plp_font_size') {
+        FontSize.apply(e.newValue);
     }
 });
 

@@ -6,6 +6,7 @@
 
 require_once CORE_PATH . '/bootstrap.php';
 Auth::requireRole(ROLE_ADMIN);
+settings_modal_gate();
 
 $db      = db();
 $userId  = Auth::id();
@@ -90,13 +91,13 @@ ob_start();
 <div style="display:flex;flex-direction:column;gap:var(--space-6);max-width:560px;margin:0 auto">
 
        <!-- Appearance (per-device text size) -->
-    <div class="card" style="padding:var(--space-6)">
+    <div class="card" data-settings-section="appearance" style="padding:var(--space-6)">
         <div style="font-weight:var(--weight-semibold);margin-bottom:var(--space-4)">Appearance</div>
         <?php include VIEWS_PATH . '/partials/font_size_setting.php'; ?>
     </div>
 
     <!-- Branding -->
-    <div class="card" style="padding:var(--space-6)">
+    <div class="card" data-settings-section="branding" style="padding:var(--space-6)">
         <div style="font-weight:var(--weight-semibold);margin-bottom:var(--space-5)">School Branding</div>
         <form method="POST" enctype="multipart/form-data">
             <?= csrf_field() ?>
@@ -137,7 +138,7 @@ ob_start();
     </div>
 
     <!-- Password -->
-    <div class="card" style="padding:var(--space-6)">
+    <div class="card" data-settings-section="password" style="padding:var(--space-6)">
         <div style="font-weight:var(--weight-semibold);margin-bottom:var(--space-5)">Change Password</div>
         <form method="POST">
             <?= csrf_field() ?>

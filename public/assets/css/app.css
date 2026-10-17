@@ -3518,6 +3518,82 @@ html select:not([multiple]):not([size]):disabled { opacity: .6; cursor: not-allo
     font-weight: var(--weight-semibold);
     color: var(--text-tertiary);
 }
+
+/* ============================================================
+   SETTINGS MODAL — the Settings pages inside a modal (section list on
+   the left, the page on the right). Built on the shared .modal /
+   .modal-backdrop and .nav-item. Markup: views/partials/settings_modal.php.
+   The page itself is the unchanged settings page, loaded embedded.
+   ============================================================ */
+.settings-modal {
+    display: flex;
+    max-width: 1040px;
+    height: min(760px, calc(100vh - 2 * var(--space-4)));
+    overflow: hidden;
+}
+.settings-modal-nav {
+    flex: 0 0 220px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: var(--space-4) var(--space-3);
+    background: var(--bg-subtle);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+}
+.settings-modal-nav-label {
+    padding: var(--space-2);
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+}
+.settings-modal-nav .nav-item {
+    border: 0;
+    background: transparent;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+.settings-modal-nav .nav-item:hover,
+.settings-modal-nav .nav-item:focus-visible { background: var(--bg-overlay); }
+.settings-modal-nav .nav-item.active { background: var(--accent-muted); }
+.settings-modal-body {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    background: var(--bg);
+}
+.settings-modal-frame {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+.settings-modal-close {
+    position: absolute;
+    top: var(--space-3);
+    right: var(--space-3);
+    z-index: 1;
+}
+@media (max-width: 720px) {
+    .settings-modal { flex-direction: column; }
+    .settings-modal-nav {
+        flex: 0 0 auto;
+        flex-direction: row;
+        align-items: center;
+        padding: var(--space-2) var(--space-3);
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
+        overflow-x: auto;
+    }
+    .settings-modal-nav-label { display: none; }
+    .settings-modal-nav .nav-item { width: auto; flex-shrink: 0; }
+}
+
+/* A page shown inside the settings modal: just its content. */
+body.is-embed { background: var(--bg); }
+body.is-embed .layout,
+body.is-embed .main { min-height: 0; }
+
 html select:not([multiple]):not([size]).is-open {
     border-color: var(--accent);
     outline: 1px solid var(--accent);

@@ -6,6 +6,7 @@
 
 require_once CORE_PATH . '/bootstrap.php';
 Auth::requireRole(ROLE_STAFF, ROLE_PROCTOR, ROLE_SSO, ROLE_DEAN, ROLE_ADMIN);
+settings_modal_gate();
 
 $db      = db();
 $userId  = Auth::id();
@@ -55,7 +56,7 @@ ob_start();
 <div style="display:flex;flex-direction:column;gap:var(--space-6);max-width:560px;margin:0 auto">
 
     <!-- Appearance: theme toggle -->
-    <div class="card" style="padding:var(--space-6)">
+    <div class="card" data-settings-section="appearance" style="padding:var(--space-6)">
         <div style="font-weight:var(--weight-semibold);margin-bottom:var(--space-4)">Appearance</div>
         <div style="display:flex;align-items:center;justify-content:space-between">
             <div>
@@ -69,7 +70,7 @@ ob_start();
     </div>
 
     <!-- Password -->
-    <div class="card" style="padding:var(--space-6)">
+    <div class="card" data-settings-section="password" style="padding:var(--space-6)">
         <div style="font-weight:var(--weight-semibold);margin-bottom:var(--space-5)">Change Password</div>
         <form method="POST">
             <?= csrf_field() ?>
@@ -95,7 +96,7 @@ ob_start();
     </div>
 
     <!-- Help & About -->
-    <div class="card" style="padding:var(--space-6)">
+    <div class="card" data-settings-section="about" style="padding:var(--space-6)">
         <div style="font-weight:var(--weight-semibold);margin-bottom:var(--space-4)">Help & About</div>
         <div style="display:flex;flex-direction:column;gap:var(--space-3)">
             <div style="display:flex;justify-content:space-between">

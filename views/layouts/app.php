@@ -16,6 +16,9 @@ $activeNav    = $activeNav ?? '';
 $showStepper  = $showStepper ?? false;
 $pageWide     = $pageWide ?? false;
 $isStudent    = ($userRole === 'student');
+// Embedded in the settings modal's iframe: draw the page content only.
+$isEmbed      = is_embed();
+$embedSection = preg_replace('/[^a-z_-]/', '', strtolower((string)($_GET['section'] ?? '')));
 // True when the page already draws its own heading (an <h1> or .page-title).
 $hasPageHeading = !empty($content) && preg_match('/<h1\b|class=["\'][^"\']*\bpage-title\b/i', $content);
 
@@ -38,6 +41,7 @@ $showPageHead   = !$isStudent
     && !$hasPageHeading
     && !str_contains((string)($content ?? ''), 'class="page-header"');
 $showStudentHead = $isStudent && $pageHeading !== false && !$hasPageHeading;
+if ($isEmbed) { $showPageHead = false; $showStudentHead = false; }
 
 // Sidebar (staff / admin / SSO / dean / proctor), ported from lakbay-pasig's
 // SidebarProvider. Lakbay keeps the desktop open/closed state in a cookie so
@@ -87,6 +91,9 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
         html[data-theme="dark"]{background:#111110;color-scheme:dark}
     </style>
     <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
+    <?php if ($isEmbed && $embedSection !== ''): ?>
+    <style>[data-settings-section]:not([data-settings-section="<?= $embedSection ?>"]) { display: none !important; }</style>
+    <?php endif; ?>
 
     <?php if ($schoolLogo): ?>
     <link rel="preload" as="image" href="<?= str_starts_with($schoolLogo, 'http') ? e($schoolLogo) : e(url('/' . $schoolLogo)) ?>">
@@ -107,11 +114,12 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
         })();
     </script>
 </head>
-<body>
+<body<?= $isEmbed ? ' class="is-embed"' : '' ?>>
 
-<div class="layout <?= $isStudent ? 'layout-student' : '' ?>">
+<div class="layout <?= ($isStudent && !$isEmbed) ? 'layout-student' : '' ?>">
 
-<?php if ($isStudent): ?>
+<?php if ($isEmbed): ?>
+<?php elseif ($isStudent): ?>
 
     <!-- ====================================================
          STUDENT HEADER (no sidebar)
@@ -186,7 +194,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                     <div class="user-role"><?= e(Auth::roleLabel($userRole)) ?></div>
                 </div>
                 <div class="dropdown-separator"></div>
-                <a href="<?= url('/student/settings') ?>" class="dropdown-item">
+                <a href="<?= url('/student/settings') ?>" class="dropdown-item" data-settings-open>
                     <?= icon('gear', 15) ?>
                     Settings
                 </a>
@@ -303,7 +311,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                                 ? '/admin/settings'
                                 : '/staff/settings';
                         ?>
-                        <a href="<?= url($settingsHref) ?>" class="dropdown-item">
+                        <a href="<?= url($settingsHref) ?>" class="dropdown-item" data-settings-open>
                             <?= icon('gear', 15) ?>
                             Settings
                         </a>
@@ -351,7 +359,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
     ==================================================== -->
     <div class="main">
 
-        <?php if (!$isStudent): ?>
+        <?php if (!$isStudent && !$isEmbed): ?>
         <!-- Phone-only top bar (hidden >768px by CSS). Below that the sidebar is a
              drawer, so this button is the only way to open it. It carries a dot
              when any nav row has one, because the row dots are inside the closed
@@ -433,7 +441,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
 
 </script>
 
-<?php if (Auth::check()): ?>
+<?php if (Auth::check() && !$isEmbed): ?>
 <!-- ── Session timeout warning ──────────────────────────────── -->
 <div id="session-timeout-modal" style="
     display:none;position:fixed;inset:0;z-index:9999;
@@ -587,6 +595,24 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
 document.getElementById('withdraw-modal').addEventListener('click', function(e) {
     if (e.target === this) this.style.display = 'none';
 });
+</script>
+<?php endif; ?>
+
+<?php if (!$isEmbed && Auth::check()): ?>
+<?php include __DIR__ . '/../partials/settings_modal.php'; ?>
+<?php endif; ?>
+
+<?php if ($isEmbed): ?>
+<script>
+// Inside the settings modal: tell the page around us when something was saved
+// (it reloads on close so the name / branding / theme shown behind updates)
+// and forward Escape, since key presses in an iframe never reach the parent.
+(function () {
+    if (window.parent === window) return;
+    function tell(type) { try { window.parent.postMessage({ type: type }, location.origin); } catch (e) {} }
+    if (document.querySelector('.alert-success')) tell('settings:saved');
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') tell('settings:close'); });
+})();
 </script>
 <?php endif; ?>
 

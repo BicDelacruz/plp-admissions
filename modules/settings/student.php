@@ -6,6 +6,7 @@
 
 require_once CORE_PATH . '/bootstrap.php';
 Auth::requireRole(ROLE_STUDENT);
+settings_modal_gate();
 
 $db     = db();
 $userId = Auth::id();
@@ -106,13 +107,13 @@ ob_start();
 <div style="display:flex;flex-direction:column;gap:var(--space-6);max-width:560px;margin:0 auto">
 
     <!-- Appearance (per-device text size) -->
-    <div class="card" style="padding:var(--space-6)">
+    <div class="card" data-settings-section="appearance" style="padding:var(--space-6)">
         <div style="font-weight:var(--weight-semibold);margin-bottom:var(--space-4)">Appearance</div>
         <?php include VIEWS_PATH . '/partials/font_size_setting.php'; ?>
     </div>
 
     <!-- Profile -->
-    <div class="card" style="padding:var(--space-6)">
+    <div class="card" data-settings-section="profile" style="padding:var(--space-6)">
         <div style="font-weight:var(--weight-semibold);margin-bottom:var(--space-5)">Profile</div>
         <form method="POST">
             <?= csrf_field() ?>
@@ -209,7 +210,7 @@ ob_start();
 
     <?php if ($isGoogleUser): ?>
     <!-- Password (Google account) -->
-    <div class="card" style="padding:var(--space-6)">
+    <div class="card" data-settings-section="password" style="padding:var(--space-6)">
         <div style="font-weight:var(--weight-semibold);margin-bottom:var(--space-3)">Password</div>
         <p style="font-size:var(--text-sm);color:var(--text-secondary);margin:0">
             You sign in with Google. To set a password as well, use
@@ -218,7 +219,7 @@ ob_start();
     </div>
     <?php else: ?>
     <!-- Password -->
-    <div class="card" style="padding:var(--space-6)">
+    <div class="card" data-settings-section="password" style="padding:var(--space-6)">
         <div style="font-weight:var(--weight-semibold);margin-bottom:var(--space-5)">Change Password</div>
         <form method="POST">
             <?= csrf_field() ?>
