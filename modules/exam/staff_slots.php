@@ -1258,7 +1258,6 @@ ob_start();
                 <option value="foreign"    <?= $rosterType === 'foreign'    ? 'selected' : '' ?>>Foreign Student</option>
             </select>
 
-            <button type="submit" class="btn btn-secondary btn-sm" data-filter-submit>Filter</button>
             <?php if ($rosterHasFilters): ?>
                 <a href="<?= e($rosterUrl(['q' => '', 'type' => '', 'page' => 1])) ?>" class="btn btn-ghost btn-sm">Clear</a>
             <?php endif; ?>

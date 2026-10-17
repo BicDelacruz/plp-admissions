@@ -3262,12 +3262,6 @@ body.ap-drawer-locked { overflow: hidden; }
 .auto-table-toolbar .btn { height: var(--control-height); }
 .auto-table-toolbar .auto-table-search .form-input { padding-left: 32px; }
 
-/* The toolbar's Filter button (data-filter-submit) only shows once a filter
-   value differs from what is applied — see FilterBar in app.js. Enter in the
-   search box still submits the form while it is hidden. */
-.auto-table-toolbar [data-filter-submit] { display: none; }
-.auto-table-toolbar [data-filter-submit].is-visible { display: inline-flex; }
-
 /* Centered column (numbers, counts) */
 .auto-table th.col-center, .auto-table td.col-center { text-align: center; }
 

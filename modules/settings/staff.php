@@ -55,10 +55,11 @@ ob_start();
 
 <div style="display:flex;flex-direction:column;gap:var(--space-6);max-width:560px;margin:0 auto">
 
-    <!-- Appearance: theme toggle -->
+    <!-- Appearance: text size (per-device) + theme toggle -->
     <div class="card" data-settings-section="appearance" style="padding:var(--space-6)">
         <div style="font-weight:var(--weight-semibold);margin-bottom:var(--space-4)">Appearance</div>
-        <div style="display:flex;align-items:center;justify-content:space-between">
+        <?php include VIEWS_PATH . '/partials/font_size_setting.php'; ?>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:var(--space-5);padding-top:var(--space-5);border-top:1px solid var(--border)">
             <div>
                 <div style="font-size:var(--text-sm);font-weight:var(--weight-medium)">Dark Mode</div>
                 <div style="font-size:var(--text-xs);color:var(--text-tertiary)">Saved to this device</div>

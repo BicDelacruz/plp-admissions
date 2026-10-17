@@ -410,7 +410,6 @@ $sortParams = ['q' => $search, 'result' => $filterRes, 'per_page' => $perPage, '
             <input type="text" name="q" class="form-input" placeholder="Search name, email, course…" value="<?= e($search) ?>">
         </div>
 
-        <button type="submit" class="btn btn-secondary btn-sm" data-filter-submit>Filter</button>
         <?php if ($search !== ''): ?>
             <a href="<?= e(filterUrl(['q' => ''])) ?>" class="btn btn-ghost btn-sm">Clear</a>
         <?php endif; ?>

@@ -188,7 +188,7 @@ ob_start();
             <input type="text" name="q" class="form-input" placeholder="Search by name or email…" value="<?= e($filterQ) ?>">
         </div>
 
-        <select name="department" class="form-input" style="width:240px">
+        <select name="department" class="form-input" style="width:240px" onchange="this.form.submit()" aria-label="Department">
             <option value="">All departments</option>
             <?php foreach ($availableDepts as $deptName): ?>
                 <option value="<?= e($deptName) ?>" <?= $filterDept === $deptName ? 'selected' : '' ?>>
@@ -197,7 +197,6 @@ ob_start();
             <?php endforeach; ?>
         </select>
 
-        <button type="submit" class="btn btn-secondary btn-sm" data-filter-submit>Filter</button>
         <?php if ($hasFilters): ?>
             <a href="<?= url('/admin/users') ?>" class="btn btn-ghost btn-sm">Clear</a>
         <?php endif; ?>

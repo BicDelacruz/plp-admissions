@@ -621,7 +621,6 @@ if (!$isDean) {
         <input type="date" name="date" class="form-input" style="width:160px" value="<?= e($filterDate) ?>"
                onchange="this.form.submit()" aria-label="Missed on" title="Missed on">
 
-        <button type="submit" class="btn btn-secondary btn-sm" data-filter-submit>Filter</button>
         <?php if ($hasFilters): ?>
             <a href="<?= e(url('/staff/interviews/absent') . '?' . http_build_query(['tab' => 'absent', 'per_page' => $perPage])) ?>" class="btn btn-ghost btn-sm">Clear</a>
         <?php endif; ?>
@@ -781,7 +780,6 @@ if (!$isDean) {
         <input type="date" name="date" class="form-input" style="width:160px" value="<?= e($filterDate) ?>"
                onchange="this.form.submit()" aria-label="Submitted on" title="Submitted on">
 
-        <button type="submit" class="btn btn-secondary btn-sm" data-filter-submit>Filter</button>
         <?php if ($hasFilters): ?>
             <a href="<?= e(url('/staff/interviews/absent') . '?' . http_build_query(['tab' => 'requests', 'per_page' => $perPage])) ?>" class="btn btn-ghost btn-sm">Clear</a>
         <?php endif; ?>

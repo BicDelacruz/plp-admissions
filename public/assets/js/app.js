@@ -617,43 +617,25 @@ const AutoPageSize = (() => {
 window.AutoPageSize = AutoPageSize;
 
 // ============================================================
-// FilterBar — the toolbar's Filter button only shows when there is
-// something to apply.
+// FilterBar — toolbar forms have no Filter button.
 //
-// A toolbar <form class="auto-table-toolbar"> marks its submit button
-// data-filter-submit. CSS keeps it hidden; this adds .is-visible while any
-// named field (search box, date, select) differs from the value the server
-// rendered, i.e. from what is currently applied. Back to the applied value
-// and it hides again. Enter in the search box still submits the form while
-// the button is hidden. Selects and dates that submit on change never
-// reveal it, because the page reloads before there is anything to apply.
+// Selects and date inputs submit the form themselves (onchange). The
+// search box submits on Enter. A form with no submit button only does that
+// natively when it has a single text-like field, and several toolbars pair
+// the search box with a date input, so Enter is handled here for all of them.
 // ============================================================
 const FilterBar = (() => {
-    const SKIP_TYPES = ['hidden', 'submit', 'button', 'reset', 'image', 'file'];
-
-    function fields(form) {
-        return Array.from(form.elements).filter((el) => el.name && !SKIP_TYPES.includes(el.type));
-    }
-
-    function changed(el) {
-        if (el.type === 'checkbox' || el.type === 'radio') return el.checked !== el.defaultChecked;
-        if (el.tagName === 'SELECT') {
-            const def = Array.from(el.options).find((o) => o.defaultSelected) || el.options[0];
-            return !!def && el.value !== def.value;
-        }
-        return el.value.trim() !== el.defaultValue.trim();
-    }
+    const TEXT_TYPES = ['text', 'search'];
 
     function init() {
         document.querySelectorAll('form.auto-table-toolbar').forEach((form) => {
-            const btn = form.querySelector('[data-filter-submit]');
-            if (!btn) return;
-            const sync = () => btn.classList.toggle('is-visible', fields(form).some(changed));
-            form.addEventListener('input', sync);
-            form.addEventListener('change', sync);
-            // Back/forward can restore typed values into the fields.
-            window.addEventListener('pageshow', sync);
-            sync();
+            form.addEventListener('keydown', (e) => {
+                if (e.key !== 'Enter' || e.isComposing) return;
+                const el = e.target;
+                if (!el || el.tagName !== 'INPUT' || !TEXT_TYPES.includes(el.type)) return;
+                e.preventDefault();
+                form.requestSubmit ? form.requestSubmit() : form.submit();
+            });
         });
     }
 

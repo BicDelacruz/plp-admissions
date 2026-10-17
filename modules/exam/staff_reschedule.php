@@ -475,7 +475,6 @@ ob_start();
         <input type="date" name="date" class="form-input" style="width:160px" value="<?= e($filterDate) ?>"
                onchange="this.form.submit()" aria-label="Submitted on">
 
-        <button type="submit" class="btn btn-secondary btn-sm" data-filter-submit>Filter</button>
         <?php if ($hasFilters): ?>
             <a href="<?= e(url('/staff/exam/reschedule') . '?' . http_build_query(['per_page' => $perPage])) ?>" class="btn btn-ghost btn-sm">Clear</a>
         <?php endif; ?>
