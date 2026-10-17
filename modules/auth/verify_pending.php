@@ -100,7 +100,6 @@ if ($email !== '') {
 }
 
 // -- View --------------------------------------------------------
-$schoolLogo = school_setting('school_logo', '');
 $flashSuccess = Session::getFlash('success');
 $flashError   = Session::getFlash('error');
 
@@ -108,37 +107,27 @@ ob_start();
 ?>
 <div class="auth-card animate-fade-in">
 
-
     <div class="auth-header">
-        <?php if ($schoolLogo): ?>
-            <img src="<?= e(str_starts_with($schoolLogo, 'http') ? $schoolLogo : url($schoolLogo)) ?>" alt="School Logo" class="auth-logo-img">
-        <?php else: ?>
-            <div class="auth-logo">
-                <?= icon('bank:fill', 26) ?>
-            </div>
-        <?php endif; ?>
-        <div class="auth-header-text">
-            <h1 class="auth-title">Verify your email</h1>
-            <p class="auth-subtitle">Enter the 6-digit code we emailed you, or click the link in the email.</p>
-        </div>
+        <h1 class="auth-title">Verify your email</h1>
+        <p class="auth-subtitle">Enter the 6-digit code we emailed you, or click the link in the email.</p>
     </div>
 
     <?php if ($flashSuccess): ?>
-        <div class="alert alert-success" style="margin-bottom:var(--space-5)">
+        <div class="alert alert-success" role="status">
             <?= icon('ic_fluent_checkmark_circle_24_regular', 16) ?>
             <?= e($flashSuccess) ?>
         </div>
     <?php endif; ?>
 
     <?php if ($flashError): ?>
-        <div class="alert alert-error" style="margin-bottom:var(--space-5)">
+        <div class="alert alert-error" role="alert">
             <?= icon('ic_fluent_info_24_regular', 16) ?>
             <?= e($flashError) ?>
         </div>
     <?php endif; ?>
 
     <?php if (!empty($errors['general'])): ?>
-        <div class="alert alert-error" style="margin-bottom:var(--space-5)">
+        <div class="alert alert-error" role="alert">
             <?= icon('ic_fluent_info_24_regular', 16) ?>
             <?= e($errors['general']) ?>
         </div>
@@ -150,16 +139,11 @@ ob_start();
 
         <div class="form-group">
             <label class="form-label" for="email">Email address</label>
-            <input
-                type="email"
-                id="email"
-                name="email"
+            <input type="email" id="email" name="email"
                 class="form-input <?= isset($errors['email']) ? 'error' : '' ?>"
                 value="<?= e($email) ?>"
                 placeholder="you@example.com"
-                autocomplete="email"
-                required
-            >
+                autocomplete="email" required>
             <?php if (!empty($errors['email'])): ?>
                 <span class="form-error"><?= e($errors['email']) ?></span>
             <?php endif; ?>
@@ -167,49 +151,36 @@ ob_start();
 
         <div class="form-group">
             <label class="form-label" for="code">Verification code</label>
-            <input
-                type="text"
-                id="code"
-                name="code"
-                class="form-input <?= isset($errors['code']) ? 'error' : '' ?>"
-                inputmode="numeric"
-                pattern="[0-9]{6}"
-                maxlength="6"
-                autocomplete="one-time-code"
-                placeholder="123 456"
-                style="font-family:var(--font-mono);font-size:var(--text-xl);letter-spacing:.4em;text-align:center"
-                required
-                autofocus
-            >
+            <input type="text" id="code" name="code"
+                class="form-input auth-code <?= isset($errors['code']) ? 'error' : '' ?>"
+                inputmode="numeric" pattern="[0-9]{6}" maxlength="6"
+                autocomplete="one-time-code" placeholder="123456"
+                required autofocus>
             <?php if (!empty($errors['code'])): ?>
                 <span class="form-error"><?= e($errors['code']) ?></span>
             <?php endif; ?>
             <?php if ($info): ?>
-                <span class="form-error" style="color:var(--text-tertiary)"><?= e($info) ?></span>
+                <span class="form-hint"><?= e($info) ?></span>
             <?php endif; ?>
         </div>
 
         <button type="submit" class="btn btn-primary btn-block">Verify and continue</button>
     </form>
 
-    <div style="margin-top:var(--space-5);text-align:center;font-size:var(--text-sm);color:var(--text-secondary)">
+    <div class="auth-footer">
         Didn't get the email?
-        <form method="POST" action="<?= url('/verify-pending') ?>" style="display:inline">
+        <form method="POST" action="<?= url('/verify-pending') ?>" class="auth-inline-form">
             <?= csrf_field() ?>
             <input type="hidden" name="action" value="resend">
             <input type="hidden" name="email"  value="<?= e($email) ?>">
-            <button type="submit"
-                    id="resend-btn"
-                    class="btn-link"
-                    style="background:none;border:none;color:var(--accent);font-weight:var(--weight-medium);cursor:pointer;padding:0"
-                    <?= $resendIn > 0 ? 'disabled' : '' ?>>
+            <button type="submit" id="resend-btn" class="auth-link-btn" <?= $resendIn > 0 ? 'disabled' : '' ?>>
                 <span id="resend-label"><?= $resendIn > 0 ? 'Resend in ' . $resendIn . 's' : 'Resend code' ?></span>
             </button>
         </form>
     </div>
 
-    <div style="margin-top:var(--space-3);text-align:center">
-        <a href="<?= url('/login') ?>" class="btn-icon" aria-label="Back to login" title="Back to login" style="margin:0 auto"><?= icon('ic_fluent_arrow_left_24_regular', 18) ?></a>
+    <div class="auth-footer">
+        <a class="auth-back" href="<?= url('/login') ?>"><?= icon('ic_fluent_arrow_left_24_regular', 16) ?> Back to sign in</a>
     </div>
 </div>
 

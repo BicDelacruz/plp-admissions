@@ -2,7 +2,7 @@
 // ============================================================
 // modules/legal/privacy.php
 // Public privacy policy (RA 10173, Data Privacy Act of 2012).
-// No login needed. Uses the auth layout.
+// No login needed. Uses the shared auth layout.
 // DRAFT: the school and its DPO must review this. Not legal advice.
 // Anything still unconfirmed is a visible TO CONFIRM placeholder.
 // ============================================================
@@ -16,9 +16,9 @@ ob_start();
 ?>
 <div class="auth-card auth-card-read animate-fade-in">
 
-
     <div class="auth-header">
         <h1 class="auth-title">Privacy Policy</h1>
+        <p class="auth-subtitle">How PLP Admissions handles your personal data.</p>
     </div>
 
     <div class="privacy-body">
@@ -78,7 +78,7 @@ ob_start();
     </div>
 
     <div class="auth-footer">
-        <a href="<?= url('/login') ?>">← Back to sign in</a>
+        <a class="auth-back" href="<?= url('/login') ?>"><?= icon('ic_fluent_arrow_left_24_regular', 16) ?> Back to sign in</a>
     </div>
 
 </div>

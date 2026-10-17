@@ -1,7 +1,16 @@
 <?php
 // ============================================================
 // views/layouts/auth.php
-// Clean centered layout for login / register / forgot-password
+// Shared layout for every auth page (login, register, forgot / reset
+// password, verify email, privacy policy).
+//
+// Optional variables set by the page before including this file:
+//   $pageTitle        string  Browser title
+//   $authWide         bool    Register only: no photo panel, top bar + wide
+//                             content instead (so a long form gets the space)
+//   $authTopbarLink   array   [text, label, href] shown on the right of the
+//                             wide top bar
+//   $hidePrivacyLink  bool    Hide the footer Privacy Policy link
 // ============================================================
 $schoolName  = school_setting('school_name', 'Pamantasan ng Lungsod ng Pasig');
 $accentColor = school_setting('accent_color', '#2d6a4f');
@@ -50,6 +59,31 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
 </head>
 <body>
 
+<?php if (!empty($authWide)): ?>
+<div class="auth-page auth-page--wide">
+    <header class="auth-topbar">
+        <a class="auth-brand auth-brand--bar" href="<?= url('/login') ?>">
+            <img class="auth-brand-logo" src="<?= e($authLogoUrl) ?>" alt="PLP seal">
+            <span>
+                <span class="auth-brand-title">PLP Admissions</span>
+                <span class="auth-brand-sub"><?= e($schoolName) ?></span>
+            </span>
+        </a>
+        <?php if (!empty($authTopbarLink)): ?>
+        <p class="auth-topbar-link">
+            <?= e($authTopbarLink['text']) ?>
+            <a class="auth-link" href="<?= e($authTopbarLink['href']) ?>"><?= e($authTopbarLink['label']) ?></a>
+        </p>
+        <?php endif; ?>
+    </header>
+    <main class="auth-main">
+        <?= $content ?? '' ?>
+    </main>
+    <?php if (empty($hidePrivacyLink)): ?>
+    <footer class="auth-legal"><a href="<?= url('/privacy') ?>">Privacy Policy</a></footer>
+    <?php endif; ?>
+</div>
+<?php else: ?>
 <div class="auth-page" style="--auth-photo:url('<?= e($authPhotoUrl) ?>')">
     <aside class="auth-aside">
         <div class="auth-brand">
@@ -67,6 +101,14 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                 <li>See your exam and interview schedule</li>
                 <li>Get your result as soon as it is released</li>
             </ul>
+            <div class="auth-advisory">
+                <p class="auth-advisory-title">Advisory</p>
+                <ul>
+                    <li>Upload PDF, JPG, PNG or WEBP files, 4 MB or smaller.</li>
+                    <li>Verify your email with the code we send before signing in.</li>
+                    <li>Too many failed sign-ins lock your account for 15 minutes.</li>
+                </ul>
+            </div>
         </div>
         <p class="auth-aside-foot">Admissions Office</p>
     </aside>
@@ -79,6 +121,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
         <?php endif; ?>
     </div>
 </div>
+<?php endif; ?>
 
 <script src="<?= asset('js/jquery.min.js') ?>"></script>
 <script src="<?= asset('js/app.js') ?>"></script>
@@ -88,10 +131,10 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
 jQuery(function ($) {
     var eye = '<i class="ph-bold ph-eye" style="font-size:18px" aria-hidden="true"></i>';
 
-    // Pages that already ship their own toggle (register) are skipped.
+    // One show/hide password toggle for every auth page.
     $('input[type="password"]').each(function () {
         var $in = $(this);
-        if ($in.closest('.input-wrapper').find('.btn-pw-toggle').length) return;
+        if ($in.parent().hasClass('auth-pw')) return;
         var $wrap = $('<div class="auth-pw"></div>');
         $in.wrap($wrap);
         $('<button type="button" class="auth-pw-eye" aria-label="Show password"></button>')
@@ -101,6 +144,7 @@ jQuery(function ($) {
                 var show = $in.attr('type') === 'password';
                 $in.attr('type', show ? 'text' : 'password');
                 $(this).toggleClass('on', show).attr('aria-label', show ? 'Hide password' : 'Show password');
+                $(this).find('i').toggleClass('ph-eye', !show).toggleClass('ph-eye-slash', show);
             });
     });
 

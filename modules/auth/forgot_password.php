@@ -128,32 +128,21 @@ if ($step === 2) {
 }
 
 ob_start();
-$schoolLogo = school_setting('school_logo', '');
 ?>
 <div class="auth-card animate-fade-in">
 
-
     <div class="auth-header">
-        <?php if ($schoolLogo): ?>
-            <img src="<?= e(str_starts_with($schoolLogo, 'http') ? $schoolLogo : url($schoolLogo)) ?>" alt="School Logo" class="auth-logo-img">
+        <?php if ($step === 1): ?>
+            <h1 class="auth-title">Forgot your password?</h1>
+            <p class="auth-subtitle">Enter your email and we will send you a 6 digit code.</p>
         <?php else: ?>
-            <div class="auth-logo">
-                <?= icon('bank:fill', 26) ?>
-            </div>
+            <h1 class="auth-title">Enter the code</h1>
+            <p class="auth-subtitle">If that email is registered, we sent a 6 digit code to <strong><?= e($email) ?></strong>. It expires in 15 minutes.</p>
         <?php endif; ?>
-        <div class="auth-header-text">
-            <?php if ($step === 1): ?>
-                <h1 class="auth-title">Forgot your password?</h1>
-                <p class="auth-subtitle">Enter your email and we will send you a 6 digit code.</p>
-            <?php else: ?>
-                <h1 class="auth-title">Enter the code</h1>
-                <p class="auth-subtitle">If that email is registered, we sent a 6 digit code to <strong><?= e($email) ?></strong>. It expires in 15 minutes.</p>
-            <?php endif; ?>
-        </div>
     </div>
 
     <?php if ($notice): ?>
-        <div class="alert alert-success" style="margin-bottom:var(--space-5)">
+        <div class="alert alert-success" role="status">
             <?= icon('ic_fluent_checkmark_circle_24_regular', 16) ?>
             <?= e($notice) ?>
         </div>
@@ -186,10 +175,9 @@ $schoolLogo = school_setting('school_logo', '');
             <div class="form-group">
                 <label class="form-label" for="code">6 digit code</label>
                 <input type="text" id="code" name="code"
-                    class="form-input <?= isset($errors['code']) ? 'error' : '' ?>"
+                    class="form-input auth-code <?= isset($errors['code']) ? 'error' : '' ?>"
                     inputmode="numeric" maxlength="6" pattern="[0-9]*"
                     autocomplete="one-time-code" placeholder="123456"
-                    style="letter-spacing:.4em;text-align:center;font-family:var(--font-mono)"
                     required autofocus>
                 <?php if (!empty($errors['code'])): ?>
                     <span class="form-error"><?= e($errors['code']) ?></span>
@@ -198,16 +186,19 @@ $schoolLogo = school_setting('school_logo', '');
             <button type="submit" class="btn btn-primary btn-block">Confirm code</button>
         </form>
 
-        <form method="POST" action="<?= url('/forgot-password') ?>" style="margin-top:var(--space-3)">
-            <?= csrf_field() ?>
-            <input type="hidden" name="action" value="resend">
-            <button type="submit" id="resend-btn" class="btn btn-secondary btn-block" <?= $resendIn > 0 ? 'disabled' : '' ?>>
-                <span id="resend-label"><?= $resendIn > 0 ? 'Resend in ' . (int) $resendIn . 's' : 'Resend code' ?></span>
-            </button>
-        </form>
+        <div class="auth-footer">
+            Didn't get the code?
+            <form method="POST" action="<?= url('/forgot-password') ?>" class="auth-inline-form">
+                <?= csrf_field() ?>
+                <input type="hidden" name="action" value="resend">
+                <button type="submit" id="resend-btn" class="auth-link-btn" <?= $resendIn > 0 ? 'disabled' : '' ?>>
+                    <span id="resend-label"><?= $resendIn > 0 ? 'Resend in ' . (int) $resendIn . 's' : 'Resend code' ?></span>
+                </button>
+            </form>
+        </div>
 
-        <div style="margin-top:var(--space-3);text-align:center">
-            <a href="<?= url('/forgot-password?new=1') ?>" style="font-size:var(--text-sm)">Use a different email</a>
+        <div class="auth-footer">
+            <a class="auth-link" href="<?= url('/forgot-password?new=1') ?>">Use a different email</a>
         </div>
 
         <script>
@@ -233,7 +224,7 @@ $schoolLogo = school_setting('school_logo', '');
     <?php endif; ?>
 
     <div class="auth-footer">
-        <a href="<?= url('/login') ?>" aria-label="Back to sign in" title="Back to sign in"><?= icon('ic_fluent_arrow_left_24_regular', 18) ?></a>
+        <a class="auth-back" href="<?= url('/login') ?>"><?= icon('ic_fluent_arrow_left_24_regular', 16) ?> Back to sign in</a>
     </div>
 
 </div>
