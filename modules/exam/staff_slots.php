@@ -860,15 +860,12 @@ ob_start();
                     <?php if ($deptNeedsSetup): ?>
                         <span class="select-card-dot" title="No upcoming slots — needs setup"></span>
                     <?php endif; ?>
-                    <div class="select-card-icon"><?= icon('ic_fluent_building_bank_24_regular', 24) ?></div>
                     <div class="select-card-title"><?= e($dept) ?></div>
                     <div class="select-card-meta">
                         <div class="select-card-meta-row">
-                            <?= icon('ic_fluent_calendar_ltr_24_regular', 12) ?>
                             <?= (int)$info['upcoming_slots'] ?> upcoming slot<?= (int)$info['upcoming_slots'] === 1 ? '' : 's' ?>
                         </div>
                         <div class="select-card-meta-row">
-                            <?= icon('ic_fluent_people_24_regular', 12) ?>
                             <?= (int)$info['filled_seats'] ?> / <?= (int)$info['total_seats'] ?> seats filled
                         </div>
                     </div>
@@ -1001,7 +998,6 @@ ob_start();
                     <?php endif; ?>
                 </div>
 
-                <div class="select-card-icon"><?= icon('ic_fluent_building_bank_24_regular', 24) ?></div>
 
                 <div class="select-card-title">
                     <?= e($slot['room_label'] ?? '') ?>
@@ -1009,18 +1005,15 @@ ob_start();
 
                 <div class="select-card-meta">
                     <div class="select-card-meta-row">
-                        <?= icon('ic_fluent_calendar_ltr_24_regular', 12) ?>
                         <?= e(format_date($slot['exam_date'], 'D, M j, Y')) ?>
                     </div>
                     <div class="select-card-meta-row">
-                        <?= icon('ic_fluent_clock_24_regular', 12) ?>
                         <?= e(format_time($slot['slot_time'])) ?>
                         <?php if (!empty($slot['end_time'])): ?>
                             &ndash; <?= e(format_time($slot['end_time'])) ?>
                         <?php endif; ?>
                     </div>
                     <div class="select-card-meta-row">
-                        <?= icon('ic_fluent_people_24_regular', 12) ?>
                         <strong style="<?= $isFull ? 'color:var(--error)' : 'color:var(--text-secondary)' ?>">
                             <?= $filled ?> / <?= $cap ?>
                         </strong>
@@ -1032,7 +1025,7 @@ ob_start();
                     ?>
                     <?php if ($cardCodeActive): ?>
                         <div class="select-card-meta-row">
-                            <?= icon('ic_fluent_lock_closed_24_regular', 12) ?>
+                            Code
                             <span class="es-card-code-badge<?= $cardSecsLeft <= 60 ? ' is-warn' : '' ?>"
                                   data-card-pw-end="<?= time() + $cardSecsLeft ?>">
                                 <?= e($slot['access_password']) ?>
@@ -1046,7 +1039,6 @@ ob_start();
                     <span><?= e($slot['department']) ?></span>
                     <span class="select-card-action">
                         View
-                        <?= icon('arrow-right', 12) ?>
                     </span>
                 </div>
             </a>
@@ -1058,7 +1050,6 @@ ob_start();
                  role="button" tabindex="0"
                  onclick="document.getElementById('add-slot-modal').style.display='flex'"
                  onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
-                <div class="select-card-icon"><?= icon('plus', 24) ?></div>
                 <div class="select-card-title">Add Slot</div>
                 <div class="select-card-desc">Create a new exam room slot</div>
             </div>

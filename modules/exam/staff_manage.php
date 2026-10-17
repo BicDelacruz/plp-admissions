@@ -535,12 +535,10 @@ elseif ($selectedExamId) $view = 'editor';
 
     <!-- Exam Builder — always enabled -->
     <a href="<?= url('/staff/exam') ?>?view=exams" class="select-card">
-        <div class="select-card-icon"><?= icon('file-text:fill', 24) ?></div>
         <div class="select-card-title">Exam Builder</div>
         <div class="select-card-desc">Create exams, set questions, and manage schedules.</div>
         <div class="select-card-meta">
             <div class="select-card-meta-row">
-                <?= icon('calendar-check', 12) ?>
                 <?= count($exams) ?> exam<?= count($exams) !== 1 ? 's' : '' ?> created
                 <?php if ($activeExam): ?>
                     &nbsp;&middot;&nbsp;
@@ -556,16 +554,13 @@ elseif ($selectedExamId) $view = 'editor';
     <?php else: ?>
     <div class="select-card is-disabled" title="Create an exam first before setting up room slots">
     <?php endif; ?>
-        <div class="select-card-icon"><?= icon('squares-four:fill', 24) ?></div>
         <div class="select-card-title">Room Slots</div>
         <div class="select-card-desc">Assign rooms, manage seating, and organize exam-day logistics.</div>
         <div class="select-card-meta">
             <div class="select-card-meta-row">
                 <?php if (empty($exams)): ?>
-                    <?= icon('warning-circle:fill', 12) ?>
                     Create an exam first
                 <?php else: ?>
-                    <?= icon('calendar-check', 12) ?>
                     <?= $slotCount ?> slot<?= $slotCount !== 1 ? 's' : '' ?> configured
                 <?php endif; ?>
             </div>
@@ -592,11 +587,9 @@ elseif ($selectedExamId) $view = 'editor';
             <?php if ($isActive): ?>
                 <div class="select-card-badge"><span class="badge badge-success">Active</span></div>
             <?php endif; ?>
-            <div class="select-card-icon"><?= icon('file-text:fill', 24) ?></div>
             <div class="select-card-title"><?= e($ex['title']) ?></div>
             <div class="select-card-meta">
                 <div class="select-card-meta-row">
-                    <?= icon('calendar-check', 12) ?>
                     <?= $qCount ?> question<?= $qCount !== 1 ? 's' : '' ?>
                 </div>
             </div>
@@ -604,7 +597,6 @@ elseif ($selectedExamId) $view = 'editor';
                 <span>Created <?= e(format_date($ex['created_at'] ?? null, 'M j, Y')) ?></span>
                 <span class="select-card-action">
                     Edit
-                    <?= icon('arrow-right', 12) ?>
                 </span>
             </div>
         </a>
@@ -614,7 +606,6 @@ elseif ($selectedExamId) $view = 'editor';
     <div class="select-card select-card--add exam-dir-card" onclick="openModal('create-exam-modal')"
          role="button" tabindex="0"
          onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
-        <div class="select-card-icon"><?= icon('plus:fill', 24) ?></div>
         <div class="select-card-title"><?= empty($exams) ? 'Create Your First Exam' : 'New Exam' ?></div>
         <div class="select-card-desc"><?= empty($exams) ? 'Get started by creating an entrance exam.' : 'Build a new entrance exam' ?></div>
     </div>

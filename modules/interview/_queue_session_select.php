@@ -51,14 +51,13 @@ ob_start();
 
 <?php if (empty($sessions)): ?>
     <div class="select-empty">
-        <?= icon('ic_fluent_calendar_24_regular', 32, 'color:var(--text-tertiary)') ?>
         <div style="margin-top:var(--space-3)">
             No sessions scheduled for <?= e($selectedCollege) ?> today.
         </div>
         <div style="margin-top:var(--space-2);font-size:var(--text-xs)">
             <a href="<?= url('/staff/interviews/setup') ?>?college=<?= urlencode($selectedCollege) ?>"
                style="color:var(--accent)">
-                Add a session in setup <?= icon('arrow-right', 14) ?>
+                Add a session in setup
             </a>
         </div>
     </div>
@@ -76,37 +75,34 @@ ob_start();
                 <?php if ($isLive): ?>
                     <span class="select-card-badge"><span class="select-card-live"><span class="dot"></span> Live</span></span>
                 <?php endif; ?>
-                <div class="select-card-icon"><?= icon('ic_fluent_people_24_regular', 24) ?></div>
                 <div class="select-card-title">
                     <?= e($s['interviewer_name'] ?? 'Unassigned') ?>
                 </div>
                 <div class="select-card-meta">
                     <div class="select-card-meta-row">
-                        <?= icon('clock', 12) ?>
                         <?= $timeLabel ?>
                     </div>
                     <?php if (!empty($s['location_label'])): ?>
                         <div class="select-card-meta-row">
-                            <?= icon('map-pin', 12) ?>
                             <?= e($s['location_label']) ?>
                         </div>
                     <?php endif; ?>
                 </div>
                 <div class="q-sess-stats">
                     <div class="q-sess-stat">
-                        <div class="q-sess-stat-num" style="color:var(--info)"><?= (int) $s['waiting'] ?></div>
+                        <div class="q-sess-stat-num"><?= (int) $s['waiting'] ?></div>
                         <div class="q-sess-stat-label">Waiting</div>
                     </div>
                     <div class="q-sess-stat">
-                        <div class="q-sess-stat-num" style="color:var(--accent)"><?= (int) $s['in_progress'] ?></div>
+                        <div class="q-sess-stat-num"><?= (int) $s['in_progress'] ?></div>
                         <div class="q-sess-stat-label">Live</div>
                     </div>
                     <div class="q-sess-stat">
-                        <div class="q-sess-stat-num" style="color:var(--success)"><?= (int) $s['completed'] ?></div>
+                        <div class="q-sess-stat-num"><?= (int) $s['completed'] ?></div>
                         <div class="q-sess-stat-label">Done</div>
                     </div>
                     <div class="q-sess-stat">
-                        <div class="q-sess-stat-num" style="color:var(--error)"><?= (int) $s['no_show'] ?></div>
+                        <div class="q-sess-stat-num"<?= ((int) $s['no_show']) > 0 ? ' style="color:var(--error)"' : '' ?>><?= (int) $s['no_show'] ?></div>
                         <div class="q-sess-stat-label">No-show</div>
                     </div>
                 </div>

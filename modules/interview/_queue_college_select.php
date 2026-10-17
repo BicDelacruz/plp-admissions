@@ -51,18 +51,13 @@ ob_start();
                 <?php if ($info['in_progress'] > 0): ?>
                     <span class="select-card-badge"><span class="select-card-live"><span class="dot"></span> Live</span></span>
                 <?php endif; ?>
-                <div class="select-card-icon">
-                    <?= icon('ic_fluent_building_bank_24_regular', 24) ?>
-                </div>
                 <div class="select-card-title"><?= e($dept) ?></div>
                 <div class="select-card-meta">
                     <div class="select-card-meta-row">
-                        <?= icon('ic_fluent_calendar_ltr_24_regular', 12) ?>
                         <?= $info['sessions'] ?> session<?= $info['sessions'] !== 1 ? 's' : '' ?> today
                     </div>
                     <?php if ($info['queue'] > 0): ?>
                         <div class="select-card-meta-row">
-                            <?= icon('ic_fluent_people_24_regular', 12) ?>
                             <?= $info['queue'] ?> applicant<?= $info['queue'] !== 1 ? 's' : '' ?>
                         </div>
                     <?php endif; ?>

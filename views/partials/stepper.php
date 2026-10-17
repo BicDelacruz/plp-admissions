@@ -54,16 +54,7 @@ $stepUrls = [
                 <div class="step-dot">
             <?php endif; ?>
 
-                <?php if ($state === 'done'): ?>
-                    <!-- Checkmark -->
-                    <?= icon('ic_fluent_checkmark_24_regular', 12) ?>
-                <?php elseif ($state === 'active'): ?>
-                    <!-- Dot -->
-                    <?= icon('circle:fill', 12) ?>
-                <?php else: ?>
-                    <!-- Lock -->
-                    <?= icon('ic_fluent_lock_closed_24_regular', 12) ?>
-                <?php endif; ?>
+                <?= $idx + 1 ?>
 
             <?php if ($href): ?></a><?php else: ?></div><?php endif; ?>
 

@@ -105,7 +105,6 @@
     --radius-panel: 16px;
     /* Selector cards (college / session / slot / exam pickers) */
     --select-card-min: 260px;
-    --select-card-icon: 48px;
 
     /* Shadows — minimal, functional */
     --shadow-xs:  0 1px 2px rgba(0,0,0,0.06);
@@ -926,19 +925,25 @@ button { cursor: pointer; }
     transition-timing-function: ease-out;
 }
 
-.step-dot svg { width: 12px; height: 12px; color: var(--text-tertiary); }
+.step-dot {
+    /* Step number, no icons: 1 to 4 reads the same in every state. */
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    line-height: 1;
+    color: var(--text-tertiary);
+}
 
 .step.done .step-dot {
     background: var(--accent);
     border-color: var(--accent);
+    color: #fff;
 }
-.step.done .step-dot svg { color: white; }
 
 .step.active .step-dot {
     border-color: var(--accent);
     background: var(--accent-muted);
+    color: var(--accent);
 }
-.step.active .step-dot svg { color: var(--accent); }
 
 .step.locked .step-dot { opacity: 0.4; }
 
@@ -4194,10 +4199,9 @@ select:not([multiple]):not([size]):disabled { opacity: .6; cursor: not-allowed; 
      .select-grid               grid, flush under the page heading
        .select-card             the card (a / div)
          .select-card-badge     status chip, top-right
-         .select-card-icon      48px tile, top-left
          .select-card-title     name
          .select-card-desc      optional one-liner
-         .select-card-meta      rows of icon + text
+         .select-card-meta      rows of plain text (no icons on pickers)
          .select-card-footer    optional: left note, right action
        .select-card--add        dashed "+ Add" card
 
@@ -4240,7 +4244,7 @@ select:not([multiple]):not([size]):disabled { opacity: .6; cursor: not-allowed; 
     text-align: left;
     gap: var(--space-3);
     padding: var(--space-5);
-    min-height: 168px;
+    min-height: 128px;
     background: var(--bg-elevated);
     border: 1.5px solid var(--border);
     border-radius: var(--radius);
@@ -4269,20 +4273,6 @@ select:not([multiple]):not([size]):disabled { opacity: .6; cursor: not-allowed; 
 }
 .select-card.is-disabled:hover { border-color: var(--border); box-shadow: none; }
 
-.select-card-icon {
-    width: var(--select-card-icon);
-    height: var(--select-card-icon);
-    border-radius: var(--radius);
-    background: var(--accent-muted);
-    color: var(--accent);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-.select-card.is-live .select-card-icon,
-.select-card.is-today .select-card-icon,
-.select-card.is-active .select-card-icon { background: var(--bg-elevated); }
 .select-card-title {
     font-size: var(--text-base);
     font-weight: var(--weight-semibold);
@@ -4374,8 +4364,8 @@ select:not([multiple]):not([size]):disabled { opacity: .6; cursor: not-allowed; 
     animation: q-pulse-dot 1.4s infinite;
 }
 /* Dashed "+ Add" card: same anatomy and left alignment as every other
-   card (icon tile, title, one-line description), so it reads as a sibling
-   in the grid, not a different component. */
+   card (title, one-line description), so it reads as a sibling in the
+   grid, not a different component. */
 .select-card--add {
     background: transparent;
     border-style: dashed;
@@ -4386,12 +4376,12 @@ select:not([multiple]):not([size]):disabled { opacity: .6; cursor: not-allowed; 
 .select-card--add .select-card-title { color: var(--accent); }
 
 /* Bulk-select mode, shared by every grid that supports it. The checkbox
-   takes the icon tile's place; selected cards use the same highlight as
-   the live / today / active state. */
+   sits on the title's line (the title shifts right to make room); selected
+   cards use the same highlight as the live / today / active state. */
 .select-card-check {
     position: absolute;
-    top: calc(var(--space-5) + 13px);
-    left: calc(var(--space-5) + 13px);
+    top: calc(var(--space-5) + 1px);
+    left: var(--space-5);
     width: 22px;
     height: 22px;
     accent-color: var(--accent);
@@ -4400,7 +4390,7 @@ select:not([multiple]):not([size]):disabled { opacity: .6; cursor: not-allowed; 
     display: none;
 }
 .select-grid.is-selecting .select-card-check { display: inline-block; }
-.select-grid.is-selecting .select-card:not(.select-card--add) .select-card-icon { opacity: 0; }
+.select-grid.is-selecting .select-card:not(.select-card--add) .select-card-title { padding-left: calc(22px + var(--space-2)); }
 .select-grid.is-selecting .select-card.is-selected { border-color: var(--accent); background: var(--accent-muted); }
 .select-grid.is-selecting .select-card.is-undeletable { opacity: .55; }
 .select-grid.is-selecting .select-card--add { opacity: .5; pointer-events: none; }

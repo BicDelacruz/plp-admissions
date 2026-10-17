@@ -147,7 +147,6 @@ foreach ($byDate as $date => $dateSlots) {
                 <?php endif; ?>
             </div>
 
-            <div class="select-card-icon"><?= icon('ic_fluent_people_24_regular', 24) ?></div>
 
             <!-- Title: interviewer name -->
             <div class="select-card-title"><?= e($slot['interviewer_name'] ?? 'Unassigned') ?></div>
@@ -155,21 +154,17 @@ foreach ($byDate as $date => $dateSlots) {
             <!-- Meta: date · time · location · capacity -->
             <div class="select-card-meta">
                 <div class="select-card-meta-row">
-                    <?= icon('calendar-blank', 12) ?>
                     <?= e(format_date($date, 'D, M j')) ?>
                 </div>
                 <div class="select-card-meta-row">
-                    <?= icon('clock', 12) ?>
                     <?= e($timeLabel) ?>
                 </div>
                 <?php if (!empty($slot['location_label'])): ?>
                     <div class="select-card-meta-row">
-                        <?= icon('map-pin', 12) ?>
                         <?= e($slot['location_label']) ?>
                     </div>
                 <?php endif; ?>
                 <div class="select-card-meta-row">
-                    <?= icon('users', 12) ?>
                     <?= $booked ?> / <?= $capacity ?> booked
                 </div>
             </div>
@@ -183,7 +178,6 @@ foreach ($byDate as $date => $dateSlots) {
                 </span>
                 <span class="select-card-action">
                     Edit
-                    <?= icon('arrow-right', 12) ?>
                 </span>
             </div>
         </div>
@@ -195,7 +189,6 @@ foreach ($byDate as $date => $dateSlots) {
          onclick="document.getElementById('add-session-modal').style.display='flex'"
          role="button" tabindex="0"
          onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
-        <div class="select-card-icon"><?= icon('plus', 24) ?></div>
         <div class="select-card-title">Add Session</div>
         <div class="select-card-desc">Schedule a new interview session</div>
     </div>

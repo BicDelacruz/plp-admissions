@@ -87,34 +87,14 @@ ob_start();
     <?php endforeach; ?>
 </div>
 
-<!-- Stats -->
-<div class="metrics-row" style="margin-bottom:var(--space-8)">
-    <div class="metric-card">
-        <div class="metric-label">Total Applicants</div>
-        <div class="metric-value"><?= number_format($totalApplicants) ?></div>
-        <div class="metric-sub"><?= e($schoolYear) ?></div>
-    </div>
-    <div class="metric-card metric-card--success">
-        <div class="metric-label">Accepted</div>
-        <div class="metric-value"><?= number_format($resultCounts['accepted'] ?? 0) ?></div>
-        <div class="metric-sub">
-            <?= $totalReleased ? round((($resultCounts['accepted'] ?? 0) / $totalReleased) * 100) : 0 ?>%
-        </div>
-    </div>
-    <div class="metric-card metric-card--error">
-        <div class="metric-label">Not Accepted</div>
-        <div class="metric-value"><?= number_format($resultCounts['rejected'] ?? 0) ?></div>
-        <div class="metric-sub">
-            <?= $totalReleased ? round((($resultCounts['rejected'] ?? 0) / $totalReleased) * 100) : 0 ?>%
-        </div>
-    </div>
-</div>
-
-<!-- Bar chart (pure CSS) -->
+<!-- Result breakdown (pure CSS). One color family, counts and shares printed on the rows. -->
 <?php if ($totalReleased > 0): ?>
 <div class="card" style="padding:var(--space-6)">
-    <div style="font-weight:var(--weight-semibold);margin-bottom:var(--space-5)">Result Breakdown</div>
-    <?php foreach (['accepted' => ['Accepted','var(--success)'], 'rejected' => ['Not Accepted','var(--error)']] as $key => [$label, $color]):
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:var(--space-3);flex-wrap:wrap;margin-bottom:var(--space-5)">
+        <span style="font-weight:var(--weight-semibold)">Result Breakdown</span>
+        <span style="font-size:var(--text-sm);color:var(--text-tertiary)"><?= number_format($totalReleased) ?> released of <?= number_format($totalApplicants) ?> applicants, <?= e($schoolYear) ?></span>
+    </div>
+    <?php foreach (['accepted' => ['Accepted','var(--accent-light)'], 'rejected' => ['Not Accepted','var(--border-strong)']] as $key => [$label, $color]):
         $cnt = $resultCounts[$key] ?? 0;
         $pct = $totalReleased > 0 ? round(($cnt / $totalReleased) * 100) : 0;
     ?>

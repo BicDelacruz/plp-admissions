@@ -74,12 +74,10 @@ $queueTitle    = $queueDisabled
 
     <!-- Interview Setup -->
     <a href="<?= url('/staff/interviews/setup') ?>" class="select-card">
-        <div class="select-card-icon"><?= icon('ic_fluent_settings_24_regular', 24) ?></div>
         <div class="select-card-title">Interview Setup</div>
         <div class="select-card-desc">Schedule sessions and assign interviewers per college.</div>
         <div class="select-card-meta">
             <div class="select-card-meta-row">
-                <?= icon('ic_fluent_calendar_ltr_24_regular', 12) ?>
                 <?= $totalUpcoming ?> upcoming session<?= $totalUpcoming !== 1 ? 's' : '' ?>
                 <?php if ($totalSessions !== $totalUpcoming): ?>
                     &nbsp;&middot;&nbsp; <?= $totalSessions ?> total
@@ -94,7 +92,6 @@ $queueTitle    = $queueDisabled
         <?php if ($todayActive > 0 && !$queueDisabled): ?>
             <span class="select-card-badge"><span class="select-card-live"><span class="dot"></span> Live</span></span>
         <?php endif; ?>
-        <div class="select-card-icon"><?= icon('ic_fluent_people_24_regular', 24) ?></div>
         <div class="select-card-title">Interview Queue</div>
         <div class="select-card-desc">
             <?= $queueDisabled
@@ -104,13 +101,10 @@ $queueTitle    = $queueDisabled
         <div class="select-card-meta">
             <div class="select-card-meta-row">
                 <?php if ($queueDisabled): ?>
-                    <?= icon('ic_fluent_lock_closed_24_regular', 12) ?>
                     Setup required
                 <?php elseif ($todayActive > 0): ?>
-                    <?= icon('ic_fluent_people_24_regular', 12) ?>
                     <?= $todayWaiting ?> waiting · <?= $todayInProgress ?> in progress
                 <?php else: ?>
-                    <?= icon('ic_fluent_people_24_regular', 12) ?>
                     No active interviews
                 <?php endif; ?>
             </div>

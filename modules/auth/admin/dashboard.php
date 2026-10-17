@@ -161,6 +161,14 @@ $courseLabels = array_map(function ($c) {
     return preg_match('/\(([^()]+)\)\s*$/', $c, $m) ? $m[1] : $c;
 }, $courseFull);
 
+// Biggest first, so the chart reads as a ranking. Ties keep their config order.
+$courseRows = [];
+foreach ($courseFull as $i => $c) { $courseRows[] = [$c, $courseLabels[$i], $courseData[$i]]; }
+usort($courseRows, fn($a, $b) => $b[2] <=> $a[2]);
+$courseFull   = array_column($courseRows, 0);
+$courseLabels = array_column($courseRows, 1);
+$courseData   = array_column($courseRows, 2);
+
 // ── SHS Strand — all strands from config, 0 if no data ────────────
 $strandCountsStmt = $pdo->prepare("
     SELECT a.shs_strand AS label, COUNT(*) AS cnt
@@ -181,6 +189,12 @@ foreach (SHS_STRANDS as $key => $label) {
     $strandFull[]   = $label;
     $strandData[]   = (int)($strandCountsMap[$key] ?? 0);
 }
+$strandRows = [];
+foreach ($strandLabels as $i => $l) { $strandRows[] = [$l, $strandFull[$i], $strandData[$i]]; }
+usort($strandRows, fn($a, $b) => $b[2] <=> $a[2]);
+$strandLabels = array_column($strandRows, 0);
+$strandFull   = array_column($strandRows, 1);
+$strandData   = array_column($strandRows, 2);
 
 // ── Sex ────────────────────────────────────────────────────────────
 $sexStmt = $pdo->prepare("
@@ -287,7 +301,20 @@ ob_start();
     text-transform: none;
     margin-top: var(--space-1);
 }
-.db-kpi-sub { display: none; }
+.db-kpi-sub {
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+    margin-top: calc(var(--space-1) * -1);
+}
+.db-kpi-bar {
+    height: 4px;
+    margin-top: auto;
+    background: var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+.db-kpi-bar > span { display: block; height: 100%; background: var(--accent-light); border-radius: var(--radius); }
+.db-empty { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 120px; color: var(--text-tertiary); font-size: var(--text-sm); }
 
 /* Pipeline donut (SVG) */
 .db-donut-wrap { position:relative; width:110px; height:110px; flex-shrink:0; }
@@ -382,7 +409,6 @@ ob_start();
                     font-size:var(--text-sm);cursor:pointer;white-space:nowrap;
                     transition:border-color var(--transition-fast),color var(--transition-fast);
                 ">
-                    <?= icon('calendar-blank', 14) ?>
                     <span id="dpLabel"><?= e($rangeLabel) ?></span>
                     <?= icon('caret-down', 10) ?>
                 </button>
@@ -442,16 +468,19 @@ ob_start();
                     <div class="db-kpi-val db-kpi-val--success"><?= number_format($accepted) ?></div>
                     <div class="db-kpi-lbl">Accepted</div>
                     <div class="db-kpi-sub"><?= $acceptedPct ?>% of total</div>
+                    <div class="db-kpi-bar"><span style="width:<?= min(100, $acceptedPct) ?>%"></span></div>
                 </div>
                 <div class="db-kpi-item">
                     <div class="db-kpi-val db-kpi-val--error"><?= number_format($rejected) ?></div>
                     <div class="db-kpi-lbl">Declined</div>
                     <div class="db-kpi-sub"><?= $rejectedPct ?>% of total</div>
+                    <div class="db-kpi-bar"><span style="width:<?= min(100, $rejectedPct) ?>%"></span></div>
                 </div>
                 <div class="db-kpi-item">
                     <div class="db-kpi-val"><?= number_format($withdrawn) ?></div>
                     <div class="db-kpi-lbl">Withdrawn</div>
                     <div class="db-kpi-sub"><?= $withdrawnPct ?>% of total</div>
+                    <div class="db-kpi-bar"><span style="width:<?= min(100, $withdrawnPct) ?>%"></span></div>
                 </div>
             </div>
         </div>
@@ -465,9 +494,13 @@ ob_start();
             <div style="display:flex;gap:0;align-items:center;flex:1;">
                 <!-- Chart -->
                 <div style="flex:1;min-width:0;padding-right:var(--space-4);">
+                    <?php if ($total === 0): ?>
+                        <div class="db-empty">No applicants in this range.</div>
+                    <?php else: ?>
                     <div style="position:relative;width:100%;height:<?= count($pipelineOrder) * 30 + 56 ?>px;">
                         <canvas id="chartPipeline"></canvas>
                     </div>
+                    <?php endif; ?>
                 </div>
                 <!-- Divider -->
                 <div style="width:1px;background:var(--border);flex-shrink:0;align-self:stretch;"></div>
@@ -496,9 +529,13 @@ ob_start();
                 <span class="card-title">Course</span>
                 <span class="db-ch-sub"><?= $courseCount ?> courses</span>
             </div>
+            <?php if ($total === 0): ?>
+                <div class="db-empty">No applicants in this range.</div>
+            <?php else: ?>
             <div style="position:relative;width:100%;flex:1;min-height:200px;">
                 <canvas id="chartCourse"></canvas>
             </div>
+            <?php endif; ?>
         </div>
 
         <!-- Cell 4 — SHS Strand -->
@@ -507,9 +544,13 @@ ob_start();
                 <span class="card-title">SHS Strand</span>
                 <span class="db-ch-sub">by strand</span>
             </div>
+            <?php if ($total === 0): ?>
+                <div class="db-empty">No applicants in this range.</div>
+            <?php else: ?>
             <div style="position:relative;width:100%;flex:1;min-height:200px;">
                 <canvas id="chartStrand"></canvas>
             </div>
+            <?php endif; ?>
             <div class="db-legend" id="strandLegend"></div>
         </div>
 
@@ -551,6 +592,27 @@ ob_start();
         Chart.defaults.font  = { family: v('--font-sans') || 'DM Sans,sans-serif', size: 14 };
         Chart.defaults.color = textSecond;
 
+        // Print the count at the end of every bar so nobody has to hover to read it.
+        var valueLabels = { id: 'valueLabels', afterDatasetsDraw: function (chart) {
+            var ctx = chart.ctx;
+            ctx.save();
+            ctx.fillStyle    = textPrimary;
+            ctx.font         = '600 14px ' + (v('--font-sans') || 'DM Sans,sans-serif');
+            ctx.textBaseline = 'middle';
+            ctx.textAlign    = 'left';
+            chart.getDatasetMeta(0).data.forEach(function (bar, i) {
+                ctx.fillText(String(chart.data.datasets[0].data[i]), bar.x + 8, bar.y);
+            });
+            ctx.restore();
+        } };
+        function mk(id, cfg) {
+            var el = document.getElementById(id);
+            if (!el) return null;
+            cfg.plugins = [valueLabels];
+            cfg.options.layout = { padding: { right: 32 } };
+            return new Chart(el, cfg);
+        }
+
         var xGrid = { grid:{color:border}, border:{display:false}, ticks:{color:textSecond, precision:0} };
         var yFlat  = { grid:{display:false}, border:{display:false}, ticks:{color:textPrimary, font:{size:14}} };
         var tip   = { titleFont:{size:14}, bodyFont:{size:14}, callbacks:{ label:function(c){ return ' '+c.raw+' applicants'; } } };
@@ -561,7 +623,7 @@ ob_start();
         }
 
         // Pipeline — horizontal bar (same accent, different opacity per stage)
-        charts.pipeline = new Chart(document.getElementById('chartPipeline'), {
+        charts.pipeline = mk('chartPipeline', {
             type: 'bar',
             data: {
                 labels: DATA.pipeline.labels,
@@ -574,7 +636,7 @@ ob_start();
         });
 
         // Course — horizontal bar
-        charts.course = new Chart(document.getElementById('chartCourse'), {
+        charts.course = mk('chartCourse', {
             type: 'bar',
             data: { labels:DATA.course.labels,
                 datasets:[{ data:DATA.course.data, backgroundColor:barColor, borderRadius:radius, borderSkipped:false, barThickness:14, maxBarThickness:16 }] },
@@ -584,7 +646,7 @@ ob_start();
         });
 
         // SHS Strand — same single color
-        charts.strand = new Chart(document.getElementById('chartStrand'), {
+        charts.strand = mk('chartStrand', {
             type: 'bar',
             data: { labels:DATA.strand.labels,
                 datasets:[{ data:DATA.strand.data, backgroundColor:barColor, borderRadius:radius, borderSkipped:false }] },
@@ -605,12 +667,14 @@ ob_start();
 
     // Date picker
     var BASE='<?= url('/admin/dashboard') ?>';
+    var SY='<?= $schoolYear !== $currentSY ? rawurlencode($schoolYear) : '' ?>';
+    var SYQ=SY ? '&sy='+SY : '';
     window.dpToggle=function(e){ e.stopPropagation(); document.getElementById('dpMenu').classList.toggle('open'); };
-    window.dpSet   =function(r){ window.location.href=BASE+'?range='+r; };
+    window.dpSet   =function(r){ window.location.href=BASE+'?range='+r+SYQ; };
     window.dpCustom=function() { document.getElementById('dpCustomRow').classList.add('show'); };
     window.dpApply =function() {
         var f=document.getElementById('dpFrom').value, t=document.getElementById('dpTo').value;
-        if(f&&t) window.location.href=BASE+'?range=custom&from='+encodeURIComponent(f)+'&to='+encodeURIComponent(t);
+        if(f&&t) window.location.href=BASE+'?range=custom&from='+encodeURIComponent(f)+'&to='+encodeURIComponent(t)+SYQ;
     };
     document.addEventListener('click',function(e){
         var w=document.getElementById('dpWrap');

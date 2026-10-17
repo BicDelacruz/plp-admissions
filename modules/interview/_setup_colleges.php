@@ -20,13 +20,9 @@
                 <?php if ($needsSetup): ?>
                     <span class="select-card-dot" title="No upcoming sessions — needs setup"></span>
                 <?php endif; ?>
-                <div class="select-card-icon">
-                    <?= icon('ic_fluent_building_bank_24_regular', 24) ?>
-                </div>
                 <div class="select-card-title"><?= e($dept) ?></div>
                 <div class="select-card-meta">
                     <div class="select-card-meta-row">
-                        <?= icon('ic_fluent_calendar_ltr_24_regular', 12) ?>
                         <?= (int)$info['upcoming'] ?> upcoming
                         <?php if ($info['sessions'] !== $info['upcoming']): ?>
                             &middot; <?= (int)$info['sessions'] ?> total
