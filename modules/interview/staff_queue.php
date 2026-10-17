@@ -575,7 +575,7 @@ ob_start();
         </select>
         <?php endif; ?>
 
-        <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
+        <button type="submit" class="btn btn-secondary btn-sm" data-filter-submit>Filter</button>
         <?php if ($hasFilters): ?>
             <a href="<?= e($queueUrl(['q' => '', 'date' => '', 'slot' => '', 'page' => 1])) ?>" class="btn btn-ghost btn-sm">Clear</a>
         <?php endif; ?>

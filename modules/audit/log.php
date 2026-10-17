@@ -197,7 +197,7 @@ ob_start();
         <input type="date" name="date" class="form-input" style="width:160px" value="<?= e($filterDate) ?>"
                onchange="this.form.submit()">
 
-        <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
+        <button type="submit" class="btn btn-secondary btn-sm" data-filter-submit>Filter</button>
         <?php if ($hasFilters): ?>
             <a href="<?= url('/admin/audit-log') ?>" class="btn btn-ghost btn-sm">Clear</a>
         <?php endif; ?>

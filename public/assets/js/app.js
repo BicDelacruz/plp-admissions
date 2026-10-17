@@ -617,6 +617,153 @@ const AutoPageSize = (() => {
 window.AutoPageSize = AutoPageSize;
 
 // ============================================================
+// FilterBar — the toolbar's Filter button only shows when there is
+// something to apply.
+//
+// A toolbar <form class="auto-table-toolbar"> marks its submit button
+// data-filter-submit. CSS keeps it hidden; this adds .is-visible while any
+// named field (search box, date, select) differs from the value the server
+// rendered, i.e. from what is currently applied. Back to the applied value
+// and it hides again. Enter in the search box still submits the form while
+// the button is hidden. Selects and dates that submit on change never
+// reveal it, because the page reloads before there is anything to apply.
+// ============================================================
+const FilterBar = (() => {
+    const SKIP_TYPES = ['hidden', 'submit', 'button', 'reset', 'image', 'file'];
+
+    function fields(form) {
+        return Array.from(form.elements).filter((el) => el.name && !SKIP_TYPES.includes(el.type));
+    }
+
+    function changed(el) {
+        if (el.type === 'checkbox' || el.type === 'radio') return el.checked !== el.defaultChecked;
+        if (el.tagName === 'SELECT') {
+            const def = Array.from(el.options).find((o) => o.defaultSelected) || el.options[0];
+            return !!def && el.value !== def.value;
+        }
+        return el.value.trim() !== el.defaultValue.trim();
+    }
+
+    function init() {
+        document.querySelectorAll('form.auto-table-toolbar').forEach((form) => {
+            const btn = form.querySelector('[data-filter-submit]');
+            if (!btn) return;
+            const sync = () => btn.classList.toggle('is-visible', fields(form).some(changed));
+            form.addEventListener('input', sync);
+            form.addEventListener('change', sync);
+            // Back/forward can restore typed values into the fields.
+            window.addEventListener('pageshow', sync);
+            sync();
+        });
+    }
+
+    return { init };
+})();
+window.FilterBar = FilterBar;
+
+// ============================================================
+// ScrollTable — a table card that scrolls instead of paginating.
+//
+// Same card / toolbar / table look as the auto-paginated tables, but no
+// AutoPageSize and no server paging: every row is in the page, the card is
+// height-capped (.auto-table-card--scroll) and scrolls inside, and the first
+// `data-limit` matching rows show with a "Show more" bar at the end of the
+// scrolling body that reveals `data-batch` more each click.
+//
+// Markup (see modules/settings/admin_courses.php):
+//   [data-scroll-table data-limit="10" data-batch="10"]   the card
+//     [data-st-search]                       search input (lowercased text in
+//                                            each row's data-search)
+//     [data-st-filter="strand"]              select; matches the row's
+//                                            data-strand (values split by |)
+//     [data-st-clear]                        Clear button (start it display:none),
+//                                            shown while filtering
+//     tr[data-st-row]                        rows
+//     [data-st-empty]                        "nothing matches" state
+//     [data-st-more] [data-st-count] [data-st-more-btn]   the Show more bar
+//
+// Filtering is live (no Filter button). A row with .is-editing stays visible.
+// Dispatch "st:refresh" on the card to re-run after changing rows.
+// ============================================================
+const ScrollTable = (() => {
+    function setup(card) {
+        const limit   = Math.max(1, parseInt(card.dataset.limit || '10', 10));
+        const batch   = Math.max(1, parseInt(card.dataset.batch || String(limit), 10));
+        const rows    = Array.from(card.querySelectorAll('tr[data-st-row]'));
+        const search  = card.querySelector('[data-st-search]');
+        const filters = Array.from(card.querySelectorAll('[data-st-filter]'));
+        const clear   = card.querySelector('[data-st-clear]');
+        const empty   = card.querySelector('[data-st-empty]');
+        const more    = card.querySelector('[data-st-more]');
+        const count   = card.querySelector('[data-st-count]');
+        const moreBtn = card.querySelector('[data-st-more-btn]');
+        let shown = limit;
+
+        function query() { return search ? search.value.trim().toLowerCase() : ''; }
+
+        function isFiltering() {
+            return query() !== '' || filters.some((f) => f.value !== '');
+        }
+
+        function matches(row) {
+            const q = query();
+            if (q && !(row.getAttribute('data-search') || '').includes(q)) return false;
+            return filters.every((f) => {
+                if (f.value === '') return true;
+                const have = (row.getAttribute('data-' + f.dataset.stFilter) || '').split('|');
+                return have.includes(f.value);
+            });
+        }
+
+        function render() {
+            let matched = 0;
+            let visible = 0;
+            let last = null;
+            rows.forEach((row) => {
+                const editing = row.classList.contains('is-editing');
+                const ok = editing || matches(row);
+                if (ok) matched++;
+                const show = ok && (editing || visible < shown);
+                row.hidden = !show;
+                row.removeAttribute('data-st-last');
+                if (show) { visible++; last = row; }
+            });
+            if (last) last.setAttribute('data-st-last', '');
+            if (empty) empty.hidden = rows.length === 0 || matched > 0;
+            if (more) {
+                more.hidden = visible >= matched;
+                if (count) count.innerHTML = 'Showing <strong>' + visible + '</strong> of <strong>' + matched + '</strong>';
+            }
+            // .btn sets its own display, so toggle the inline style, not [hidden].
+            if (clear) clear.style.display = isFiltering() ? '' : 'none';
+        }
+
+        function reset() { shown = limit; render(); }
+
+        if (search) search.addEventListener('input', reset);
+        filters.forEach((f) => f.addEventListener('change', reset));
+        if (clear) {
+            clear.addEventListener('click', () => {
+                if (search) search.value = '';
+                filters.forEach((f) => { f.value = ''; });
+                reset();
+            });
+        }
+        if (moreBtn) moreBtn.addEventListener('click', () => { shown += batch; render(); });
+        card.addEventListener('st:refresh', render);
+
+        render();
+    }
+
+    function init() {
+        document.querySelectorAll('[data-scroll-table]').forEach(setup);
+    }
+
+    return { init };
+})();
+window.ScrollTable = ScrollTable;
+
+// ============================================================
 // SelectMenu — one dropdown list for every <select>
 //
 // The closed <select> keeps its place in the page (layout, width, name,
@@ -943,6 +1090,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initForms();
     initConfirm();
     AutoPageSize.init();
+    FilterBar.init();
+    ScrollTable.init();
 
     // Poll for new notifications every 30 seconds
     if (document.getElementById('notif-dropdown')) {

@@ -604,7 +604,7 @@ ob_start();
             <?php endforeach; ?>
         </select>
 
-        <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
+        <button type="submit" class="btn btn-secondary btn-sm" data-filter-submit>Filter</button>
         <?php if ($hasFilters): ?>
             <a href="<?= e(url('/staff/exam/export-rooms') . '?' . http_build_query(['per_page' => $perPage])) ?>" class="btn btn-ghost btn-sm">Clear</a>
         <?php endif; ?>

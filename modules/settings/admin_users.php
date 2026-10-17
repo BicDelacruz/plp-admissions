@@ -197,7 +197,7 @@ ob_start();
             <?php endforeach; ?>
         </select>
 
-        <button type="submit" id="users-filter-btn" class="btn btn-secondary btn-sm" style="display:none">Filter</button>
+        <button type="submit" class="btn btn-secondary btn-sm" data-filter-submit>Filter</button>
         <?php if ($hasFilters): ?>
             <a href="<?= url('/admin/users') ?>" class="btn btn-ghost btn-sm">Clear</a>
         <?php endif; ?>
@@ -422,22 +422,6 @@ ob_start();
         </form>
     </div>
 </div>
-
-<script>
-// Show the Filter button only once a filter value differs from what is applied.
-(function(){
-    var form = document.getElementById('users-filter-form');
-    var btn  = document.getElementById('users-filter-btn');
-    if (!form || !btn) return;
-    var q = form.elements['q'], d = form.elements['department'];
-    var q0 = q.value, d0 = d.value;
-    function sync() {
-        btn.style.display = (q.value.trim() !== q0.trim() || d.value !== d0) ? '' : 'none';
-    }
-    q.addEventListener('input', sync);
-    d.addEventListener('change', sync);
-})();
-</script>
 
 <script>
 function openResetModal(uid, name) {

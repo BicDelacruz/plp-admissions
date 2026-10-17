@@ -320,7 +320,7 @@ ob_start();
             <input type="text" name="q" class="form-input" placeholder="Search by date, interviewer, department or room…" value="<?= e($search) ?>">
         </div>
 
-        <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
+        <button type="submit" class="btn btn-secondary btn-sm" data-filter-submit>Filter</button>
         <?php if ($search !== ''): ?>
             <a href="<?= url('/staff/interviews/cancel-slot') ?>" class="btn btn-ghost btn-sm">Clear</a>
         <?php endif; ?>
