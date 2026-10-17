@@ -240,7 +240,7 @@ ob_start();
                         ?>
                         <span style="display:inline-flex;align-items:center;gap:var(--space-2);max-width:100%">
                             <span class="auto-table-clip" style="font-size:var(--text-sm);font-weight:var(--weight-medium)"><?= e($log['user_name']) ?></span>
-                            <span class="badge badge-<?= $roleBadge ?>" style="font-size:10px;flex-shrink:0"><?= e($roleLabel) ?></span>
+                            <span class="badge badge-<?= $roleBadge ?>" style="flex-shrink:0"><?= e($roleLabel) ?></span>
                         </span>
                     </td>
                     <?php endif; ?>

@@ -266,7 +266,7 @@ ob_start();
                 <?php if ($canEvaluate): ?>
                     <button type="submit" class="btn btn-primary btn-sm">Save evaluations</button>
                 <?php else: ?>
-                    <span class="badge badge-neutral" style="font-size:var(--text-xs)"
+                    <span class="badge badge-neutral"
                           title="Read-only — only the session interviewer can record evaluations">
                         Read-only
                     </span>

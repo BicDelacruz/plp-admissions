@@ -37,9 +37,9 @@ $_logoHtml = $_logoSrc !== ''
     : '<span class="sidebar-logo-placeholder">' . icon('bank:fill', 14) . '</span>';
 ?>
 <div class="sidebar-logo-row sidebar-logo-row--expanded">
-    <a href="<?= e(url($sidebarHome)) ?>" class="sidebar-brand-link" title="<?= e($schoolName) ?>">
+    <a href="<?= e(url($sidebarHome)) ?>" class="sidebar-brand-link" title="PLP Admissions">
         <?= $_logoHtml ?>
-        <span class="sidebar-brand-name"><?= e($schoolName) ?></span>
+        <span class="sidebar-brand-name">PLP Admissions</span>
     </a>
     <button type="button" class="sidebar-icon-btn" data-sidebar-toggle aria-label="Collapse sidebar">
         <?= icon('sidebar-simple', 16, '', 'class="sidebar-icon-flip"') ?>

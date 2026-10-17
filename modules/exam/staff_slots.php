@@ -759,13 +759,9 @@ ob_start();
 
 /* Active access-code badge on a slot card */
 .es-card-code-badge {
-    display: inline-flex; align-items: center; gap: 4px;
-    padding: 2px 8px;
-    border-radius: var(--radius);
     background: var(--success-muted, #e6f4ec);
     color: var(--success, #2d6a4f);
     font-family: monospace;
-    font-size: var(--text-xs);
     font-weight: var(--weight-semibold);
     letter-spacing: .08em;
 }
@@ -887,7 +883,7 @@ ob_start();
         <?= ui_button('Export Lists', ['href' => url('/staff/exam/export-rooms'), 'icon' => 'ic_fluent_document_24_regular', 'attrs' => ['target' => '_blank', 'rel' => 'noopener', 'title' => 'Printable per-room sheets to post on the school board']]) ?>
         <?= ui_button('Config', ['variant' => 'ghost', 'icon' => 'ic_fluent_settings_24_regular', 'attrs' => ['onclick' => "document.getElementById('exam-config-modal').style.display='flex'"]]) ?>
     <?php else: ?>
-        <span class="badge badge-neutral" style="font-size:var(--text-xs)">
+        <span class="badge badge-neutral">
             <?= icon('ic_fluent_eye_24_regular', 12) ?> Read-only
         </span>
     <?php endif; ?>
@@ -1145,7 +1141,7 @@ ob_start();
             </strong>
             seats filled
             <?php if ($isPast): ?>
-                <span class="badge badge-neutral" style="font-size:10px;margin-left:var(--space-2)">Ended</span>
+                <span class="badge badge-neutral" style="margin-left:var(--space-2)">Ended</span>
             <?php endif; ?>
         </span>
     </div>
@@ -1298,7 +1294,7 @@ ob_start();
                             <span class="auto-table-clip"><?= e($row['course_applied'] ?: '—') ?></span>
                         </td>
                         <td>
-                            <span class="badge badge-neutral" style="font-size:var(--text-xs)">
+                            <span class="badge badge-neutral">
                                 <?= e(ucfirst($row['applicant_type'] ?? '')) ?>
                             </span>
                         </td>

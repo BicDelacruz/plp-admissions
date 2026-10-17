@@ -655,7 +655,7 @@ ob_start();
                                 }
                             }
                         ?>
-                        <span class="badge <?= $statusBadgeClass ?>" style="font-size:var(--text-xs)"
+                        <span class="badge <?= $statusBadgeClass ?>"
                               <?= ($isFinal && $existing !== '') ? 'title="' . e($existing) . '"' : '' ?>>
                             <?php if ($isInProg): ?>
                                 <span style="display:inline-block;width:6px;height:6px;border-radius:50%;

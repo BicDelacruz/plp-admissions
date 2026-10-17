@@ -872,7 +872,12 @@ function audit_log(
 function phosphor_head(): string
 {
     $b = 'https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src';
+    // The icon fonts are font-display:block, so icons stay invisible until the
+    // font arrives. Preloading them starts that download with the page, not
+    // after the CSS is parsed, so icons are there on first paint.
     return '<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>' . "\n"
+         . '    <link rel="preload" as="font" type="font/woff2" href="' . $b . '/bold/Phosphor-Bold.woff2" crossorigin>' . "\n"
+         . '    <link rel="preload" as="font" type="font/woff2" href="' . $b . '/fill/Phosphor-Fill.woff2" crossorigin>' . "\n"
          . '    <link rel="stylesheet" href="' . $b . '/bold/style.css">' . "\n"
          . '    <link rel="stylesheet" href="' . $b . '/fill/style.css">';
 }

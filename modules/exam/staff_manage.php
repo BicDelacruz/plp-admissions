@@ -417,9 +417,7 @@ ob_start();
 
 /* ── Type pills ──────────────────────────────────── */
 .type-pill {
-    display: inline-flex; align-items: center; gap: 4px;
-    font-size: var(--text-xs); padding: 2px 8px;
-    background: var(--bg-subtle); border-radius: var(--radius);
+    background: var(--bg-subtle);
     color: var(--text-secondary);
 }
 .type-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:var(--space-2); }
@@ -437,9 +435,8 @@ ob_start();
 
 /* ── Points badge ────────────────────────────────── */
 .pts-badge {
-    font-size: var(--text-xs); font-weight: var(--weight-semibold);
-    padding: 2px 8px; background: var(--accent); color: #fff;
-    border-radius: var(--radius);
+    font-weight: var(--weight-semibold);
+    background: var(--accent); color: #fff;
 }
 
 /* ── Toggle ──────────────────────────────────────── */
@@ -490,7 +487,6 @@ ob_start();
 }
 .iq-body { padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); }
 .iq-footer { padding: var(--space-3) var(--space-4); border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--bg); }
-.iq-type-badge { display: inline-flex; align-items: center; gap: 5px; font-size: var(--text-xs); padding: 3px 10px; border-radius: var(--radius); font-weight: var(--weight-medium); }
 .iq-choice-row { display: flex; align-items: center; gap: 8px; }
 .iq-choice-row input[type=text] { flex: 1; }
 .iq-add-choice { font-size: var(--text-xs); color: var(--accent); background: none; border: none; cursor: pointer; padding: 4px 0; display: flex; align-items: center; gap: 4px; }

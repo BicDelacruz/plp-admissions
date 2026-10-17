@@ -66,7 +66,7 @@ $sidebarHome = match ($userRole) {
 // returned at runtime. A strict allow-list breaks every time Puter changes
 // infra. (The old documents AI Validate feature has been removed; Puter is
 // only used by the exam builder now.)
-header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://js.puter.com; worker-src 'self' blob: https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob: https:; frame-src https://*.puter.com; connect-src 'self' https: blob: data:;");
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://js.puter.com; worker-src 'self' blob: https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob: https:; frame-src 'self' https://*.puter.com; connect-src 'self' https: blob: data:;");
 header("X-Content-Type-Options: nosniff");
 header("X-Frame-Options: SAMEORIGIN");
 header("Referrer-Policy: strict-origin-when-cross-origin");
@@ -82,6 +82,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
     <!-- Preconnect for Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap">
 
     <?= phosphor_head() ?>
 
@@ -90,16 +91,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
         html{background:#f7f7f5;color-scheme:light}
         html[data-theme="dark"]{background:#111110;color-scheme:dark}
     </style>
-    <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
-    <?php if ($isEmbed && $embedSection !== ''): ?>
-    <style>[data-settings-section]:not([data-settings-section="<?= $embedSection ?>"]) { display: none !important; }</style>
-    <?php endif; ?>
-
-    <?php if ($schoolLogo): ?>
-    <link rel="preload" as="image" href="<?= str_starts_with($schoolLogo, 'http') ? e($schoolLogo) : e(url('/' . $schoolLogo)) ?>">
-    <?php endif; ?>
-
-    <!-- Inject accent color from DB before paint -->
+    <!-- Theme and text size are applied before the stylesheet, so the first paint is already in the right theme -->
     <script>
         // Apply saved theme before render to prevent flash
         (function(){
@@ -113,6 +105,15 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
             });
         })();
     </script>
+    <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
+    <?php if ($isEmbed && $embedSection !== ''): ?>
+    <style>[data-settings-section]:not([data-settings-section="<?= $embedSection ?>"]) { display: none !important; }</style>
+    <?php endif; ?>
+
+    <?php if ($schoolLogo): ?>
+    <link rel="preload" as="image" href="<?= str_starts_with($schoolLogo, 'http') ? e($schoolLogo) : e(url('/' . $schoolLogo)) ?>">
+    <?php endif; ?>
+
 </head>
 <body<?= $isEmbed ? ' class="is-embed"' : '' ?>>
 

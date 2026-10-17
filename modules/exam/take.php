@@ -309,7 +309,7 @@ if ($isSlotFuture) {
                                     $sClass = $sLabel === 'approved' ? 'badge-success'
                                             : ($sLabel === 'denied' ? 'badge-error' : 'badge-warning');
                                 ?>
-                                <span class="badge <?= $sClass ?>" style="font-size:10px">
+                                <span class="badge <?= $sClass ?>">
                                     <?= e(ucfirst($sLabel)) ?>
                                 </span>
                             </div>
@@ -415,7 +415,7 @@ if ($isSlotPast) {
                                     $sClass = $sLabel === 'approved' ? 'badge-success'
                                             : ($sLabel === 'denied' ? 'badge-error' : 'badge-warning');
                                 ?>
-                                <span class="badge <?= $sClass ?>" style="font-size:10px">
+                                <span class="badge <?= $sClass ?>">
                                     <?= e(ucfirst($sLabel)) ?>
                                 </span>
                             </div>
@@ -854,7 +854,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             Your rank: <span style="color:<?= $altTier['color'] ?>;font-weight:var(--weight-semibold)"><?= $rank ?> (<?= $altTier['label'] ?>)</span>
                         </div>
                     </div>
-                    <span class="badge badge-approved" style="font-size:10px;flex-shrink:0">Qualifies</span>
+                    <span class="badge badge-approved" style="flex-shrink:0">Qualifies</span>
                 </div>
                 <?php endforeach; ?>
             </div>

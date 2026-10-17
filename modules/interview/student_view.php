@@ -484,7 +484,7 @@ ob_start();
                                         $sClass = $sLabel === 'approved' ? 'badge-success'
                                                 : ($sLabel === 'denied' ? 'badge-error' : 'badge-warning');
                                     ?>
-                                    <span class="badge <?= $sClass ?>" style="font-size:var(--text-xs)">
+                                    <span class="badge <?= $sClass ?>">
                                         <?= e(ucfirst($sLabel)) ?>
                                     </span>
                                 </div>
