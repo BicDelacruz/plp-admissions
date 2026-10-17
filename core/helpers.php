@@ -1095,18 +1095,6 @@ function exam_password_seconds_remaining(array $row): int
 }
 
 /**
- * Return true if today's date matches the slot's exam date.
- * Schedule now lives on the slot, not the exam (per Chunk 7).
- *
- * @param  array  $slot  Row from `exam_slot_schedule` containing `exam_date`
- */
-function is_slot_today(array $slot): bool
-{
-    if (empty($slot['exam_date'])) return false;
-    return date('Y-m-d') === date('Y-m-d', strtotime($slot['exam_date']));
-}
-
-/**
  * Return the wall-clock open / close DateTimes for a slot.
  *
  *   opens  = exam_date + slot_time
@@ -1130,15 +1118,6 @@ function slot_window(array $slot): array
         $closes = (clone $opens)->modify('+90 minutes');
     }
     return ['opens' => $opens, 'closes' => $closes];
-}
-
-/**
- * Convenience: return the duration of a slot in minutes (closes − opens).
- */
-function slot_duration_minutes(array $slot): int
-{
-    $w = slot_window($slot);
-    return (int) round(($w['closes']->getTimestamp() - $w['opens']->getTimestamp()) / 60);
 }
 
 /**

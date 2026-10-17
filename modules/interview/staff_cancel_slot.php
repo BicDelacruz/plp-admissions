@@ -161,7 +161,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Log a bulk reschedule_requests row per applicant so the
             // student-facing history block shows what happened.
-            ensure_reschedule_requests_table();
             $logStmt = $db->prepare(
                 "INSERT INTO reschedule_requests
                     (applicant_id, queue_id, reason, status, reviewed_by, reviewed_at)

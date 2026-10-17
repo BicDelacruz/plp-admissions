@@ -76,7 +76,6 @@ $_navExamReschedPending = false;
 // Dean no longer sees the Interview Reschedules entry (reschedules
 // are an SSO/registrar action), so we skip the query for them too.
 try {
-    ensure_reschedule_requests_table();
     $_navReschedPending = (int)$_navDb->query(
         "SELECT COUNT(*) FROM reschedule_requests WHERE status='pending'"
     )->fetchColumn() > 0;
@@ -84,7 +83,6 @@ try {
 
 // Exam reschedule requests — pending count for SSO/Admin.
 try {
-    ensure_exam_reschedule_requests_table();
     $_navExamReschedPending = (int)$_navDb->query(
         "SELECT COUNT(*) FROM exam_reschedule_requests WHERE status='pending'"
     )->fetchColumn() > 0;

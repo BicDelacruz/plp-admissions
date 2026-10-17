@@ -32,9 +32,6 @@ $canReschedule = in_array($role, [ROLE_SSO, ROLE_ADMIN], true);
 $errors  = [];
 $success = [];
 
-// Ensure the reschedule_requests table exists.
-ensure_reschedule_requests_table();
-
 // Active tab: absent (default) or requests. Dean is forced onto the
 // absent tab — the Reschedule Requests tab is hidden from them and
 // any direct ?tab=requests link from a bookmark is silently snapped
