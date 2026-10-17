@@ -253,7 +253,7 @@ ob_start();
         <table class="table" style="width:100%;border-collapse:collapse">
             <thead>
                 <tr style="background:var(--bg-subtle);text-align:left;font-size:var(--text-xs);
-                            color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.06em">
+                            color:var(--text-secondary)">
                     <th style="padding:var(--space-3) var(--space-4)">Slot</th>
                     <th style="padding:var(--space-3) var(--space-4)">Room</th>
                     <th style="padding:var(--space-3) var(--space-4)">Department</th>

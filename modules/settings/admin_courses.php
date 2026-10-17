@@ -266,7 +266,7 @@ ob_start();
     </div>
     <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;font-size:var(--text-sm);margin-bottom:var(--space-6);background:var(--bg-elevated);width:100%">
         <?php
-        $hStyle = 'padding:var(--space-3) var(--space-4);background:var(--bg-subtle);font-size:var(--text-xs);font-weight:var(--weight-semibold);color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.04em;border-bottom:1px solid var(--border)';
+        $hStyle = 'padding:var(--space-3) var(--space-4);background:var(--bg-subtle);font-size:var(--text-xs);font-weight:var(--weight-semibold);color:var(--text-secondary);border-bottom:1px solid var(--border)';
         $hStyleC = $hStyle . ';text-align:center';
         ?>
         <div style="display:grid;grid-template-columns:minmax(280px,1.6fr) minmax(160px,0.9fr) 90px 110px 90px 110px 110px 60px">
