@@ -383,6 +383,8 @@ ob_start();
 <?php
 $content     = ob_get_clean();
 $pageTitle   = 'Admission Result';
+// Shared header slot: shows in every state (withdrawn, pending, admitted, rejected).
+$pageActions = ui_button('Print', ['variant' => 'secondary', 'icon' => 'printer', 'href' => url('/print/admission'), 'attrs' => ['target' => '_blank', 'rel' => 'noopener']]);
 $activeNav   = 'result';
 $showStepper = true;
 include VIEWS_PATH . '/layouts/app.php';

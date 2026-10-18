@@ -789,9 +789,10 @@ function undoApproveAll() {
 
 <?php
     $content   = ob_get_clean();
-    $pageTitle = 'Review: ' . format_full_name($applicant);
+    $pageTitle = 'Review: ' . format_full_name($applicant);  
     $pageBreadcrumb = [['label' => 'Documents', 'to' => '/staff/applicants']];
-    $pageActions = ($approvableCount > 0 ? ui_button('Approve All (' . (int)$approvableCount . ')', ['variant' => 'success', 'icon' => 'ic_fluent_checkmark_circle_24_regular', 'attrs' => ['id' => 'approve-all-btn', 'onclick' => 'approveAllAjax()']]) : '');
+    $pageActions = ui_button('Print', ['variant' => 'secondary', 'icon' => 'printer', 'href' => url('/print/admission?id=' . (int)$applicantId), 'attrs' => ['target' => '_blank', 'rel' => 'noopener']])
+        . ($approvableCount > 0 ? ui_button('Approve All (' . (int)$approvableCount . ')', ['variant' => 'success', 'icon' => 'ic_fluent_checkmark_circle_24_regular', 'attrs' => ['id' => 'approve-all-btn', 'onclick' => 'approveAllAjax()']]) : '');
     $activeNav = 'documents';
     include VIEWS_PATH . '/layouts/app.php';
     return;
@@ -959,7 +960,7 @@ $sortParams = ['status' => $statusFilter, 'type' => $typeFilter, 'course' => $co
                     <?= sortable_th('status',       'Status',       $sortCol, $sortDir, $sortParams, 'width:130px') ?>
                     <?= sortable_th('docs_pending', 'Docs Pending', $sortCol, $sortDir, $sortParams, 'width:150px') ?>
                     <?= sortable_th('applied',      'Applied',      $sortCol, $sortDir, $sortParams, 'width:130px') ?>
-                    <th style="width:100px">Actions</th>
+                    <th style="width:140px">Actions</th>
                 </tr>
             </thead>
             <?php if (!empty($result['data'])): ?>
@@ -991,6 +992,7 @@ $sortParams = ['status' => $statusFilter, 'type' => $typeFilter, 'course' => $co
                     <td style="font-size:var(--text-sm);color:var(--text-tertiary)"><?= format_date($row['created_at'], 'M j, Y') ?></td>
                     <td>
                         <a href="<?= url('/staff/applicants/' . $row['id']) ?>" class="btn btn-secondary btn-sm">Review</a>
+                        <a href="<?= url('/print/admission?id=' . (int)$row['id']) ?>" class="btn btn-secondary btn-sm" target="_blank" rel="noopener" title="Print admission" aria-label="Print admission"><?= icon('printer', 14) ?></a>
                     </td>
                 </tr>
                 <?php endforeach; ?>
