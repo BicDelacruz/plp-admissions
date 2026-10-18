@@ -4307,25 +4307,27 @@ img:not([class*="logo"]):not([src$=".svg"]) {
 
 
 /* ============================================================
-   Scrollbars: slim, school green. Follows --accent, so the colour
-   picked in admin settings applies here too.
+   Scrollbars: slim, neutral grey, hidden until you point at the
+   scroll area. Pure CSS, so it needs no script.
    ============================================================ */
 
 :root {
     --scrollbar-size:        8px;
-    --scrollbar-thumb:       var(--accent);
-    --scrollbar-thumb-hover: var(--accent-light);
+    --scrollbar-thumb:       oklch(0 0 0 / 0.28);
+    --scrollbar-thumb-hover: oklch(0 0 0 / 0.45);
     --scrollbar-track:       transparent;
 }
 [data-theme="dark"] {
-    /* --accent is too dark against dark surfaces, so use the light step. */
-    --scrollbar-thumb:       var(--accent-light);
-    --scrollbar-thumb-hover: color-mix(in srgb, var(--accent-light) 80%, white);
+    --scrollbar-thumb:       oklch(1 0 0 / 0.28);
+    --scrollbar-thumb-hover: oklch(1 0 0 / 0.45);
 }
 
 /* Covers the page, sidebar, tables, drawer, modals, menus, textareas. */
 * {
     scrollbar-width: thin;
+    scrollbar-color: transparent var(--scrollbar-track);
+}
+*:hover {
     scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
@@ -4334,6 +4336,7 @@ img:not([class*="logo"]):not([src$=".svg"]) {
 @supports not (scrollbar-color: auto) {
     ::-webkit-scrollbar { width: var(--scrollbar-size); height: var(--scrollbar-size); }
     ::-webkit-scrollbar-track { background: var(--scrollbar-track); }
-    ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: var(--scrollbar-size); }
+    ::-webkit-scrollbar-thumb { background: transparent; border-radius: var(--scrollbar-size); }
+    :hover::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); }
     ::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); }
 }

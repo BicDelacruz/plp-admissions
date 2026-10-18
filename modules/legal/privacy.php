@@ -3,13 +3,11 @@
 // modules/legal/privacy.php
 // Public privacy policy (RA 10173, Data Privacy Act of 2012).
 // No login needed. Uses the shared auth layout.
-// DRAFT: the school and its DPO must review this. Not legal advice.
-// Demo values are filled in (date, region, roles, retention). The school must confirm them before real use.
+// DRAFT: the project team must review this. Not legal advice.
+// Demo values are filled in (date, region, roles, retention). The team must confirm them before real use.
 // ============================================================
 
 require_once CORE_PATH . '/bootstrap.php';
-
-$schoolName = school_setting('school_name', 'Pamantasan ng Lungsod ng Pasig');
 
 ob_start();
 ?>
@@ -17,17 +15,25 @@ ob_start();
 
     <div class="auth-header">
         <h1 class="auth-title">Privacy Policy</h1>
-        <p class="auth-subtitle">How PLP Admissions handles your personal data.</p>
+        <p class="auth-subtitle">How the Admission System handles your personal data.</p>
     </div>
 
     <div class="privacy-body">
         <p class="privacy-meta">Effective date: October 13, 2026</p>
 
         <h2>1. Who we are</h2>
-        <p>PLP Admissions is the online admissions system of <?= e($schoolName) ?>. We process your personal data under the Data Privacy Act of 2012 (Republic Act No. 10173).</p>
+        <p>The Admission System is a school project made for the courses System Integration and Architecture I and Web Development. The two courses collaborated to build it, in compliance with their course requirements. We process your personal data under the Data Privacy Act of 2012 (Republic Act No. 10173).</p>
 
         <h2>2. Contact</h2>
-        <p>Questions, requests and complaints about your data go to Jj Bassig at <a href="mailto:jjbassig30@gmail.com">jjbassig30@gmail.com</a>.</p>
+        <p>Questions, requests and complaints about your data go to our group members:</p>
+        <ul>
+            <li>JJ Bassig</li>
+            <li>Jake Barry Artuz</li>
+            <li>Jaziell Caboverde</li>
+            <li>Dave Manuel Dela Cruz</li>
+            <li>Andria Gianan</li>
+            <li>Jerine Alyanna Santos</li>
+        </ul>
 
         <h2>3. What we collect</h2>
         <ul>
@@ -39,16 +45,16 @@ ob_start();
         </ul>
 
         <h2>4. Why we collect it</h2>
-        <p>Only to process your admission: to verify who you are, check your requirements, schedule your exam and interview, tell you your result, and keep your account secure. We do not sell your data and we do not use it for advertising.</p>
+        <p>Only to process your admission: to verify who you are, check your requirements, schedule your exam and interview, tell you your result, and keep your account secure. Once you are accepted, your admission record is passed to the enrollment system so you can be enrolled. We do not sell your data and we do not use it for advertising.</p>
 
         <h2>5. AI document sorting</h2>
-        <p>When you upload a document, an image of it is sent to an AI model that PLP runs itself. It is not sent to a third party AI service. The model only helps sort the file into the right requirement slot and flags possible problems for staff to look at. It never approves or rejects a document or an application. People make those decisions.</p>
+        <p>When you upload a document, an image of it is sent to an AI model that this system runs itself. It is not sent to a third party AI service. The model only helps sort the file into the right requirement slot and flags possible problems for staff to look at. It never approves or rejects a document or an application. People make those decisions.</p>
 
         <h2>6. Where your data is stored</h2>
         <p>Your data is stored with Supabase (database and file storage) and the app runs on Vercel. Supabase region: Singapore.</p>
 
         <h2>7. Who can see it</h2>
-        <p>Only authorized PLP personnel who need it for admissions can see your data. Uploaded documents can be opened only by the Student Services Office (SSO) and system administrators. Our service providers (Supabase, Vercel, Cloudflare and, if you use it, Google) handle data only to run the service. We share your data with others only when the law requires it.</p>
+        <p>Only authorized users of this system who need it for admissions can see your data. Uploaded documents can be opened only by the Student Services Office (SSO) and system administrators. Our service providers (Supabase, Vercel, Cloudflare and, if you use it, Google) handle data only to run the service. After you are accepted, the enrollment system also receives your admission record. We share your data with others only when the law requires it.</p>
 
         <h2>8. How long we keep it</h2>
         <p>Retention period: records and documents of enrolled students are kept for as long as they are enrolled, and those of applicants who do not enroll are kept for one year after the admission cycle ends. After that period your data is deleted or anonymized.</p>
@@ -70,7 +76,7 @@ ob_start();
             <li>object to processing, or withdraw your consent;</li>
             <li>claim compensation for damage caused by unlawful use of your data.</li>
         </ul>
-        <p>To use any of these, email the contact in section 2. If you are not satisfied, you may file a complaint with the National Privacy Commission (<a href="https://privacy.gov.ph" target="_blank" rel="noopener noreferrer">privacy.gov.ph</a>).</p>
+        <p>To use any of these, contact one of the group members in section 2. If you are not satisfied, you may file a complaint with the National Privacy Commission (<a href="https://privacy.gov.ph" target="_blank" rel="noopener noreferrer">privacy.gov.ph</a>).</p>
 
         <h2>11. Changes to this policy</h2>
         <p>If we change this policy we will post the new version on this page and update the effective date.</p>
