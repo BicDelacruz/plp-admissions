@@ -4304,3 +4304,36 @@ img:not([class*="logo"]):not([src$=".svg"]) {
         box-shadow: none;
     }
 }
+
+
+/* ============================================================
+   Scrollbars: slim, school green. Follows --accent, so the colour
+   picked in admin settings applies here too.
+   ============================================================ */
+
+:root {
+    --scrollbar-size:        8px;
+    --scrollbar-thumb:       var(--accent);
+    --scrollbar-thumb-hover: var(--accent-light);
+    --scrollbar-track:       transparent;
+}
+[data-theme="dark"] {
+    /* --accent is too dark against dark surfaces, so use the light step. */
+    --scrollbar-thumb:       var(--accent-light);
+    --scrollbar-thumb-hover: color-mix(in srgb, var(--accent-light) 80%, white);
+}
+
+/* Covers the page, sidebar, tables, drawer, modals, menus, textareas. */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+/* ponytail: webkit fallback for Safari before 18.2 only. Delete when that
+   version is below our support floor. */
+@supports not (scrollbar-color: auto) {
+    ::-webkit-scrollbar { width: var(--scrollbar-size); height: var(--scrollbar-size); }
+    ::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+    ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: var(--scrollbar-size); }
+    ::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); }
+}
