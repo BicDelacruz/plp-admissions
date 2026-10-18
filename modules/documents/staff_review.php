@@ -789,16 +789,10 @@ function undoApproveAll() {
 
 <?php
     $content   = ob_get_clean();
-    $pageTitle = 'Review: ' . format_full_name($applicant);
-    HEAD
-        Updated upstream
+    $pageTitle = 'Review: ' . format_full_name($applicant);  
     $pageBreadcrumb = [['label' => 'Documents', 'to' => '/staff/applicants']];
     $pageActions = ui_button('Print', ['variant' => 'secondary', 'icon' => 'printer', 'href' => url('/print/admission?id=' . (int)$applicantId), 'attrs' => ['target' => '_blank', 'rel' => 'noopener']])
         . ($approvableCount > 0 ? ui_button('Approve All (' . (int)$approvableCount . ')', ['variant' => 'success', 'icon' => 'ic_fluent_checkmark_circle_24_regular', 'attrs' => ['id' => 'approve-all-btn', 'onclick' => 'approveAllAjax()']]) : '');
-    Stashed changes
-    $pageBreadcrumb = [['label' => 'Documents', 'to' => '/staff/applicants']];
-    $pageActions = ($approvableCount > 0 ? ui_button('Approve All (' . (int)$approvableCount . ')', ['variant' => 'success', 'icon' => 'ic_fluent_checkmark_circle_24_regular', 'attrs' => ['id' => 'approve-all-btn', 'onclick' => 'approveAllAjax()']]) : '');
-    e861685cb792b083c8bedf2c2c260f26a5eeb32e
     $activeNav = 'documents';
     include VIEWS_PATH . '/layouts/app.php';
     return;
