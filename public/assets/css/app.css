@@ -4185,6 +4185,126 @@ img:not([class*="logo"]):not([src$=".svg"]) {
 [data-theme="dark"] .select-card.is-today:hover,
 [data-theme="dark"] .select-card.is-active:hover { background: var(--accent-muted); }
 
+/* ============================================================
+   Print admission  (/print/admission)
+   Every rule is scoped under .print-page — other pages untouched.
+   ============================================================ */
+
+/* A4 with its own margins; only .print-page uses this named page. */
+@page admission { size: A4; margin: 18mm 16mm; }
+
+.print-page {
+    --pr-k: 100px; /* width of the key column in the panel rows */
+    page: admission;
+    background: var(--border);
+}
+
+/* Screen preview: toolbar on top, A4 sheet centred on gray */
+.print-page .pr-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding: var(--space-2) var(--space-6);
+    background: var(--bg-elevated);
+    border-bottom: 1px solid var(--border);
+}
+.print-page .pr-toolbar-title { font-weight: var(--weight-semibold); }
+
+.print-page .pr-sheet {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    width: 210mm;
+    max-width: 100%;
+    min-height: 297mm;
+    margin: var(--space-6) auto;
+    padding: 18mm 16mm;
+    background: #fff;
+    border: 1px solid var(--border-strong);
+    box-shadow: 0 8px 24px -8px rgba(15, 15, 15, 0.2);
+}
+.print-page .pr-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+}
+
+/* Head: logo + school left, applicant right, rule below */
+.print-page .pr-head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding-bottom: var(--space-4);
+    border-bottom: 2px solid var(--accent);
+}
+.print-page .pr-logo { width: 56px; height: 56px; object-fit: contain; flex-shrink: 0; }
+.print-page .pr-school-meta { flex: 1; min-width: 0; }
+.print-page .pr-school { font-size: var(--text-xl); font-weight: var(--weight-semibold); overflow-wrap: anywhere; }
+.print-page .pr-sy {
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+}
+.print-page .pr-who { min-width: 0; max-width: 45%; text-align: right; }
+.print-page .pr-name { font-weight: var(--weight-semibold); overflow-wrap: anywhere; }
+
+/* Foot: small text, rule above, pinned to the end of the sheet */
+.print-page .pr-foot {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-top: auto;
+    padding-top: var(--space-2);
+    border-top: 1px solid var(--border-strong);
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+}
+
+/* The head above already names the applicant: drop the panel's copy */
+.print-page .ap-header { display: block; overflow-wrap: anywhere; }
+.print-page .ap-avatar,
+.print-page .ap-name,
+.print-page .ap-status-badge,
+.print-page .ap-section-link { display: none; }
+
+/* Panel parts on paper */
+.print-page .ap-section { break-inside: avoid; }
+.print-page .ap-kv > div {
+    display: flow-root;
+    padding-left: calc(var(--pr-k) + var(--space-2));
+    overflow-wrap: anywhere;
+}
+.print-page .ap-k {
+    float: left;
+    width: var(--pr-k);
+    min-width: 0;
+    margin: 0 0 0 calc(-1 * (var(--pr-k) + var(--space-2)));
+}
+.print-page .ap-doc-label { white-space: normal; overflow-wrap: anywhere; }
+
+/* Keep status colours on paper.
+   ponytail: the -webkit- form is for Chrome < 136; drop it once that is gone. */
+.print-page .badge {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
+@media print {
+    .print-page { background: #fff; }
+    .print-page .pr-toolbar { display: none; }
+    .print-page .pr-sheet {
+        width: auto;
+        min-height: 255mm; /* page height minus margins, with slack so the foot never spills onto a blank page */
+        margin: 0;
+        padding: 0;
+        border: 0;
+        box-shadow: none;
+    }
+}
+
 
 /* ============================================================
    Scrollbars: slim, school green. Follows --accent, so the colour
