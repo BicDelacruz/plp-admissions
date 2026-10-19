@@ -608,7 +608,7 @@ $customByName = array_column($customCourses, null, 'course_name');
                     <p style="font-size:var(--text-xs);color:var(--text-tertiary);margin-bottom:var(--space-2)">
                         Check all strands whose graduates may apply for this course.
                     </p>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-2)">
+                    <div class="row row-cols-1 row-cols-md-2" style="--bs-gutter-x:var(--space-2);--bs-gutter-y:var(--space-2)">
                     <?php foreach (SHS_STRANDS as $sKey => $sLabel): ?>
                         <label style="display:flex;align-items:flex-start;gap:var(--space-2);cursor:pointer">
                             <input type="checkbox" name="strands[]" value="<?= e($sKey) ?>"
@@ -659,7 +659,7 @@ $customByName = array_column($customCourses, null, 'course_name');
                 </div>
                 <div>
                     <label class="form-label">Accepted SHS Strands</label>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-2)" id="edit-strand-grid">
+                    <div class="row row-cols-1 row-cols-md-2" style="--bs-gutter-x:var(--space-2);--bs-gutter-y:var(--space-2)" id="edit-strand-grid">
                     <?php foreach (SHS_STRANDS as $sKey => $sLabel): ?>
                         <label style="display:flex;align-items:flex-start;gap:var(--space-2);cursor:pointer">
                             <input type="checkbox" name="strands[]"

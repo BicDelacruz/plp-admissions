@@ -1399,7 +1399,7 @@ ob_start();
                             <input type="date" name="exam_date" class="form-control" required
                                    value="<?= e($defaultDate) ?>" min="<?= date('Y-m-d') ?>">
                         </div>
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3)">
+                        <div class="row row-cols-1 row-cols-md-2" style="--bs-gutter-x:var(--space-3);--bs-gutter-y:var(--space-3)">
                             <div>
                                 <label class="form-label">Opens <span style="color:var(--error)">*</span></label>
                                 <input type="time" name="slot_time" id="add-slot-time"
@@ -1411,7 +1411,7 @@ ob_start();
                                        class="form-control" value="09:30" required>
                             </div>
                         </div>
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3)">
+                        <div class="row row-cols-1 row-cols-md-2" style="--bs-gutter-x:var(--space-3);--bs-gutter-y:var(--space-3)">
                             <div>
                                 <label class="form-label">Capacity <span style="color:var(--error)">*</span></label>
                                 <input type="number" name="capacity" class="form-control"
@@ -1430,7 +1430,7 @@ ob_start();
                         <p style="font-size:var(--text-sm);color:var(--text-secondary);margin:0">
                             One slot is created per room per selected weekday in the date range.
                         </p>
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3)">
+                        <div class="row row-cols-1 row-cols-md-2" style="--bs-gutter-x:var(--space-3);--bs-gutter-y:var(--space-3)">
                             <div>
                                 <label class="form-label">Start Date <span style="color:var(--error)">*</span></label>
                                 <input type="date" name="batch_start_date" class="form-control"
@@ -1442,7 +1442,7 @@ ob_start();
                                        value="<?= e(date('Y-m-d', strtotime($defaultDate . ' +6 days'))) ?>" required>
                             </div>
                         </div>
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3)">
+                        <div class="row row-cols-1 row-cols-md-2" style="--bs-gutter-x:var(--space-3);--bs-gutter-y:var(--space-3)">
                             <div>
                                 <label class="form-label">Opens <span style="color:var(--error)">*</span></label>
                                 <input type="time" name="batch_time" id="batch-time"
@@ -1532,7 +1532,7 @@ ob_start();
                         <input type="date" name="exam_date" id="edit-slot-date"
                                class="form-control" required min="<?= date('Y-m-d') ?>">
                     </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3)">
+                    <div class="row row-cols-1 row-cols-md-2" style="--bs-gutter-x:var(--space-3);--bs-gutter-y:var(--space-3)">
                         <div>
                             <label class="form-label">Opens <span style="color:var(--error)">*</span></label>
                             <input type="time" name="slot_time" id="edit-slot-time" class="form-control" required>
@@ -1545,7 +1545,7 @@ ob_start();
                     <div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:-2px">
                         Exam closes at <strong>Closes</strong>. Duration is the difference between the two.
                     </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3)">
+                    <div class="row row-cols-1 row-cols-md-2" style="--bs-gutter-x:var(--space-3);--bs-gutter-y:var(--space-3)">
                         <div>
                             <label class="form-label">Capacity <span style="color:var(--error)">*</span></label>
                             <input type="number" name="capacity" id="edit-slot-cap"

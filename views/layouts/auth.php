@@ -45,6 +45,10 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
     <style>
         html{background:#fff;color-scheme:light}
     </style>
+    <!-- Bootstrap 5.3.3 + Bootstrap Icons, served locally (works offline). Order: Bootstrap -> bootstrap-compat.css -> app.css -->
+    <link rel="stylesheet" href="<?= asset('vendor/bootstrap/bootstrap.min.css') ?>">
+    <link rel="stylesheet" href="<?= asset('vendor/bootstrap-icons/bootstrap-icons.min.css') ?>">
+    <link rel="stylesheet" href="<?= asset('css/bootstrap-compat.css') ?>">
     <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
 
     <script>
@@ -115,6 +119,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
 <?php endif; ?>
 
 <script src="<?= asset('js/jquery.min.js') ?>"></script>
+<script src="<?= asset('vendor/bootstrap/bootstrap.bundle.min.js') ?>"></script>
 <script src="<?= asset('js/app.js') ?>"></script>
 <script>setAccentColor('<?= e($accentColor) ?>');</script>
 <script>

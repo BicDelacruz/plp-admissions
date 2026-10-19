@@ -105,6 +105,10 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
             });
         })();
     </script>
+    <!-- Bootstrap 5.3.3 + Bootstrap Icons, served locally (works offline). Order: Bootstrap -> bootstrap-compat.css -> app.css -->
+    <link rel="stylesheet" href="<?= asset('vendor/bootstrap/bootstrap.min.css') ?>">
+    <link rel="stylesheet" href="<?= asset('vendor/bootstrap-icons/bootstrap-icons.min.css') ?>">
+    <link rel="stylesheet" href="<?= asset('css/bootstrap-compat.css') ?>">
     <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
     <?php if ($isEmbed && $embedSection !== ''): ?>
     <style>[data-settings-section]:not([data-settings-section="<?= $embedSection ?>"]) { display: none !important; }</style>
@@ -433,6 +437,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
 
 <script>window.__baseUrl = '<?= rtrim(BASE_URL, '/') ?>';</script>
 <script src="<?= asset('js/jquery.min.js') ?>"></script>
+<script src="<?= asset('vendor/bootstrap/bootstrap.bundle.min.js') ?>"></script>
 <script src="<?= asset('js/app.js') ?>"></script>
 <script>
     // Inject accent from DB

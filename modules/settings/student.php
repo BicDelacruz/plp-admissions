@@ -122,7 +122,7 @@ ob_start();
             <div style="display:flex;flex-direction:column;gap:var(--space-4)">
 
                 <!-- Row 1: First / Middle -->
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4)">
+                <div class="row row-cols-1 row-cols-md-2" style="--bs-gutter-x:var(--space-4);--bs-gutter-y:var(--space-4)">
                     <div>
                         <label class="form-label">First Name *</label>
                         <input type="text" name="first_name" class="form-control"
@@ -136,7 +136,7 @@ ob_start();
                 </div>
 
                 <!-- Row 2: Last / Suffix -->
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4)">
+                <div class="row row-cols-1 row-cols-md-2" style="--bs-gutter-x:var(--space-4);--bs-gutter-y:var(--space-4)">
                     <div>
                         <label class="form-label">Last Name *</label>
                         <input type="text" name="last_name" class="form-control"
@@ -151,7 +151,7 @@ ob_start();
                 </div>
 
                 <!-- Row 3: Birthdate / Sex -->
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4)">
+                <div class="row row-cols-1 row-cols-md-2" style="--bs-gutter-x:var(--space-4);--bs-gutter-y:var(--space-4)">
                     <div>
                         <label class="form-label">Birthdate *</label>
                         <input type="date" name="birthdate" class="form-control"
@@ -186,7 +186,7 @@ ob_start();
                 </div>
 
                 <!-- Row 5: Email (read-only) / Phone -->
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4)">
+                <div class="row row-cols-1 row-cols-md-2" style="--bs-gutter-x:var(--space-4);--bs-gutter-y:var(--space-4)">
                     <div>
                         <label class="form-label">Email</label>
                         <input type="email" class="form-control" value="<?= e($user['email']) ?>" disabled>
