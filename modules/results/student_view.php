@@ -105,7 +105,7 @@ ob_start();
         <p style="color:var(--text-secondary);margin-bottom:var(--space-6)">You have voluntarily withdrawn your application.</p>
 
         <div style="background:var(--bg-subtle);border-radius:var(--radius);padding:var(--space-5);text-align:left;margin-bottom:var(--space-6)">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4)">
+            <div class="row row-cols-1 row-cols-md-2" style="--bs-gutter-x:var(--space-4);--bs-gutter-y:var(--space-4)">
                 <div>
                     <div style="font-size:var(--text-xs);text-transform:uppercase;letter-spacing:.06em;color:var(--text-tertiary);margin-bottom:var(--space-1)">Name</div>
                     <div style="font-weight:var(--weight-medium);font-size:var(--text-sm)"><?= e(Auth::user()['name']) ?></div>
@@ -178,7 +178,7 @@ ob_start();
         <div style="background:var(--bg-subtle);border-radius:var(--radius);padding:var(--space-5);margin-bottom:var(--space-5)">
             <div style="font-size:var(--text-xs);text-transform:uppercase;letter-spacing:.06em;color:var(--text-tertiary);font-weight:var(--weight-semibold);margin-bottom:var(--space-3)">Enrollment Schedule</div>
             <?php if ($enrollmentDate && $enrollmentTime && $enrollmentVenue): ?>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);margin-bottom:var(--space-3)">
+                <div class="row row-cols-1 row-cols-md-2" style="--bs-gutter-x:var(--space-4);--bs-gutter-y:var(--space-4);margin-bottom:var(--space-3)">
                     <div>
                         <div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-bottom:var(--space-1)">Date</div>
                         <div style="font-weight:var(--weight-medium);font-size:var(--text-sm)"><?= e(format_date($enrollmentDate, 'l, F j, Y')) ?></div>
@@ -244,7 +244,7 @@ ob_start();
         <p style="color:var(--text-secondary);margin-bottom:var(--space-6)"><?= $cfg['sub'] ?></p>
 
         <div style="background:var(--bg-subtle);border-radius:var(--radius);padding:var(--space-5);text-align:left;margin-bottom:var(--space-6)">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4)">
+            <div class="row row-cols-1 row-cols-md-2" style="--bs-gutter-x:var(--space-4);--bs-gutter-y:var(--space-4)">
                 <div>
                     <div style="font-size:var(--text-xs);text-transform:uppercase;letter-spacing:.06em;color:var(--text-tertiary);margin-bottom:var(--space-1)">Name</div>
                     <div style="font-weight:var(--weight-medium);font-size:var(--text-sm)"><?= e(Auth::user()['name']) ?></div>

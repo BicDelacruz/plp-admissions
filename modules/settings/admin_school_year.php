@@ -343,7 +343,7 @@ ob_start();
         <form method="POST" id="apw-form">
             <?= csrf_field() ?>
             <input type="hidden" name="action" value="set_admissions_window">
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--space-4);margin-bottom:var(--space-3)">
+            <div class="row row-cols-1 row-cols-md-3" style="--bs-gutter-x:var(--space-4);--bs-gutter-y:var(--space-4);margin-bottom:var(--space-3)">
                 <div>
                     <label class="form-label" for="apw-open">Admissions Opens</label>
                     <input type="date" id="apw-open" name="admissions_open" class="form-input"
@@ -427,7 +427,7 @@ ob_start();
         <form method="POST">
             <?= csrf_field() ?>
             <input type="hidden" name="action" value="set_enrollment_schedule">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);margin-bottom:var(--space-3)">
+            <div class="row row-cols-1 row-cols-md-2" style="--bs-gutter-x:var(--space-4);--bs-gutter-y:var(--space-4);margin-bottom:var(--space-3)">
                 <div>
                     <label class="form-label" for="enr-date">Date</label>
                     <input type="date" id="enr-date" name="enrollment_date" class="form-input"
@@ -687,7 +687,8 @@ ob_start();
                     </label>
                 </div>
                 <div style="max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius)">
-                    <table style="width:100%;border-collapse:collapse;font-size:var(--text-sm)">
+                    <div class="table-responsive">
+            <table style="width:100%;border-collapse:collapse;font-size:var(--text-sm)">
                         <thead>
                             <tr style="background:var(--bg-subtle);position:sticky;top:0;z-index:1">
                                 <th style="padding:8px 10px;text-align:left;font-weight:var(--weight-semibold);border-bottom:1px solid var(--border);width:28px"></th>
@@ -700,6 +701,7 @@ ob_start();
                         </thead>
                         <tbody id="legacy-preview-tbody"></tbody>
                     </table>
+            </div>
                 </div>
             </div>
 

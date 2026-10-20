@@ -279,7 +279,7 @@ foreach ($byDate as $date => $dateSlots) {
                         <input type="date" name="slot_date" class="form-control"
                                value="<?= date('Y-m-d', strtotime('+1 day')) ?>">
                     </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--space-3)">
+                    <div class="row row-cols-1 row-cols-md-3" style="--bs-gutter-x:var(--space-3);--bs-gutter-y:var(--space-3)">
                         <div>
                             <label class="form-label">Start Time <span style="color:var(--error)">*</span></label>
                             <input type="time" name="slot_time" class="form-control" value="09:00">
@@ -301,7 +301,7 @@ foreach ($byDate as $date => $dateSlots) {
                     <p style="font-size:var(--text-sm);color:var(--text-secondary);margin:0">
                         One session is created per selected weekday in the date range.
                     </p>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3)">
+                    <div class="row row-cols-1 row-cols-md-2" style="--bs-gutter-x:var(--space-3);--bs-gutter-y:var(--space-3)">
                         <div>
                             <label class="form-label">Start Date <span style="color:var(--error)">*</span></label>
                             <input type="date" name="start_date" class="form-control"
@@ -313,7 +313,7 @@ foreach ($byDate as $date => $dateSlots) {
                                    value="<?= date('Y-m-d', strtotime('+14 days')) ?>">
                         </div>
                     </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--space-3)">
+                    <div class="row row-cols-1 row-cols-md-3" style="--bs-gutter-x:var(--space-3);--bs-gutter-y:var(--space-3)">
                         <div>
                             <label class="form-label">Start Time</label>
                             <input type="time" name="start_time" class="form-control" value="09:00">
@@ -391,7 +391,7 @@ foreach ($byDate as $date => $dateSlots) {
                     <label class="form-label">Date <span style="color:var(--error)">*</span></label>
                     <input type="date" name="slot_date" id="edit-sess-date" class="form-control" required>
                 </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--space-3)">
+                <div class="row row-cols-1 row-cols-md-3" style="--bs-gutter-x:var(--space-3);--bs-gutter-y:var(--space-3)">
                     <div>
                         <label class="form-label">Start Time <span style="color:var(--error)">*</span></label>
                         <input type="time" name="slot_time" id="edit-sess-time" class="form-control" required>

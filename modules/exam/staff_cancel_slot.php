@@ -250,7 +250,8 @@ ob_start();
     </div>
 <?php else: ?>
     <div class="card" style="padding:0;overflow:hidden">
-        <table class="table" style="width:100%;border-collapse:collapse">
+        <div class="table-responsive">
+        <table style="width:100%;border-collapse:collapse">
             <thead>
                 <tr style="background:var(--bg-subtle);text-align:left;font-size:var(--text-xs);
                             color:var(--text-secondary)">
@@ -328,6 +329,7 @@ ob_start();
             <?php endforeach; ?>
             </tbody>
         </table>
+        </div>
     </div>
 <?php endif; ?>
 
