@@ -10,6 +10,7 @@ Auth::requireRole(ROLE_STUDENT);
 
 $db     = db();
 $userId = Auth::id();
+warn_if_db_timezone_off();
 
 $stmt = $db->prepare('SELECT * FROM applicants WHERE user_id=? ORDER BY id DESC LIMIT 1');
 $stmt->execute([$userId]);
@@ -574,8 +575,11 @@ if ($needsPwGate && !$isUnlocked) {
 // but rendering this page never reads it back.
 $savedDraft = [];
 try {
-    db()->prepare('DELETE FROM exam_drafts WHERE applicant_id = ? AND exam_id = ?')
-        ->execute([$applicantId, $examId]);
+    // Not on POST: a late submit needs the saved draft (grace rule below). Phase 8 removes this wipe.
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        db()->prepare('DELETE FROM exam_drafts WHERE applicant_id = ? AND exam_id = ?')
+            ->execute([$applicantId, $examId]);
+    }
 } catch (\Throwable $e) {
     // Ignore — draft cleanup is non-critical.
 }
@@ -616,111 +620,36 @@ $totalPoints = array_sum(array_column($questions, 'points'));
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
 
-    $answers   = $_POST['answers'] ?? [];
-    $score     = 0;
-    $savedAnswers = [];
+    $answers = $_POST['answers'] ?? [];
+    $note    = null;
 
-    foreach ($questions as $q) {
-        $qId   = $q['id'];
-        $qType = $q['question_type'] ?? 'multiple_choice';
-
-        switch ($qType) {
-            case 'multiple_choice':
-            case 'dropdown':
-                $chosen = isset($answers[$qId]) ? (int)$answers[$qId] : -1;
-                $savedAnswers[$qId] = $chosen;
-                if ($chosen === (int)$q['correct_index']) {
-                    $score += (int)$q['points'];
-                }
-                break;
-
-            case 'checkboxes':
-                $chosen = isset($answers[$qId]) && is_array($answers[$qId])
-                    ? array_map('intval', $answers[$qId]) : [];
-                sort($chosen);
-                $savedAnswers[$qId] = $chosen;
-                $correctIndices = $q['correct_answer'] ? json_decode($q['correct_answer'], true) : [];
-                sort($correctIndices);
-                if (!empty($correctIndices) && $chosen === $correctIndices) {
-                    $score += (int)$q['points'];
-                } elseif (empty($correctIndices) && !empty($chosen)) {
-                    // No correct answer set — give credit for any answer
-                    $score += (int)$q['points'];
-                }
-                break;
-
-            case 'identification':
-            case 'short_answer':
-                $text = trim($answers[$qId] ?? '');
-                $savedAnswers[$qId] = $text;
-                if ($q['correct_answer'] !== null && $q['correct_answer'] !== '') {
-                    if (mb_strtolower($text) === mb_strtolower(trim($q['correct_answer']))) {
-                        $score += (int)$q['points'];
-                    }
-                }
-                // If no expected answer, score is 0 (manual grading required)
-                break;
-
-            case 'paragraph':
-                $savedAnswers[$qId] = trim($answers[$qId] ?? '');
-                // Always 0 — manual grading
-                break;
-
-            case 'linear_scale':
-                $chosen = isset($answers[$qId]) ? (int)$answers[$qId] : -1;
-                $savedAnswers[$qId] = $chosen;
-                // Give credit for any selection
-                if ($chosen >= $q['scale_min'] && $chosen <= $q['scale_max']) {
-                    $score += (int)$q['points'];
-                }
-                break;
+    // Grace rule: a normal submit up to N seconds after close is accepted.
+    // Later than that, only what the server saved before close counts.
+    if (!empty($mySlot['id']) && !slot_is_open((int)$mySlot['id'], exam_submit_grace_seconds())) {
+        $stmt = $db->prepare('SELECT answers FROM exam_drafts WHERE applicant_id = ? AND exam_id = ? AND slot_id = ?');
+        $stmt->execute([$applicantId, $examId, $mySlot['id']]);
+        $draftJson = $stmt->fetchColumn();
+        if ($draftJson === false) {
+            // ponytail: no saved draft means nothing to score. Staff handle it, not scored 0.
+            Session::flash('error', 'The exam has closed and no saved answers were found. Please contact the admissions office.');
+            redirect('/student/documents');
         }
+        $answers = exam_answers_from_draft((string)$draftJson);
+        $note    = EXAM_AUTO_NOTE;
     }
 
-    $totalPoints = array_sum(array_column($questions, 'points')) ?: count($questions);
-
-    $stmt = $db->prepare(
-        'INSERT INTO exam_results (applicant_id, exam_id, score, total_items, answers)
-         VALUES (?,?,?,?,?)'
-    );
-    $stmt->execute([
-        $applicantId,
-        $examId,
-        $score,
-        $totalPoints,
-        json_encode($savedAnswers),
-    ]);
-
-    $rank     = score_to_rank($score, $totalPoints);
-    $tierInfo = rank_tier_info($rank);
-    $passed   = exam_passed($score, $totalPoints, $applicant['course_applied']);
-    $pct      = $totalPoints > 0 ? round(($score / $totalPoints) * 100) : 0;
-
-    // Determine next status
-    // Passed → advance to interview; failed → stay at exam so staff can review
-    // and suggest an alternative course before any further progression.
-    $nextStatus = $passed ? 'interview' : 'exam';
-    $db->prepare('UPDATE applicants SET overall_status=? WHERE id=?')
-       ->execute([$nextStatus, $applicantId]);
-
-    // Store pass/fail verdict alongside the result row
-    $db->prepare(
-        'UPDATE exam_results SET rank_score=?, passed=? WHERE applicant_id=? AND exam_id=?'
-    )->execute([$rank, $passed ? 1 : 0, $applicantId, $examId]);
-
-    // Auto-assign an interview slot the moment they pass — student doesn't
-    // have to wait for staff to create new slots if open ones already exist.
-    // assign_interview_slot() returns null if no compatible slot is open;
-    // in that case the student stays in 'interview' status and gets picked
-    // up by bulk_assign_pending_applicants() the next time staff creates
-    // a slot in their college.
-    if ($passed) {
-        try {
-            assign_interview_slot($applicantId, Auth::id());
-        } catch (\Throwable $e) {
-            error_log('Auto-assign interview after exam pass failed: ' . $e->getMessage());
-        }
+    $res = finalize_exam_result($applicantId, $examId, $answers, $note);
+    if ($res === null) {
+        // Already submitted (double submit): the page top sends them to the right place.
+        redirect('/student/exam');
     }
+
+    $score       = $res['score'];
+    $totalPoints = $res['total'];
+    $rank        = $res['rank'];
+    $passed      = $res['passed'];
+    $pct         = $res['pct'];
+    $tierInfo    = rank_tier_info($rank);
 
     // Build course suggestions if failed
     $altCourses = [];
