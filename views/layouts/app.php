@@ -237,7 +237,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                     Withdraw Application
                 </a>
                 <?php endif; ?>
-                <a href="<?= url('/logout') ?>" class="dropdown-item">
+                <a href="<?= url('/logout') ?>" class="dropdown-item" data-logout>
                     <?= icon('sign-out', 15) ?>
                     Log out
                 </a>
@@ -343,7 +343,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                             .theme-pill[data-theme='dark'] { background: var(--accent) !important; }
                             .theme-pill[data-theme='dark'] div { transform: translateX(14px) !important; }
                         </style>
-                        <a href="<?= url('/logout') ?>" class="dropdown-item">
+                        <a href="<?= url('/logout') ?>" class="dropdown-item" data-logout>
                             <?= icon('sign-out', 15) ?>
                             Log out
                         </a>
@@ -599,6 +599,51 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
 document.getElementById('withdraw-modal').addEventListener('click', function(e) {
     if (e.target === this) this.style.display = 'none';
 });
+</script>
+<?php endif; ?>
+
+<?php if (Auth::check()): ?>
+<!-- Logout confirmation (opened by any [data-logout] link) -->
+<div id="logout-modal" class="modal-backdrop" style="display:none" aria-modal="true" role="dialog" aria-labelledby="logout-modal-title">
+    <div class="modal" style="max-width:380px">
+        <div class="modal-header">
+            <div class="modal-title" id="logout-modal-title">Log out</div>
+        </div>
+        <div class="modal-body">
+            <p style="font-size:var(--text-sm);color:var(--text-secondary)">Are you sure you want to log out?</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-ghost" id="logout-cancel-btn">Cancel</button>
+            <button type="button" class="btn btn-danger" id="logout-confirm-btn">Log out</button>
+        </div>
+    </div>
+</div>
+<script>
+(function () {
+    var modal = document.getElementById('logout-modal');
+    var confirmBtn = document.getElementById('logout-confirm-btn');
+    var href = '<?= url('/logout') ?>';
+    function close() { modal.style.display = 'none'; }
+    document.addEventListener('click', function (e) {
+        var link = e.target.closest ? e.target.closest('[data-logout]') : null;
+        if (!link) return;
+        e.preventDefault();
+        modal.style.display = 'flex';
+        confirmBtn.focus(); // Enter confirms, Esc closes (global handler)
+    });
+    document.getElementById('logout-cancel-btn').addEventListener('click', close);
+    modal.addEventListener('click', function (e) { if (e.target === modal) close(); });
+    confirmBtn.addEventListener('click', function () {
+        // Exam page: drop the browser answer copy only now, after confirming.
+        // The server draft stays until submit or close.
+        try {
+            Object.keys(localStorage).forEach(function (k) {
+                if (k.indexOf('plp_exam_draft:') === 0) localStorage.removeItem(k);
+            });
+        } catch (err) {}
+        window.location.href = href;
+    });
+})();
 </script>
 <?php endif; ?>
 
