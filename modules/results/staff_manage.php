@@ -465,14 +465,10 @@ $sortParams = ['q' => $search, 'result' => $filterRes, 'per_page' => $perPage, '
                     <?php endif; ?>
 
                     <td>
-                        <?php // Single-line row — email lives in the detail panel
-                              // that opens on click (tooltip also shows it on hover). ?>
-                        <button type="button"
-                                data-applicant-panel="<?= (int)$row['id'] ?>"
-                                title="<?= e($row['email']) ?>"
-                                style="background:none;border:none;padding:0;cursor:pointer;text-align:left;width:100%">
-                            <span class="auto-table-clip" style="font-weight:var(--weight-medium);color:var(--text-primary)"><?= e($fullName) ?></span>
-                        </button>
+                        <?php // Single-line row — plain name (email on hover).
+                              // Details open from the eye View button only. ?>
+                        <span class="auto-table-clip" title="<?= e($row['email']) ?>"
+                              style="font-weight:var(--weight-medium);color:var(--text-primary)"><?= e($fullName) ?></span>
                     </td>
 
                     <td style="font-size:var(--text-sm)" title="<?= e($row['course_applied']) ?>">

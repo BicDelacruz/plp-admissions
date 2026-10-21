@@ -610,15 +610,10 @@ ob_start();
             ?>
                 <tr class="<?= $rowClass ?>">
                     <td>
-                        <?php // Single-line row — name only.
+                        <?php // Single-line row — plain name.
                               // Eval result moved into the Status column.
-                              // Eval notes are in the detail panel that opens on click. ?>
-                        <button type="button"
-                                class="iq-name-cell iq-name-cell-clickable"
-                                data-applicant-panel="<?= (int)$r['app_id'] ?>"
-                                title="View applicant details">
-                            <span class="auto-table-clip"><?= e($name) ?></span>
-                        </button>
+                              // Details open from the eye View button only. ?>
+                        <span class="auto-table-clip iq-name-cell"><?= e($name) ?></span>
                     </td>
 
                     <?php if ($canSeeAll && $showAll): ?>
