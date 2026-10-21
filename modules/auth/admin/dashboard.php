@@ -162,11 +162,10 @@ $courseCountsStmt = $pdo->prepare("
 $courseCountsStmt->execute(array_merge([$schoolYear], $dateExtra, $deptParams));
 $courseCountsMap = array_column($courseCountsStmt->fetchAll(PDO::FETCH_ASSOC), 'cnt', 'label');
 
-// Show every PLP course on the chart's x-axis regardless of role —
-// Dean still gets dept-scoped counts (zeros for other colleges' courses)
-// from the dept-filtered query above, but the chart context stays
-// complete so they can see the full catalog at a glance.
-$courseFull   = PLP_COURSES;
+// Admin / SSO: every PLP course. Dean: only the courses of their own college.
+$viewerDept = viewer_scoped_department();
+$isDean     = Auth::role() === ROLE_DEAN;
+$courseFull = $isDean ? courses_in_department($viewerDept) : PLP_COURSES;
 $courseData   = array_map(fn($c) => (int)($courseCountsMap[$c] ?? 0), $courseFull);
 // Axis shows only the acronym (the text in the last parentheses, e.g.
 // "BS Information Technology (BSIT)" -> "BSIT"); the full name is shown in the
@@ -198,7 +197,16 @@ $strandCountsMap = array_column($strandCountsStmt->fetchAll(PDO::FETCH_ASSOC), '
 $strandLabels = [];   // acronyms (axis)
 $strandFull   = [];   // full names (tooltip)
 $strandData   = [];
+// Dean: only strands accepted by their own courses (COURSE_STRAND_MAP).
+$allowedStrands = null;
+if ($isDean) {
+    $allowedStrands = [];
+    foreach ($courseFull as $c) {
+        foreach (COURSE_STRAND_MAP[$c] ?? [] as $st) { $allowedStrands[$st] = true; }
+    }
+}
 foreach (SHS_STRANDS as $key => $label) {
+    if ($allowedStrands !== null && !isset($allowedStrands[$key])) continue;
     $strandLabels[] = $key;
     $strandFull[]   = $label;
     $strandData[]   = (int)($strandCountsMap[$key] ?? 0);
@@ -242,6 +250,9 @@ $circ    = round(2 * M_PI * 24, 2); // ≈ 150.80
 $dashOff = round($circ * (1 - $completionPct / 100), 2);
 
 $courseCount = count($courseFull);
+// Course canvas height = rows x fixed row height (+ axis room), so bars never touch.
+$courseRowPx   = 32;
+$courseCanvasH = $courseCount * $courseRowPx + 40;
 
 ob_start();
 ?>
@@ -549,8 +560,10 @@ ob_start();
             <?php if ($total === 0): ?>
                 <div class="db-empty">No applicants in this range.</div>
             <?php else: ?>
-            <div style="position:relative;width:100%;flex:1;min-height:200px;">
-                <canvas id="chartCourse"></canvas>
+            <div style="width:100%;flex:1;min-height:200px;max-height:380px;overflow-y:auto;">
+                <div style="position:relative;width:100%;height:<?= (int)$courseCanvasH ?>px;">
+                    <canvas id="chartCourse"></canvas>
+                </div>
             </div>
             <?php endif; ?>
         </div>
@@ -618,6 +631,7 @@ ob_start();
             ctx.textBaseline = 'middle';
             ctx.textAlign    = 'left';
             chart.getDatasetMeta(0).data.forEach(function (bar, i) {
+                if (!chart.data.datasets[0].data[i]) return; // hide 0 labels
                 ctx.fillText(String(chart.data.datasets[0].data[i]), bar.x + 8, bar.y);
             });
             ctx.restore();
