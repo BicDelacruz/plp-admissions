@@ -391,6 +391,15 @@ ob_start();
     border-radius:var(--radius); background:var(--bg-subtle); color:var(--text-primary); min-width:0;
 }
 
+@media (max-width:640px) {
+    .dp-menu, .page-head-actions .dp-menu {
+        left:auto; right:0;
+        min-width:min(220px, calc(100vw - 2rem));
+        max-width:calc(100vw - 2rem);
+    }
+    .dp-item { font-size:var(--text-base); padding:var(--space-3) var(--space-4); }
+    .dp-custom-row.show { flex-wrap:wrap; }
+}
 @media (max-width:960px) {
     .db-grid { grid-template-columns:minmax(0, 1fr); }
 }
