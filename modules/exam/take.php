@@ -567,21 +567,24 @@ if ($needsPwGate && !$isUnlocked) {
 }
 // ── End password gate ────────────────────────────────────────────────────────
 
-// Saved drafts are NOT auto-restored on the student exam page —
-// students should always start the exam with a clean slate, even if
-// a previous browser session managed to write something into the
-// `exam_drafts` table. The auto-save endpoint is left in place so a
-// crash during the timed exam doesn't lose absolutely everything,
-// but rendering this page never reads it back.
-$savedDraft = [];
+// Draft for restore. The server copy is read here; the page script compares
+// it with the browser copy and uses the newer one. Scoped to this applicant,
+// exam and slot. ts is epoch milliseconds, so it can be compared with Date.now().
+$draftKey    = 'plp_exam_draft:' . (int)$userId . ':' . (int)$examId . ':' . (int)($mySlot['id'] ?? 0);
+$serverDraft = null;
 try {
-    // Not on POST: a late submit needs the saved draft (grace rule below). Phase 8 removes this wipe.
-    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        db()->prepare('DELETE FROM exam_drafts WHERE applicant_id = ? AND exam_id = ?')
-            ->execute([$applicantId, $examId]);
+    $stmt = $db->prepare(
+        "SELECT answers,
+                CAST(extract(epoch FROM (saved_at AT TIME ZONE current_setting('TimeZone'))) * 1000 AS bigint) AS ts
+           FROM exam_drafts
+          WHERE applicant_id = ? AND exam_id = ? AND slot_id = ?"
+    );
+    $stmt->execute([$applicantId, $examId, $mySlot['id'] ?? 0]);
+    if ($row = $stmt->fetch()) {
+        $serverDraft = ['a' => $row['answers'], 't' => (int)$row['ts']];
     }
 } catch (\Throwable $e) {
-    // Ignore — draft cleanup is non-critical.
+    // Non-critical: the browser copy can still restore.
 }
 
 // Fetch questions
@@ -814,6 +817,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
 
     </div>
+    <script>try { localStorage.removeItem(<?= json_encode($draftKey) ?>); } catch (e) {}</script>
 
     <?php
     $content     = ob_get_clean();
@@ -1256,7 +1260,7 @@ ob_start();
         <div style="font-size:var(--text-sm);color:var(--text-tertiary)" id="answered-count">
             0 of <?= count($questions) ?> answered
         </div>
-        <button type="button" class="btn btn-primary" onclick="confirmSubmit()">Submit Exam</button>
+        <button type="button" class="btn btn-primary" id="submit-btn" onclick="confirmSubmit()">Submit Exam</button>
     </div>
 </form>
 
@@ -1271,10 +1275,13 @@ ob_start();
         </div>
         <div class="modal-footer">
             <button class="btn btn-ghost" onclick="document.getElementById('confirm-modal').style.display='none'">Go Back</button>
-            <button class="btn btn-primary" onclick="document.getElementById('exam-form').submit()">Yes, Submit</button>
+            <button class="btn btn-primary" id="confirm-yes" onclick="document.getElementById('exam-form').submit()">Yes, Submit</button>
         </div>
     </div>
 </div>
+
+<div id="exam-status-msg" class="alert alert-warning" role="status"
+     style="display:none;position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:1000;max-width:92vw;margin:0"></div>
 
 <script>
 // ── Context menu & drag prevention on exam content ──────────
@@ -1347,8 +1354,13 @@ function markScaleChosen(input, qid) {
 
 // Dropdown/text change handler — already calls markAnswered directly
 
+// Set by the save code below. While true, Submit is blocked.
+let examOffline = false;
+let timerEnded  = false;
+
 // ── Submit confirm ───────────────────────────────────────────
 function confirmSubmit() {
+    if (examOffline) return;
     const unanswered = TOTAL - answeredSet.size;
     const msg = unanswered > 0
         ? `You have ${unanswered} unanswered question${unanswered>1?'s':''}.  Once submitted, your answers cannot be changed.`
@@ -1370,6 +1382,8 @@ const interval = setInterval(() => {
     seconds--;
     if (seconds <= 0) {
         clearInterval(interval);
+        // Offline: do not submit, keep the answers. The save code submits once a save gets through.
+        if (examOffline) { timerEnded = true; return; }
         document.getElementById('exam-form').submit();
         return;
     }
@@ -1390,18 +1404,45 @@ window.addEventListener('beforeunload', e => {
     }
 });
 
-// (Draft auto-restore was intentionally removed — every exam load
-// starts with empty answers. Auto-save below still runs so a mid-exam
-// crash doesn't wipe everything from the server-side draft row.)
-
-// ── Auto-save every 60 seconds ──────────────────────────────
+// ── Save, retry and restore ─────────────────────────────────
+// Browser copy on every change, server copy 2s after a change, 10s backup.
+// A failed save means offline (navigator.onLine alone is not trusted).
 (function() {
     const examId = <?= (int)$examId ?>;
+    const slotId = <?= (int)($mySlot['id'] ?? 0) ?>;
+    const userId = <?= (int)$userId ?>;
+    const KEY    = <?= json_encode($draftKey) ?>;
+    const serverDraft = <?= json_encode($serverDraft) ?>;
+    const saveUrl = '<?= url('/api/exam-autosave') ?>';
     const form = document.getElementById('exam-form');
     const csrfToken = form.querySelector('input[name="csrf_token"]')?.value || '';
-    let saveIndicator = document.createElement('div');
+    const msgEl     = document.getElementById('exam-status-msg');
+    const submitBtn = document.getElementById('submit-btn');
+    const yesBtn    = document.getElementById('confirm-yes');
+    const modal     = document.getElementById('confirm-modal');
+    const OFFLINE_MSG = 'No connection. Your answers are saved on this device. Reconnect to submit.';
+    const CLOSED_MSG  = 'This exam has closed. Click Submit Exam to send the answers saved before it closed.';
+
+    let lastSaved = null;     // answers the server last confirmed
+    let saving = false, closed = false, restoring = false;
+    let debounce = null, retryTimer = null, retryDelay = 0;
+
+    const saveIndicator = document.createElement('div');
     saveIndicator.style.cssText = 'position:fixed;bottom:16px;right:16px;padding:6px 14px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;color:var(--text-tertiary);z-index:999;opacity:0;transition:opacity .3s';
     document.body.appendChild(saveIndicator);
+
+    function showMsg(text) {
+        msgEl.textContent = text;
+        msgEl.style.display = text ? 'block' : 'none';
+    }
+
+    function setOffline(v) {
+        examOffline = v;
+        submitBtn.disabled = v;
+        yesBtn.disabled = v;
+        if (v) modal.style.display = 'none';
+        showMsg(v ? OFFLINE_MSG : '');
+    }
 
     function collectAnswers() {
         const data = {};
@@ -1425,23 +1466,106 @@ window.addEventListener('beforeunload', e => {
         return JSON.stringify(data);
     }
 
-    setInterval(function() {
-        if (submitted) return;
-        const body = new FormData();
-        body.append('exam_id', examId);
-        body.append('answers', collectAnswers());
-        body.append('csrf_token', csrfToken);
-        fetch('<?= url('/api/exam-autosave') ?>', { method: 'POST', body: body })
-            .then(r => r.json())
-            .then(d => {
-                if (d.ok) {
-                    saveIndicator.textContent = 'Draft saved ' + d.saved_at;
-                    saveIndicator.style.opacity = '1';
-                    setTimeout(() => saveIndicator.style.opacity = '0', 3000);
-                }
-            })
-            .catch(() => {});
-    }, 60000);
+    // Browser copy. Student, exam and slot are stored inside it and checked on restore.
+    function localSave() {
+        try {
+            localStorage.setItem(KEY, JSON.stringify({ u: userId, e: examId, s: slotId, t: Date.now(), a: collectAnswers() }));
+        } catch (e) {}
+    }
+
+    function scheduleRetry() {
+        clearTimeout(retryTimer);
+        retryDelay = Math.min((retryDelay || 1000) * 2, 30000);   // 2s, 4s ... 30s
+        retryTimer = setTimeout(serverSave, retryDelay);
+    }
+
+    async function serverSave() {
+        if (submitted || closed || saving) return;
+        const answers = collectAnswers();
+        if (answers === lastSaved && !examOffline) return;       // nothing new to send
+        saving = true;
+        const ctl = new AbortController();
+        const timeout = setTimeout(() => ctl.abort(), 8000);
+        try {
+            const body = new FormData();
+            body.append('exam_id', examId);
+            body.append('slot_id', slotId);
+            body.append('answers', answers);
+            body.append('csrf_token', csrfToken);
+            const r = await fetch(saveUrl, { method: 'POST', body: body, signal: ctl.signal });
+            const d = await r.json();                            // non-JSON (e.g. expired token) counts as a failed save
+            if (d.closed) {
+                closed = true;
+                clearTimeout(retryTimer);
+                setOffline(false);
+                showMsg(CLOSED_MSG);
+                return;
+            }
+            if (d.error === 'Already submitted') { closed = true; clearTimeout(retryTimer); return; }
+            if (!d.ok) throw new Error(d.error || 'save failed');
+            lastSaved = answers;
+            retryDelay = 0;
+            clearTimeout(retryTimer);
+            setOffline(false);
+            saveIndicator.textContent = 'Draft saved ' + String(d.saved_at).slice(11, 19);
+            saveIndicator.style.opacity = '1';
+            setTimeout(() => saveIndicator.style.opacity = '0', 3000);
+            if (timerEnded) form.submit();                       // timer ran out while offline
+        } catch (e) {
+            setOffline(true);
+            scheduleRetry();
+        } finally {
+            clearTimeout(timeout);
+            saving = false;
+        }
+    }
+
+    // Fill answers from a saved JSON string and run the page's own handlers so
+    // the chosen styles and the progress counter update.
+    function applyAnswers(json) {
+        let data;
+        try { data = JSON.parse(json); } catch (e) { return false; }
+        if (!data || typeof data !== 'object') return false;
+        restoring = true;
+        form.querySelectorAll('[name^="answers["]').forEach(inp => {
+            const m = inp.name.match(/answers\[(\d+)\](\[\])?/);
+            if (!m || !(m[0] in data)) return;
+            const v = data[m[0]];
+            const choice = inp.type === 'radio' || inp.type === 'checkbox';
+            if (inp.type === 'radio') inp.checked = String(v) === inp.value;
+            else if (inp.type === 'checkbox') inp.checked = Array.isArray(v) && v.map(String).includes(inp.value);
+            else inp.value = v;
+            if (choice ? inp.checked : inp.value) {
+                inp.dispatchEvent(new Event('input',  { bubbles: true }));
+                inp.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        });
+        restoring = false;
+        return true;
+    }
+
+    // Restore: use the newer of the server draft and this browser's copy.
+    // ponytail: "newer" compares the browser clock with the server clock; a badly wrong device clock can pick the older copy.
+    let loc = null;
+    try { loc = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) {}
+    if (!loc || loc.u !== userId || loc.e !== examId || loc.s !== slotId || typeof loc.a !== 'string') loc = null;
+    const fromLocal = !!loc && (!serverDraft || loc.t > serverDraft.t);
+    const pick = fromLocal ? loc.a : (serverDraft ? serverDraft.a : null);
+    if (pick && applyAnswers(pick)) {
+        if (fromLocal) setTimeout(serverSave, 2000);             // browser copy is newer: push it up
+        else lastSaved = collectAnswers();
+    }
+
+    ['input', 'change'].forEach(ev => form.addEventListener(ev, () => {
+        if (restoring || submitted) return;
+        localSave();
+        clearTimeout(debounce);
+        debounce = setTimeout(serverSave, 2000);
+    }));
+
+    setInterval(() => { if (!examOffline) serverSave(); }, 10000);   // backup; offline retries use their own backoff
+    window.addEventListener('online', () => { if (examOffline) serverSave(); });
+    window.addEventListener('focus',  () => { if (examOffline) serverSave(); });
 })();
 </script>
 
