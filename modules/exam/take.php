@@ -8,8 +8,12 @@
 require_once CORE_PATH . '/bootstrap.php';
 Auth::requireRole(ROLE_STUDENT);
 
+// Finalize closed exams nobody submitted (one cheap EXISTS when there is no work).
+finalize_closed_exam_drafts();
+
 $db     = db();
 $userId = Auth::id();
+warn_if_db_timezone_off();
 
 $stmt = $db->prepare('SELECT * FROM applicants WHERE user_id=? ORDER BY id DESC LIMIT 1');
 $stmt->execute([$userId]);
@@ -566,18 +570,24 @@ if ($needsPwGate && !$isUnlocked) {
 }
 // ── End password gate ────────────────────────────────────────────────────────
 
-// Saved drafts are NOT auto-restored on the student exam page —
-// students should always start the exam with a clean slate, even if
-// a previous browser session managed to write something into the
-// `exam_drafts` table. The auto-save endpoint is left in place so a
-// crash during the timed exam doesn't lose absolutely everything,
-// but rendering this page never reads it back.
-$savedDraft = [];
+// Draft for restore. The server copy is read here; the page script compares
+// it with the browser copy and uses the newer one. Scoped to this applicant,
+// exam and slot. ts is epoch milliseconds, so it can be compared with Date.now().
+$draftKey    = 'plp_exam_draft:' . (int)$userId . ':' . (int)$examId . ':' . (int)($mySlot['id'] ?? 0);
+$serverDraft = null;
 try {
-    db()->prepare('DELETE FROM exam_drafts WHERE applicant_id = ? AND exam_id = ?')
-        ->execute([$applicantId, $examId]);
+    $stmt = $db->prepare(
+        "SELECT answers,
+                CAST(extract(epoch FROM (saved_at AT TIME ZONE current_setting('TimeZone'))) * 1000 AS bigint) AS ts
+           FROM exam_drafts
+          WHERE applicant_id = ? AND exam_id = ? AND slot_id = ?"
+    );
+    $stmt->execute([$applicantId, $examId, $mySlot['id'] ?? 0]);
+    if ($row = $stmt->fetch()) {
+        $serverDraft = ['a' => $row['answers'], 't' => (int)$row['ts']];
+    }
 } catch (\Throwable $e) {
-    // Ignore — draft cleanup is non-critical.
+    // Non-critical: the browser copy can still restore.
 }
 
 // Fetch questions
@@ -616,111 +626,36 @@ $totalPoints = array_sum(array_column($questions, 'points'));
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
 
-    $answers   = $_POST['answers'] ?? [];
-    $score     = 0;
-    $savedAnswers = [];
+    $answers = $_POST['answers'] ?? [];
+    $note    = null;
 
-    foreach ($questions as $q) {
-        $qId   = $q['id'];
-        $qType = $q['question_type'] ?? 'multiple_choice';
-
-        switch ($qType) {
-            case 'multiple_choice':
-            case 'dropdown':
-                $chosen = isset($answers[$qId]) ? (int)$answers[$qId] : -1;
-                $savedAnswers[$qId] = $chosen;
-                if ($chosen === (int)$q['correct_index']) {
-                    $score += (int)$q['points'];
-                }
-                break;
-
-            case 'checkboxes':
-                $chosen = isset($answers[$qId]) && is_array($answers[$qId])
-                    ? array_map('intval', $answers[$qId]) : [];
-                sort($chosen);
-                $savedAnswers[$qId] = $chosen;
-                $correctIndices = $q['correct_answer'] ? json_decode($q['correct_answer'], true) : [];
-                sort($correctIndices);
-                if (!empty($correctIndices) && $chosen === $correctIndices) {
-                    $score += (int)$q['points'];
-                } elseif (empty($correctIndices) && !empty($chosen)) {
-                    // No correct answer set — give credit for any answer
-                    $score += (int)$q['points'];
-                }
-                break;
-
-            case 'identification':
-            case 'short_answer':
-                $text = trim($answers[$qId] ?? '');
-                $savedAnswers[$qId] = $text;
-                if ($q['correct_answer'] !== null && $q['correct_answer'] !== '') {
-                    if (mb_strtolower($text) === mb_strtolower(trim($q['correct_answer']))) {
-                        $score += (int)$q['points'];
-                    }
-                }
-                // If no expected answer, score is 0 (manual grading required)
-                break;
-
-            case 'paragraph':
-                $savedAnswers[$qId] = trim($answers[$qId] ?? '');
-                // Always 0 — manual grading
-                break;
-
-            case 'linear_scale':
-                $chosen = isset($answers[$qId]) ? (int)$answers[$qId] : -1;
-                $savedAnswers[$qId] = $chosen;
-                // Give credit for any selection
-                if ($chosen >= $q['scale_min'] && $chosen <= $q['scale_max']) {
-                    $score += (int)$q['points'];
-                }
-                break;
+    // Grace rule: a normal submit up to N seconds after close is accepted.
+    // Later than that, only what the server saved before close counts.
+    if (!empty($mySlot['id']) && !slot_is_open((int)$mySlot['id'], exam_submit_grace_seconds())) {
+        $stmt = $db->prepare('SELECT answers FROM exam_drafts WHERE applicant_id = ? AND exam_id = ? AND slot_id = ?');
+        $stmt->execute([$applicantId, $examId, $mySlot['id']]);
+        $draftJson = $stmt->fetchColumn();
+        if ($draftJson === false) {
+            // ponytail: no saved draft means nothing to score. Staff handle it, not scored 0.
+            Session::flash('error', 'The exam has closed and no saved answers were found. Please contact the admissions office.');
+            redirect('/student/documents');
         }
+        $answers = exam_answers_from_draft((string)$draftJson);
+        $note    = EXAM_AUTO_NOTE;
     }
 
-    $totalPoints = array_sum(array_column($questions, 'points')) ?: count($questions);
-
-    $stmt = $db->prepare(
-        'INSERT INTO exam_results (applicant_id, exam_id, score, total_items, answers)
-         VALUES (?,?,?,?,?)'
-    );
-    $stmt->execute([
-        $applicantId,
-        $examId,
-        $score,
-        $totalPoints,
-        json_encode($savedAnswers),
-    ]);
-
-    $rank     = score_to_rank($score, $totalPoints);
-    $tierInfo = rank_tier_info($rank);
-    $passed   = exam_passed($score, $totalPoints, $applicant['course_applied']);
-    $pct      = $totalPoints > 0 ? round(($score / $totalPoints) * 100) : 0;
-
-    // Determine next status
-    // Passed → advance to interview; failed → stay at exam so staff can review
-    // and suggest an alternative course before any further progression.
-    $nextStatus = $passed ? 'interview' : 'exam';
-    $db->prepare('UPDATE applicants SET overall_status=? WHERE id=?')
-       ->execute([$nextStatus, $applicantId]);
-
-    // Store pass/fail verdict alongside the result row
-    $db->prepare(
-        'UPDATE exam_results SET rank_score=?, passed=? WHERE applicant_id=? AND exam_id=?'
-    )->execute([$rank, $passed ? 1 : 0, $applicantId, $examId]);
-
-    // Auto-assign an interview slot the moment they pass — student doesn't
-    // have to wait for staff to create new slots if open ones already exist.
-    // assign_interview_slot() returns null if no compatible slot is open;
-    // in that case the student stays in 'interview' status and gets picked
-    // up by bulk_assign_pending_applicants() the next time staff creates
-    // a slot in their college.
-    if ($passed) {
-        try {
-            assign_interview_slot($applicantId, Auth::id());
-        } catch (\Throwable $e) {
-            error_log('Auto-assign interview after exam pass failed: ' . $e->getMessage());
-        }
+    $res = finalize_exam_result($applicantId, $examId, $answers, $note);
+    if ($res === null) {
+        // Already submitted (double submit): the page top sends them to the right place.
+        redirect('/student/exam');
     }
+
+    $score       = $res['score'];
+    $totalPoints = $res['total'];
+    $rank        = $res['rank'];
+    $passed      = $res['passed'];
+    $pct         = $res['pct'];
+    $tierInfo    = rank_tier_info($rank);
 
     // Build course suggestions if failed
     $altCourses = [];
@@ -885,6 +820,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
 
     </div>
+    <script>try { localStorage.removeItem(<?= json_encode($draftKey) ?>); } catch (e) {}</script>
 
     <?php
     $content     = ob_get_clean();
@@ -1327,7 +1263,7 @@ ob_start();
         <div style="font-size:var(--text-sm);color:var(--text-tertiary)" id="answered-count">
             0 of <?= count($questions) ?> answered
         </div>
-        <button type="button" class="btn btn-primary" onclick="confirmSubmit()">Submit Exam</button>
+        <button type="button" class="btn btn-primary" id="submit-btn" onclick="confirmSubmit()">Submit Exam</button>
     </div>
 </form>
 
@@ -1342,10 +1278,13 @@ ob_start();
         </div>
         <div class="modal-footer">
             <button class="btn btn-ghost" onclick="document.getElementById('confirm-modal').style.display='none'">Go Back</button>
-            <button class="btn btn-primary" onclick="document.getElementById('exam-form').submit()">Yes, Submit</button>
+            <button class="btn btn-primary" id="confirm-yes" onclick="document.getElementById('exam-form').submit()">Yes, Submit</button>
         </div>
     </div>
 </div>
+
+<div id="exam-status-msg" class="alert alert-warning" role="status"
+     style="display:none;position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:1000;max-width:92vw;margin:0"></div>
 
 <script>
 // ── Context menu & drag prevention on exam content ──────────
@@ -1418,8 +1357,13 @@ function markScaleChosen(input, qid) {
 
 // Dropdown/text change handler — already calls markAnswered directly
 
+// Set by the save code below. While true, Submit is blocked.
+let examOffline = false;
+let timerEnded  = false;
+
 // ── Submit confirm ───────────────────────────────────────────
 function confirmSubmit() {
+    if (examOffline) return;
     const unanswered = TOTAL - answeredSet.size;
     const msg = unanswered > 0
         ? `You have ${unanswered} unanswered question${unanswered>1?'s':''}.  Once submitted, your answers cannot be changed.`
@@ -1441,6 +1385,8 @@ const interval = setInterval(() => {
     seconds--;
     if (seconds <= 0) {
         clearInterval(interval);
+        // Offline: do not submit, keep the answers. The save code submits once a save gets through.
+        if (examOffline) { timerEnded = true; return; }
         document.getElementById('exam-form').submit();
         return;
     }
@@ -1461,18 +1407,45 @@ window.addEventListener('beforeunload', e => {
     }
 });
 
-// (Draft auto-restore was intentionally removed — every exam load
-// starts with empty answers. Auto-save below still runs so a mid-exam
-// crash doesn't wipe everything from the server-side draft row.)
-
-// ── Auto-save every 60 seconds ──────────────────────────────
+// ── Save, retry and restore ─────────────────────────────────
+// Browser copy on every change, server copy 2s after a change, 10s backup.
+// A failed save means offline (navigator.onLine alone is not trusted).
 (function() {
     const examId = <?= (int)$examId ?>;
+    const slotId = <?= (int)($mySlot['id'] ?? 0) ?>;
+    const userId = <?= (int)$userId ?>;
+    const KEY    = <?= json_encode($draftKey) ?>;
+    const serverDraft = <?= json_encode($serverDraft) ?>;
+    const saveUrl = '<?= url('/api/exam-autosave') ?>';
     const form = document.getElementById('exam-form');
     const csrfToken = form.querySelector('input[name="csrf_token"]')?.value || '';
-    let saveIndicator = document.createElement('div');
+    const msgEl     = document.getElementById('exam-status-msg');
+    const submitBtn = document.getElementById('submit-btn');
+    const yesBtn    = document.getElementById('confirm-yes');
+    const modal     = document.getElementById('confirm-modal');
+    const OFFLINE_MSG = 'No connection. Your answers are saved on this device. Reconnect to submit.';
+    const CLOSED_MSG  = 'This exam has closed. Click Submit Exam to send the answers saved before it closed.';
+
+    let lastSaved = null;     // answers the server last confirmed
+    let saving = false, closed = false, restoring = false;
+    let debounce = null, retryTimer = null, retryDelay = 0;
+
+    const saveIndicator = document.createElement('div');
     saveIndicator.style.cssText = 'position:fixed;bottom:16px;right:16px;padding:6px 14px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;color:var(--text-tertiary);z-index:999;opacity:0;transition:opacity .3s';
     document.body.appendChild(saveIndicator);
+
+    function showMsg(text) {
+        msgEl.textContent = text;
+        msgEl.style.display = text ? 'block' : 'none';
+    }
+
+    function setOffline(v) {
+        examOffline = v;
+        submitBtn.disabled = v;
+        yesBtn.disabled = v;
+        if (v) modal.style.display = 'none';
+        showMsg(v ? OFFLINE_MSG : '');
+    }
 
     function collectAnswers() {
         const data = {};
@@ -1496,23 +1469,106 @@ window.addEventListener('beforeunload', e => {
         return JSON.stringify(data);
     }
 
-    setInterval(function() {
-        if (submitted) return;
-        const body = new FormData();
-        body.append('exam_id', examId);
-        body.append('answers', collectAnswers());
-        body.append('csrf_token', csrfToken);
-        fetch('<?= url('/api/exam-autosave') ?>', { method: 'POST', body: body })
-            .then(r => r.json())
-            .then(d => {
-                if (d.ok) {
-                    saveIndicator.textContent = 'Draft saved ' + d.saved_at;
-                    saveIndicator.style.opacity = '1';
-                    setTimeout(() => saveIndicator.style.opacity = '0', 3000);
-                }
-            })
-            .catch(() => {});
-    }, 60000);
+    // Browser copy. Student, exam and slot are stored inside it and checked on restore.
+    function localSave() {
+        try {
+            localStorage.setItem(KEY, JSON.stringify({ u: userId, e: examId, s: slotId, t: Date.now(), a: collectAnswers() }));
+        } catch (e) {}
+    }
+
+    function scheduleRetry() {
+        clearTimeout(retryTimer);
+        retryDelay = Math.min((retryDelay || 1000) * 2, 30000);   // 2s, 4s ... 30s
+        retryTimer = setTimeout(serverSave, retryDelay);
+    }
+
+    async function serverSave() {
+        if (submitted || closed || saving) return;
+        const answers = collectAnswers();
+        if (answers === lastSaved && !examOffline) return;       // nothing new to send
+        saving = true;
+        const ctl = new AbortController();
+        const timeout = setTimeout(() => ctl.abort(), 8000);
+        try {
+            const body = new FormData();
+            body.append('exam_id', examId);
+            body.append('slot_id', slotId);
+            body.append('answers', answers);
+            body.append('csrf_token', csrfToken);
+            const r = await fetch(saveUrl, { method: 'POST', body: body, signal: ctl.signal });
+            const d = await r.json();                            // non-JSON (e.g. expired token) counts as a failed save
+            if (d.closed) {
+                closed = true;
+                clearTimeout(retryTimer);
+                setOffline(false);
+                showMsg(CLOSED_MSG);
+                return;
+            }
+            if (d.error === 'Already submitted') { closed = true; clearTimeout(retryTimer); return; }
+            if (!d.ok) throw new Error(d.error || 'save failed');
+            lastSaved = answers;
+            retryDelay = 0;
+            clearTimeout(retryTimer);
+            setOffline(false);
+            saveIndicator.textContent = 'Draft saved ' + String(d.saved_at).slice(11, 19);
+            saveIndicator.style.opacity = '1';
+            setTimeout(() => saveIndicator.style.opacity = '0', 3000);
+            if (timerEnded) form.submit();                       // timer ran out while offline
+        } catch (e) {
+            setOffline(true);
+            scheduleRetry();
+        } finally {
+            clearTimeout(timeout);
+            saving = false;
+        }
+    }
+
+    // Fill answers from a saved JSON string and run the page's own handlers so
+    // the chosen styles and the progress counter update.
+    function applyAnswers(json) {
+        let data;
+        try { data = JSON.parse(json); } catch (e) { return false; }
+        if (!data || typeof data !== 'object') return false;
+        restoring = true;
+        form.querySelectorAll('[name^="answers["]').forEach(inp => {
+            const m = inp.name.match(/answers\[(\d+)\](\[\])?/);
+            if (!m || !(m[0] in data)) return;
+            const v = data[m[0]];
+            const choice = inp.type === 'radio' || inp.type === 'checkbox';
+            if (inp.type === 'radio') inp.checked = String(v) === inp.value;
+            else if (inp.type === 'checkbox') inp.checked = Array.isArray(v) && v.map(String).includes(inp.value);
+            else inp.value = v;
+            if (choice ? inp.checked : inp.value) {
+                inp.dispatchEvent(new Event('input',  { bubbles: true }));
+                inp.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        });
+        restoring = false;
+        return true;
+    }
+
+    // Restore: use the newer of the server draft and this browser's copy.
+    // ponytail: "newer" compares the browser clock with the server clock; a badly wrong device clock can pick the older copy.
+    let loc = null;
+    try { loc = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) {}
+    if (!loc || loc.u !== userId || loc.e !== examId || loc.s !== slotId || typeof loc.a !== 'string') loc = null;
+    const fromLocal = !!loc && (!serverDraft || loc.t > serverDraft.t);
+    const pick = fromLocal ? loc.a : (serverDraft ? serverDraft.a : null);
+    if (pick && applyAnswers(pick)) {
+        if (fromLocal) setTimeout(serverSave, 2000);             // browser copy is newer: push it up
+        else lastSaved = collectAnswers();
+    }
+
+    ['input', 'change'].forEach(ev => form.addEventListener(ev, () => {
+        if (restoring || submitted) return;
+        localSave();
+        clearTimeout(debounce);
+        debounce = setTimeout(serverSave, 2000);
+    }));
+
+    setInterval(() => { if (!examOffline) serverSave(); }, 10000);   // backup; offline retries use their own backoff
+    window.addEventListener('online', () => { if (examOffline) serverSave(); });
+    window.addEventListener('focus',  () => { if (examOffline) serverSave(); });
 })();
 </script>
 

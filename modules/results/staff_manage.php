@@ -39,6 +39,9 @@
 require_once CORE_PATH . '/bootstrap.php';
 Auth::requireRole(ROLE_DEAN, ROLE_ADMIN);
 
+// Finalize closed exams nobody submitted (one cheap EXISTS when there is no work).
+finalize_closed_exam_drafts();
+
 $db      = db();
 $staffId = Auth::id();
 $role    = Auth::role();
@@ -222,7 +225,7 @@ $result = paginate(
             u.first_name, u.middle_name, u.last_name, u.suffix,
             ar.result AS admission_result, ar.remarks AS admission_remarks, ar.released_at,
             er.score  AS exam_score, er.total_items AS exam_total,
-            er.rank_score AS exam_rank, er.passed AS exam_passed,
+            er.rank_score AS exam_rank, er.passed AS exam_passed, er.submit_note AS exam_note,
             iq.status AS interview_status, iq.interview_notes,
             iq.evaluation_result,
             $bucketCase AS bucket
@@ -465,14 +468,10 @@ $sortParams = ['q' => $search, 'result' => $filterRes, 'per_page' => $perPage, '
                     <?php endif; ?>
 
                     <td>
-                        <?php // Single-line row — email lives in the detail panel
-                              // that opens on click (tooltip also shows it on hover). ?>
-                        <button type="button"
-                                data-applicant-panel="<?= (int)$row['id'] ?>"
-                                title="<?= e($row['email']) ?>"
-                                style="background:none;border:none;padding:0;cursor:pointer;text-align:left;width:100%">
-                            <span class="auto-table-clip" style="font-weight:var(--weight-medium);color:var(--text-primary)"><?= e($fullName) ?></span>
-                        </button>
+                        <?php // Single-line row — plain name (email on hover).
+                              // Details open from the eye View button only. ?>
+                        <span class="auto-table-clip" title="<?= e($row['email']) ?>"
+                              style="font-weight:var(--weight-medium);color:var(--text-primary)"><?= e($fullName) ?></span>
                     </td>
 
                     <td style="font-size:var(--text-sm)" title="<?= e($row['course_applied']) ?>">
@@ -493,6 +492,9 @@ $sortParams = ['q' => $search, 'result' => $filterRes, 'per_page' => $perPage, '
                                   title="<?= e($_examScoreTitle) ?>">
                                 <?= (int)$row['exam_score'] ?>/<?= (int)$row['exam_total'] ?>
                             </span>
+                            <?php if (!empty($row['exam_note'])): ?>
+                                <div style="font-size:var(--text-xs);color:var(--text-tertiary)"><?= e($row['exam_note']) ?></div>
+                            <?php endif; ?>
                         <?php else: ?>
                             <span style="color:var(--text-tertiary)">—</span>
                         <?php endif; ?>

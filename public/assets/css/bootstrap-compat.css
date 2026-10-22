@@ -704,3 +704,21 @@ textarea.form-control { min-height: 42px; }
 .btn-ghost          { --bs-btn-color: var(--text-secondary); --bs-btn-bg: transparent;    --bs-btn-border-color: transparent; }
 .btn-outline-danger { --bs-btn-color: var(--error);        --bs-btn-bg: transparent;       --bs-btn-border-color: var(--error); }
 .btn-outline-warning{ --bs-btn-color: var(--warning);      --bs-btn-bg: transparent;       --bs-btn-border-color: var(--warning); }
+
+/* row-cols-*: grid columns for .row containers (not provided by the compat
+   layer before). Mobile first: row-cols-1 stacks, row-cols-md-N splits at 768px. */
+.row[class*="row-cols-"]{
+    display:grid;
+    grid-template-columns:repeat(var(--rc,1),minmax(0,1fr));
+    column-gap:var(--bs-gutter-x,var(--space-4));
+    row-gap:var(--bs-gutter-y,var(--space-4));
+}
+.row[class*="row-cols-"] > *{min-width:0;}
+.row-cols-1{--rc:1;}
+.row-cols-2{--rc:2;}
+.row-cols-3{--rc:3;}
+@media (min-width:768px){
+    .row-cols-md-1{--rc:1;}
+    .row-cols-md-2{--rc:2;}
+    .row-cols-md-3{--rc:3;}
+}

@@ -1909,7 +1909,17 @@ hr, .divider, .dropdown-separator, .dp-divider, .step-connector, .auth-topbar,
 
 @media (max-width:760px) {
     .results-toolbar { align-items:stretch;flex-wrap:wrap; }
-    .results-toolbar .segmented-control { flex:1 0 100%; }
+    .results-toolbar .segmented-control {
+        flex:1 0 100%;
+        max-width:100%;
+        overflow-x:auto;
+        overflow-y:hidden;
+        -webkit-overflow-scrolling:touch;
+        scrollbar-width:none;
+    }
+    .results-toolbar .segmented-control::-webkit-scrollbar { display:none; }
+    .results-toolbar .segmented-control > a,
+    .results-toolbar .segmented-control > button { flex:0 0 auto; }
     .results-toolbar-search { flex:1 1 100%; }
     .results-toolbar-search input { width:100% !important; }
 }
@@ -3026,29 +3036,8 @@ body.ap-drawer-locked { overflow: hidden; }
 }
 
 /* ============================================================
-   Interview queue: clickable name cell + action layout
+   Interview queue: action layout
 ============================================================ */
-.iq-name-cell-clickable {
-    appearance: none;
-    background: transparent;
-    border: 0;
-    text-align: left;
-    padding: 4px 6px;
-    margin: -4px -6px;
-    border-radius: var(--radius);
-    cursor: pointer;
-    color: inherit;
-    font: inherit;
-    width: 100%;
-    transition: background .12s ease;
-}
-.iq-name-cell-clickable:hover {
-    background: var(--bg-subtle);
-}
-.iq-name-cell-clickable:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-}
 .iq-actions {
     display: flex;
     align-items: center;
@@ -3165,6 +3154,9 @@ body.ap-drawer-locked { overflow: hidden; }
     border-collapse: separate;
     border-spacing: 0;
     table-layout: fixed;
+    /* Keep columns from collapsing on narrow screens: the table scrolls
+       sideways inside .auto-table-body instead of overlapping headers. */
+    min-width: 720px;
     font-size: var(--text-sm);
     flex-shrink: 0;
 }
@@ -3186,6 +3178,8 @@ body.ap-drawer-locked { overflow: hidden; }
     font-weight: var(--weight-semibold);
     color: var(--text-secondary);
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     background: var(--bg-elevated);
     border-bottom: 1px solid var(--border);
 }
