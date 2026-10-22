@@ -16,6 +16,9 @@ if (Auth::role() === ROLE_PROCTOR) {
     redirect('/staff/exam/slots');
 }
 
+// Finalize closed exams nobody submitted (one cheap EXISTS when there is no work).
+finalize_closed_exam_drafts();
+
 // ── A4: Dashboard POST handlers ──────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();

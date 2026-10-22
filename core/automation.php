@@ -1562,3 +1562,51 @@ function finalize_exam_result(int $applicantId, int $examId, array $answers, ?st
         'pct'    => $total > 0 ? round(($score / $total) * 100) : 0,
     ];
 }
+
+/**
+ * Sweep: finalize every draft whose slot has closed and that has no result yet.
+ * Uses the server draft and the "Auto-submitted, connection lost" note, then
+ * finalize_exam_result() deletes the draft. Not limited to the current student.
+ * Applicants with no draft are skipped (staff handle them, not scored 0).
+ * Returns how many results were created.
+ *
+ * ponytail: one cheap EXISTS first, so a page load with no work costs one tiny query.
+ * Drafts are only written while the slot is open, so no second time check is needed here.
+ */
+function finalize_closed_exam_drafts(): int
+{
+    static $ran = false;            // once per request
+    if ($ran) return 0;
+    $ran = true;
+
+    $pdo  = db();
+    $from = 'FROM exam_drafts d
+             JOIN exam_slot_schedule s ON s.id = d.slot_id
+            WHERE now() > ' . slot_close_sql('s') . '
+              AND NOT EXISTS (SELECT 1 FROM exam_results r
+                               WHERE r.applicant_id = d.applicant_id AND r.exam_id = d.exam_id)';
+
+    try {
+        if (!$pdo->query("SELECT EXISTS (SELECT 1 {$from})")->fetchColumn()) return 0;
+
+        $rows = $pdo->query("SELECT d.applicant_id, d.exam_id, d.answers {$from}")->fetchAll();
+        $done = 0;
+        foreach ($rows as $row) {
+            try {
+                $res = finalize_exam_result(
+                    (int) $row['applicant_id'],
+                    (int) $row['exam_id'],
+                    exam_answers_from_draft((string) $row['answers']),
+                    EXAM_AUTO_NOTE
+                );
+                if ($res !== null) $done++;
+            } catch (\Throwable $e) {
+                error_log('Auto-submit of closed exam draft failed: ' . $e->getMessage());
+            }
+        }
+        return $done;
+    } catch (\Throwable $e) {
+        error_log('finalize_closed_exam_drafts failed: ' . $e->getMessage());
+        return 0;
+    }
+}

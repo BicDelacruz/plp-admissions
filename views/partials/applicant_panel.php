@@ -241,6 +241,11 @@ $_panelStatusColor = function (string $s): string {
                 <div><span class="ap-k">Submitted</span>
                     <?= e(date('M j, Y g:i A', strtotime($_exam['submitted_at']))) ?>
                 </div>
+                <?php if (!empty($_exam['submit_note'])): ?>
+                    <div><span class="ap-k">Note</span>
+                        <span class="ap-muted"><?= e($_exam['submit_note']) ?></span>
+                    </div>
+                <?php endif; ?>
             </div>
         <?php endif; ?>
     </section>

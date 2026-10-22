@@ -8,6 +8,9 @@
 require_once CORE_PATH . '/bootstrap.php';
 Auth::requireRole(ROLE_STUDENT);
 
+// Finalize closed exams nobody submitted (one cheap EXISTS when there is no work).
+finalize_closed_exam_drafts();
+
 $db     = db();
 $userId = Auth::id();
 warn_if_db_timezone_off();

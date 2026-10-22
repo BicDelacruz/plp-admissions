@@ -6,6 +6,9 @@
 require_once CORE_PATH . '/bootstrap.php';
 Auth::requireRole(ROLE_SSO, ROLE_DEAN, ROLE_ADMIN);
 
+// Finalize closed exams nobody submitted (one cheap EXISTS when there is no work).
+finalize_closed_exam_drafts();
+
 $pdo            = db();
 $currentSY      = school_setting('current_school_year');
 

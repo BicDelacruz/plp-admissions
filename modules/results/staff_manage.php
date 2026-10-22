@@ -39,6 +39,9 @@
 require_once CORE_PATH . '/bootstrap.php';
 Auth::requireRole(ROLE_DEAN, ROLE_ADMIN);
 
+// Finalize closed exams nobody submitted (one cheap EXISTS when there is no work).
+finalize_closed_exam_drafts();
+
 $db      = db();
 $staffId = Auth::id();
 $role    = Auth::role();
@@ -222,7 +225,7 @@ $result = paginate(
             u.first_name, u.middle_name, u.last_name, u.suffix,
             ar.result AS admission_result, ar.remarks AS admission_remarks, ar.released_at,
             er.score  AS exam_score, er.total_items AS exam_total,
-            er.rank_score AS exam_rank, er.passed AS exam_passed,
+            er.rank_score AS exam_rank, er.passed AS exam_passed, er.submit_note AS exam_note,
             iq.status AS interview_status, iq.interview_notes,
             iq.evaluation_result,
             $bucketCase AS bucket
@@ -489,6 +492,9 @@ $sortParams = ['q' => $search, 'result' => $filterRes, 'per_page' => $perPage, '
                                   title="<?= e($_examScoreTitle) ?>">
                                 <?= (int)$row['exam_score'] ?>/<?= (int)$row['exam_total'] ?>
                             </span>
+                            <?php if (!empty($row['exam_note'])): ?>
+                                <div style="font-size:var(--text-xs);color:var(--text-tertiary)"><?= e($row['exam_note']) ?></div>
+                            <?php endif; ?>
                         <?php else: ?>
                             <span style="color:var(--text-tertiary)">—</span>
                         <?php endif; ?>
