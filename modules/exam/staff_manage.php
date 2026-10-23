@@ -804,7 +804,8 @@ elseif ($selectedExamId) $view = 'editor';
                         <?php endif; ?>
                         <button type="button" class="btn btn-sm exam-show-read"
                                 style="color:var(--error);border-color:var(--error);background:transparent"
-                                onclick="if(confirm('Delete this exam? All questions will be removed.')) document.getElementById('delete-exam-form').submit();">Delete</button>
+                                data-confirm="Delete this exam? All questions will be removed." data-confirm-danger data-confirm-ok="Delete"
+                                onclick="document.getElementById('delete-exam-form').submit();">Delete</button>
                     </div>
                 </div>
 
@@ -902,7 +903,7 @@ elseif ($selectedExamId) $view = 'editor';
                             <button class="btn-icon" title="Edit question" onclick="startInlineQFullEdit(<?= $q['id'] ?>)">
                                 <?= icon('ic_fluent_edit_24_regular', 14) ?>
                             </button>
-                            <form method="POST" onsubmit="return confirm('Remove this question?')" style="display:inline">
+                            <form method="POST" data-confirm="Remove this question?" data-confirm-danger data-confirm-ok="Remove" style="display:inline">
                                 <?= csrf_field() ?>
                                 <input type="hidden" name="action" value="delete_question">
                                 <input type="hidden" name="question_id" value="<?= $q['id'] ?>">
@@ -1189,29 +1190,44 @@ elseif ($selectedExamId) $view = 'editor';
 
     if (LIVE) {
         const origFetch = window.fetch.bind(window);
-        window.fetch = function (url, opts) {
+        const askLive = () => ui.confirm(MSG, { title: 'Exam in progress', ok: 'Continue' });
+        window.fetch = async function (url, opts) {
             const body = opts && opts.body;
             if (body instanceof FormData && RISKY.includes(body.get('action')) && !body.get('confirm_live')) {
-                if (!confirm(MSG)) {
-                    return Promise.resolve(new Response(JSON.stringify({ ok: false, cancelled: true }), { status: 409 }));
+                if (!await askLive()) {
+                    return new Response(JSON.stringify({ ok: false, cancelled: true }), { status: 409 });
                 }
                 body.append('confirm_live', '1');
             }
             return origFetch(url, opts);
         };
 
-        function confirmForm(form) {
+        // The dialog is async: a form that needs the prompt is held back, asked, then
+        // sent again with confirm_live set. This listener is registered before app.js's
+        // initConfirm, so this prompt comes first, then any data-confirm on the form.
+        function needsLive(form) {
             const act = form.querySelector('input[name="action"]');
-            if (!act || !RISKY.includes(act.value) || form.querySelector('input[name="confirm_live"]')) return true;
-            if (!confirm(MSG)) return false;
+            return !!act && RISKY.includes(act.value) && !form.querySelector('input[name="confirm_live"]');
+        }
+        function addLive(form) {
             const h = document.createElement('input');
             h.type = 'hidden'; h.name = 'confirm_live'; h.value = '1';
             form.appendChild(h);
-            return true;
         }
-        document.addEventListener('submit', e => { if (!confirmForm(e.target)) e.preventDefault(); }, true);
+        document.addEventListener('submit', e => {
+            const form = e.target;
+            if (!needsLive(form)) return;
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            const submitter = e.submitter;
+            askLive().then(ok => { if (ok) { addLive(form); form.requestSubmit(submitter); } });
+        }, true);
         const origSubmit = HTMLFormElement.prototype.submit;
-        HTMLFormElement.prototype.submit = function () { if (confirmForm(this)) origSubmit.call(this); };
+        HTMLFormElement.prototype.submit = function () {
+            if (!needsLive(this)) return origSubmit.call(this);
+            const form = this;
+            askLive().then(ok => { if (ok) { addLive(form); origSubmit.call(form); } });
+        };
     }
 
     // Show the server's reason when it blocks a save (locked exam, live delete).
@@ -1219,7 +1235,7 @@ elseif ($selectedExamId) $view = 'editor';
     window.fetch = function (url, opts) {
         return baseFetch(url, opts).then(r => {
             if (r.status === 409) {
-                r.clone().json().then(d => { if (d && d.blocked && d.error) alert(d.error); }).catch(() => {});
+                r.clone().json().then(d => { if (d && d.blocked && d.error) ui.alert(d.error); }).catch(() => {});
             }
             return r;
         });
@@ -1365,8 +1381,12 @@ function openAddSectionModal() {
     openModal('section-modal');
 }
 function confirmDeleteSection(form, qCount, title) {
-    if (qCount === 0) return confirm(`Remove "${title}"?`);
-    return confirm(`Remove "${title}" and its ${qCount} question${qCount !== 1 ? 's' : ''}?`);
+    if (form.dataset.ok) { delete form.dataset.ok; return true; }   // replay after OK
+    const msg = qCount === 0 ? `Remove "${title}"?`
+        : `Remove "${title}" and its ${qCount} question${qCount !== 1 ? 's' : ''}?`;
+    ui.confirm(msg, { danger: true, ok: 'Remove' })
+        .then(ok => { if (ok) { form.dataset.ok = '1'; form.requestSubmit(); } });
+    return false;
 }
 
 function openEditSectionModal(sec) {
@@ -1553,7 +1573,7 @@ async function saveInlineQFullEdit(qid) {
 
     if (CHOICE_TYPES.includes(q.question_type)) {
         const texts = choices.map(c=>c.text).filter(t=>t.trim());
-        if (texts.length < 2) { alert('Add at least 2 choices.'); if(saveBtn){saveBtn.disabled=false;saveBtn.textContent='Save changes';} return; }
+        if (texts.length < 2) { ui.alert('Add at least 2 choices.'); if(saveBtn){saveBtn.disabled=false;saveBtn.textContent='Save changes';} return; }
         texts.forEach(t=>fd.append('choices[]',t));
         if (q.question_type==='checkboxes') choices.forEach((c,i)=>{if(c.correct)fd.append('correct_indices[]',i);});
         else { const ci=choices.findIndex(c=>c.correct); fd.append('correct_index',ci>=0?ci:0); }
@@ -1568,7 +1588,7 @@ async function saveInlineQFullEdit(qid) {
     try {
         const resp = await fetch(location.href,{method:'POST',body:fd});
         if (resp.ok) window.location.reload();
-        else { if(saveBtn){saveBtn.disabled=false;saveBtn.textContent='Save changes';} alert('Unable to save. Try again.'); }
+        else { if(saveBtn){saveBtn.disabled=false;saveBtn.textContent='Save changes';} ui.alert('Unable to save. Try again.'); }
     } catch(e) { window.location.reload(); }
 }
 function escQT(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -1771,7 +1791,7 @@ async function saveInlineQuestion(secId, secType) {
     if (isChoice) {
         const texts = choices.map(c => c.text).filter(t => t.trim());
         if (texts.length < 2) {
-            alert('Add at least 2 choices.');
+            ui.alert('Add at least 2 choices.');
             return;
         }
         texts.forEach(t => fd.append('choices[]', t));
@@ -1803,7 +1823,7 @@ async function saveInlineQuestion(secId, secType) {
             window.location.reload();
         } else {
             if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save question'; }
-            alert('Unable to save. Try again.');
+            ui.alert('Unable to save. Try again.');
         }
     } catch(e) {
         window.location.reload();
@@ -2595,8 +2615,8 @@ async function saveAiQuestions(){
     const examId=<?= $selectedExam['id'] ?? 0 ?>;
     const csrfInput=document.querySelector('#ai-import-modal input[type="hidden"]');
     const csrfName=csrfInput?.name||'_csrf_token', csrf=csrfInput?.value||'';
-    if(!examId){alert('Select an exam first.');btn.disabled=false;return;}
-    if(!csrf){alert('Session expired. Refresh and try again.');btn.disabled=false;return;}
+    if(!examId){ui.alert('Select an exam first.');btn.disabled=false;return;}
+    if(!csrf){ui.alert('Session expired. Refresh and try again.');btn.disabled=false;return;}
 
     const CT=['multiple_choice','checkboxes','dropdown'];
     const totalQ=aiGeneratedSections.reduce((sum,s)=>sum+s.questions.length,0);

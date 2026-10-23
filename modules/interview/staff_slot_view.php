@@ -560,7 +560,7 @@ ob_start();
             if (missing.length > 0) {
                 evt.preventDefault();
                 if (firstRow && window.svShowRow) window.svShowRow(firstRow);
-                alert('Please select Pass or Decline for every present student:\n\n' + missing.join('\n'));
+                ui.alert('Please select Pass or Decline for every present student:\n\n' + missing.join('\n'));
             }
         });
     </script>

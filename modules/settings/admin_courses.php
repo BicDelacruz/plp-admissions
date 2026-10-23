@@ -496,7 +496,7 @@ $customByName = array_column($customCourses, null, 'course_name');
                                     <?= icon('ic_fluent_edit_24_regular', 14) ?>
                                 </button>
                                 <form method="POST" style="display:inline"
-                                      onsubmit="return confirm('Delete this course? This cannot be undone.')">
+                                      data-confirm="Delete this course? This cannot be undone." data-confirm-danger data-confirm-ok="Delete">
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="action" value="delete_course">
                                     <input type="hidden" name="course_id" value="<?= (int)$cc['id'] ?>">

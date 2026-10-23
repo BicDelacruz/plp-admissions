@@ -210,7 +210,7 @@ foreach ($byDate as $date => $dateSlots) {
                 onclick="cancelSessSelectMode()">Cancel</button>
         <button type="submit" class="btn btn-sm" id="sess-bulk-delete-btn"
                 style="background:var(--error);color:var(--white);border-color:var(--error)"
-                onclick="return confirmSessBulkDelete()">
+                onclick="return confirmSessBulkDelete(this)">
             Delete Selected
         </button>
     </form>
@@ -422,7 +422,8 @@ foreach ($byDate as $date => $dateSlots) {
                     <button type="button" id="edit-sess-delete"
                             class="btn btn-ghost"
                             style="font-size:var(--text-xs);color:var(--error)"
-                            onclick="if(confirm('Remove this session?'))submitSessionAction('delete_session')">
+                            data-confirm="Remove this session?" data-confirm-danger data-confirm-ok="Remove"
+                            onclick="submitSessionAction('delete_session')">
                         Remove
                     </button>
                 </div>
@@ -499,7 +500,7 @@ function toggleSessSelectMode()   { _sessSelector().toggleSelectMode(); }
 function cancelSessSelectMode()   { _sessSelector().cancelSelectMode(); }
 function onSessCheckboxChange(cb) { _sessSelector().onCheckboxChange(cb); }
 function updateSessBulkCount()    { _sessSelector().updateCount(); }
-function confirmSessBulkDelete()  { return _sessSelector().confirmBulkDelete(); }
+function confirmSessBulkDelete(b) { return _sessSelector().confirmBulkDelete(b); }
 function handleSessCardClick(event, payload) {
     var grid = _sessGrid();
     if (grid && grid.classList.contains('is-selecting')) {

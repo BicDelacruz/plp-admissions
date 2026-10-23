@@ -1,0 +1,40 @@
+<!doctype html>
+<html data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../public/assets/vendor/bootstrap/bootstrap.min.css">
+<link rel="stylesheet" href="../public/assets/css/bootstrap-compat.css">
+<link rel="stylesheet" href="../public/assets/css/app.css">
+</head><body style="padding:24px">
+<!-- Test page for ui.alert / ui.confirm / ui.prompt / data-confirm. Run: node tests/ui_dialog_check.mjs -->
+<div id="behind" class="modal-backdrop" style="display:none"><div class="modal"><div class="modal-header"><div class="modal-title">Behind</div></div>
+<div class="modal-body">A normal modal.</div><div class="modal-footer"><button id="behind-btn" class="btn btn-primary">Save</button></div></div></div>
+<button id="open-behind" class="btn" onclick="document.getElementById('behind').style.display='flex'">open modal</button>
+<a id="link" href="#linked" data-confirm="Go to link?">link</a>
+<button id="btn" class="btn" data-confirm="Run it?" data-confirm-danger data-confirm-ok="Run" onclick="window.ran=(window.ran||0)+1">run</button>
+<form id="form" data-confirm="Submit form?" onsubmit="window.submitted=(window.submitted||0)+1;return false"><input required name="x" value="v"><button id="fsubmit">go</button></form>
+<div class="g"><input type="checkbox" class="cb" value="7" checked><input type="checkbox" class="cb" value="9" checked></div>
+<form id="bulk" onsubmit="window.bulkSent=(window.bulkSent||0)+1;return false"><input type="hidden" id="bulk-ids">
+<button id="bulk-btn" onclick="return sel.confirmBulkDelete(this)">Delete selected</button></form>
+<form id="ev" onsubmit="return apEvalConfirm(this)"><input type="hidden" class="ap-eval-input" id="ev-in" value="">
+<button id="ev-btn">Pass</button></form>
+<script src="../public/assets/js/app.js"></script>
+<script>
+var sel = createCardBulkSelector({gridSel:'.g',cardSel:'.g',checkboxSel:'.cb',barId:'x',toggleBtnId:'x',countId:'x',deleteBtnId:'x',idsInputId:'bulk-ids',confirmMsg:function(n){return 'Remove '+n+' slot(s)?';}});
+window.__evSent=0; document.getElementById('ev').addEventListener('submit',function(e){if(!e.defaultPrevented){window.__evSent++;e.preventDefault();}});
+// same function as views/partials/applicant_drawer.php
+window.apEvalConfirm = function (form) {
+    if (form.dataset.apOk) { delete form.dataset.apOk; return true; }
+    var r = (form.querySelector('.ap-eval-input') || {}).value || '';
+    if (!r) { ui.alert('Please choose Pass or Decline.'); return false; }
+    if (r === 'pass' || r === 'reject') {
+        ui.confirm('Submit this evaluation as ' + r.toUpperCase() + '?', { danger: r === 'reject', ok: 'Submit' })
+            .then(function (ok) { if (ok) { form.dataset.apOk = '1'; form.requestSubmit(); } });
+        return false;
+    }
+    return true;
+};
+</script>
+<script>
+// same global Esc handler as views/layouts/app.php
+document.addEventListener('keydown', function(e){ if(e.key!=='Escape')return;
+  document.querySelectorAll('.modal-backdrop').forEach(function(m){ if(m.style.display&&m.style.display!=='none') m.style.display='none'; }); });
+</script></body></html>

@@ -870,7 +870,7 @@ if (!$isDean) {
                                         title="Approve and assign new slot">Approve</button>
                             </form>
                             <form id="<?= $denyFormId ?>" method="POST" style="margin:0"
-                                  onsubmit="return confirm('Deny this reschedule request? The student keeps their current slot.')">
+                                  data-confirm="Deny this reschedule request? The student keeps their current slot." data-confirm-danger data-confirm-ok="Deny">
                                 <?= csrf_field() ?>
                                 <input type="hidden" name="action" value="deny_reschedule">
                                 <input type="hidden" name="request_id" value="<?= (int)$rr['id'] ?>">

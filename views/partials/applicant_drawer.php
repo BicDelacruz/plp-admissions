@@ -100,14 +100,18 @@
     });
 
     // Confirm helper used by the inline Pass/Reject form -----------
+    // Dialogs are async: block this submit, ask, then submit again with a flag.
     window.apEvalConfirm = function (form) {
+        if (form.dataset.apOk) { delete form.dataset.apOk; return true; }
         var r = (form.querySelector('.ap-eval-input') || {}).value || '';
         if (!r) {
-            alert('Please choose Pass or Decline.');
+            ui.alert('Please choose Pass or Decline.');
             return false;
         }
         if (r === 'pass' || r === 'reject') {
-            return confirm('Submit this evaluation as ' + r.toUpperCase() + '?');
+            ui.confirm('Submit this evaluation as ' + r.toUpperCase() + '?', { danger: r === 'reject', ok: 'Submit' })
+                .then(function (ok) { if (ok) { form.dataset.apOk = '1'; form.requestSubmit(); } });
+            return false;
         }
         return true;
     };

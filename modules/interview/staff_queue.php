@@ -908,15 +908,16 @@ document.addEventListener('keydown', function (e) {
 
 // Submission guard — make sure the user actually clicked Pass or Reject
 document.getElementById('eval-form').addEventListener('submit', function (e) {
+    const form = e.currentTarget;
+    if (form.dataset.ok) { delete form.dataset.ok; return; }   // replay after OK
     const decision = document.getElementById('eval-result-input').value;
-    if (decision !== 'pass' && decision !== 'reject') {
-        e.preventDefault();
-        return false;
-    }
-    if (!confirm('Mark this interview as ' + (decision === 'pass' ? 'PASS' : 'FAIL') + '?')) {
-        e.preventDefault();
-        return false;
-    }
+    e.preventDefault();
+    if (decision !== 'pass' && decision !== 'reject') return false;
+    const submitter = e.submitter;
+    ui.confirm('Mark this interview as ' + (decision === 'pass' ? 'PASS' : 'FAIL') + '?',
+               { danger: decision === 'reject', ok: 'Confirm' })
+        .then(function (ok) { if (ok) { form.dataset.ok = '1'; form.requestSubmit(submitter); } });
+    return false;
 });
 
 // Auto-refresh every 60s, but pause when a textarea/input is focused or

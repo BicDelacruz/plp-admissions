@@ -1077,7 +1077,7 @@ async function postAction(action) {
 }
 
 async function submitApplication() {
-    if (!confirm('Submit your application for staff review?\n\nYou can withdraw the submission if you need to make changes.')) return;
+    if (!await ui.confirm('Submit your application for staff review?\n\nYou can withdraw the submission if you need to make changes.', { ok: 'Submit' })) return;
     try {
         const data = await postAction('submit_application');
         if (data.ok) {
@@ -1091,7 +1091,7 @@ async function submitApplication() {
 }
 
 async function withdrawSubmission() {
-    if (!confirm('Withdraw your submission?\n\nYou can make changes and re-submit whenever you\'re ready.')) return;
+    if (!await ui.confirm('Withdraw your submission?\n\nYou can make changes and re-submit whenever you\'re ready.', { danger: true, ok: 'Withdraw' })) return;
     try {
         const data = await postAction('withdraw_submission');
         if (data.ok) {
