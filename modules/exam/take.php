@@ -1418,7 +1418,7 @@ window.addEventListener('beforeunload', e => {
     const serverDraft = <?= json_encode($serverDraft) ?>;
     const saveUrl = '<?= url('/api/exam-autosave') ?>';
     const form = document.getElementById('exam-form');
-    const csrfToken = form.querySelector('input[name="csrf_token"]')?.value || '';
+    const csrfToken = form.querySelector('input[name="_csrf"]')?.value || '';
     const msgEl     = document.getElementById('exam-status-msg');
     const submitBtn = document.getElementById('submit-btn');
     const yesBtn    = document.getElementById('confirm-yes');
@@ -1494,7 +1494,7 @@ window.addEventListener('beforeunload', e => {
             body.append('exam_id', examId);
             body.append('slot_id', slotId);
             body.append('answers', answers);
-            body.append('csrf_token', csrfToken);
+            body.append('_csrf', csrfToken);
             const r = await fetch(saveUrl, { method: 'POST', body: body, signal: ctl.signal });
             const d = await r.json();                            // non-JSON (e.g. expired token) counts as a failed save
             if (d.closed) {
