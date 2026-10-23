@@ -443,9 +443,9 @@ $sortParams = ['q' => $search, 'result' => $filterRes, 'per_page' => $perPage, '
                     <?= sortable_th('course',    'Course',    $sortCol, $sortDir, $sortParams) ?>
                     <th style="width:100px">Exam Score</th>
                     <th style="width:120px">Interview</th>
-                    <?= sortable_th('result',    'Result',    $sortCol, $sortDir, $sortParams, 'width:200px') ?>
+                    <?= sortable_th('result',    'Result',    $sortCol, $sortDir, $sortParams, 'width:220px') ?>
                     <?= sortable_th('released',  'Released',  $sortCol, $sortDir, $sortParams, 'width:120px') ?>
-                    <th style="width:240px">Actions</th>
+                    <th style="width:320px">Actions</th>
                 </tr>
             </thead>
             <?php if (!empty($result['data'])): ?>

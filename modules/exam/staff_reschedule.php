@@ -494,7 +494,7 @@ ob_start();
                     <?php if ($canReschedule): ?>
                     <th style="width:190px">Move to</th>
                     <th style="width:160px">Deny reason</th>
-                    <th style="width:150px">Action</th>
+                    <th style="width:180px">Action</th>
                     <?php endif; ?>
                 </tr>
             </thead>

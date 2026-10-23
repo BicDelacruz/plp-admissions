@@ -335,7 +335,7 @@ ob_start();
                     <th style="width:80px">Booked</th>
                     <th style="width:240px">Move everyone to…</th>
                     <th style="min-width:180px">Reason</th>
-                    <th style="width:190px">Action</th>
+                    <th style="width:210px">Action</th>
                 </tr>
             </thead>
             <?php if (!empty($pageRows)): ?>

@@ -953,7 +953,7 @@ $sortParams = ['status' => $statusFilter, 'type' => $typeFilter, 'course' => $co
                     <?= sortable_th('status',       'Status',       $sortCol, $sortDir, $sortParams, 'width:130px') ?>
                     <?= sortable_th('docs_pending', 'Docs Pending', $sortCol, $sortDir, $sortParams, 'width:150px') ?>
                     <?= sortable_th('applied',      'Applied',      $sortCol, $sortDir, $sortParams, 'width:130px') ?>
-                    <th style="width:140px">Actions</th>
+                    <th style="width:150px">Actions</th>
                 </tr>
             </thead>
             <?php if (!empty($result['data'])): ?>
