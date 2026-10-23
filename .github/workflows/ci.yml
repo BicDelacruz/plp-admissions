@@ -37,6 +37,21 @@ jobs:
           done < <(find . -name '*.php' -not -path './lib/*' -not -path './.git/*' -print0)
           exit $status
 
+  design-gate:
+    name: Design gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      # Static UI consistency checks across every PHP view and app.css.
+      # Strict: date/time fields use the shared classes and a readable width.
+      # Ratchet (legacy debt in design_gate_baseline.json, may only go down):
+      # no em dashes in UI text, shared field and button classes, no inline
+      # hex colors or px font sizes, no hex colors outside the css tokens.
+      # After a cleanup, run the script with --update to lock in the gain.
+      - name: Check UI consistency
+        run: python3 -I .github/scripts/design_gate.py .
+
   sonarqube:
     name: SonarQube
     runs-on: ubuntu-latest
