@@ -714,6 +714,11 @@ textarea.form-control { min-height: 42px; }
     row-gap:var(--bs-gutter-y,var(--space-4));
 }
 .row[class*="row-cols-"] > *{min-width:0;}
+/* Bootstrap's own .row / .row-cols-* rules still match here and would shrink each
+   cell again (width:50% of an already half-width grid cell), pad it by the gutter
+   and pull the row out with negative margins. The grid + gap above does the job. */
+.row[class*="row-cols-"]{margin-left:0;margin-right:0;margin-top:0;}
+.row[class*="row-cols-"] > *{flex:none;width:auto;max-width:none;padding-left:0;padding-right:0;margin-top:0;}
 .row-cols-1{--rc:1;}
 .row-cols-2{--rc:2;}
 .row-cols-3{--rc:3;}

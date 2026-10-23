@@ -11,6 +11,14 @@ settings_modal_gate();
 $db     = db();
 $userId = Auth::id();
 $user   = Auth::user();
+
+// Auth::user() only carries id/name/email/role from the session, so the profile
+// fields come from the DB. Without this the form below renders empty.
+$pf = $db->prepare('SELECT first_name, middle_name, last_name, suffix, birthdate, sex, address, phone, email
+                    FROM users WHERE id = ?');
+$pf->execute([$userId]);
+$user = array_merge($user ?? [], $pf->fetch() ?: []);
+
 $errors  = [];
 $success = [];
 
