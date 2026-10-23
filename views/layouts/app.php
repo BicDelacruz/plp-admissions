@@ -43,6 +43,50 @@ $showPageHead   = !$isStudent
 $showStudentHead = $isStudent && $pageHeading !== false && !$hasPageHeading;
 if ($isEmbed) { $showPageHead = false; $showStudentHead = false; }
 
+// Pull data-page-action / data-page-actions elements out of the page body on the
+// server and hand them to the heading row, so they are in the heading from the
+// first paint. (Doing this with JS after load made them show in the table first
+// and then jump up.) Only the .page-head layout hosts them, like the old script.
+if (!function_exists('extract_page_actions')) {
+    function extract_page_actions(string $html): array
+    {
+        $actions = '';
+
+        // data-page-actions: a <div> wrapper; its children go to the heading, the wrapper is dropped.
+        while (preg_match('/<div\b[^>]*\bdata-page-actions(?=[\s=>\/])[^>]*>/i', $html, $m, PREG_OFFSET_CAPTURE)) {
+            $start  = $m[0][1];
+            $inner  = $start + strlen($m[0][0]);
+            $depth  = 1;
+            $pos    = $inner;
+            $end    = null;
+            while ($depth > 0 && preg_match('/<(\/?)div\b[^>]*>/i', $html, $t, PREG_OFFSET_CAPTURE, $pos)) {
+                $depth += ($t[1][0] === '/') ? -1 : 1;
+                $pos = $t[0][1] + strlen($t[0][0]);
+                if ($depth === 0) $end = $t[0][1];
+            }
+            if ($end === null) break; // unbalanced markup: leave it for the JS fallback
+            $actions .= substr($html, $inner, $end - $inner);
+            $html = substr($html, 0, $start) . substr($html, $pos);
+        }
+
+        // data-page-action: the button / link itself.
+        $html = preg_replace_callback(
+            '/<(button|a)\b[^>]*\bdata-page-action(?=[\s=>\/])[^>]*>.*?<\/\1>/is',
+            function ($mm) use (&$actions) {
+                $actions .= preg_replace('/\sdata-page-action(?:=(?:"[^"]*"|\'[^\']*\'))?(?=[\s>\/])/i', '', $mm[0], 1);
+                return '';
+            },
+            $html
+        );
+
+        return [$html, $actions];
+    }
+}
+if ($showPageHead && !empty($content)) {
+    [$content, $movedActions] = extract_page_actions((string)$content);
+    $pageActions = (string)$pageActions . $movedActions;
+}
+
 // Sidebar (staff / admin / SSO / dean / proctor), ported from lakbay-pasig's
 // SidebarProvider. Lakbay keeps the desktop open/closed state in a cookie so
 // the server can render the right state on first paint; same here. The cookie

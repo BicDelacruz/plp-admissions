@@ -3517,6 +3517,28 @@ html[data-font-size="xlarge"] { font-size: 22px; --height-table-row: 68px; --hei
     pointer-events: none;
 }
 .sy-sec { padding: var(--space-5) var(--space-6); flex-shrink: 0; }
+/* Date/time fields: each gets a readable minimum width and wraps instead of squeezing */
+.sy-date-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: var(--space-4);
+}
+.sy-date-grid > div { min-width: 0; }
+.form-input[type="date"],
+.form-input[type="time"],
+.form-control[type="date"],
+.form-control[type="time"] {
+    min-width: 0;
+    display: block;
+    -webkit-appearance: none;
+}
+.form-input[type="date"]::-webkit-date-and-time-value,
+.form-input[type="time"]::-webkit-date-and-time-value,
+.form-control[type="date"]::-webkit-date-and-time-value,
+.form-control[type="time"]::-webkit-date-and-time-value {
+    text-align: left;
+    min-height: 1.5em;
+}
 .sy-sec.sy-grow { flex: 1 1 auto; }
 .sy-sec.sy-danger .card-title { color: var(--error); }
 @media (max-width: 960px) {

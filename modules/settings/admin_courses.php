@@ -425,11 +425,14 @@ $customByName = array_column($customCourses, null, 'course_name');
               Strand reference are out of scope for that role. */ ?>
 
     <!-- ── Custom Courses table ─────────────────────────────────── -->
-    <div style="margin-bottom:var(--space-4)">
-        <div style="font-weight:var(--weight-semibold);font-size:var(--text-base)">Custom Courses</div>
-        <div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:var(--space-1)">
-            Additional programs you've added. They appear in dropdowns and strand-match suggestions.
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-4);margin-bottom:var(--space-4)">
+        <div>
+            <div style="font-weight:var(--weight-semibold);font-size:var(--text-base)">Custom Courses</div>
+            <div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:var(--space-1)">
+                Additional programs you've added. They appear in dropdowns and strand-match suggestions.
+            </div>
         </div>
+        <?= ui_button('Add Course', ['variant' => 'primary', 'size' => 'sm', 'icon' => 'ic_fluent_add_24_regular', 'attrs' => ['style' => 'flex-shrink:0', 'onclick' => "document.getElementById('add-course-modal').style.display='flex'"]]) ?>
     </div>
 
     <div class="auto-table-card auto-table-card--scroll" data-scroll-table data-limit="10" data-batch="10">
@@ -448,13 +451,6 @@ $customByName = array_column($customCourses, null, 'course_name');
             </select>
 
             <button type="button" class="btn btn-ghost btn-sm" data-st-clear style="display:none">Clear</button>
-
-            <span class="toolbar-spacer"></span>
-
-            <button type="button" class="btn btn-primary btn-sm"
-                    onclick="document.getElementById('add-course-modal').style.display='flex'">
-                + Add Course
-            </button>
         </div>
 
         <div class="auto-table-body">
@@ -518,7 +514,7 @@ $customByName = array_column($customCourses, null, 'course_name');
             <?php if (!$customCourses): ?>
             <div class="auto-table-empty">
                 <?= icon('ic_fluent_document_24_regular', 32) ?>
-                <div>No custom courses yet. Click <strong>+ Add Course</strong> to add a new program.</div>
+                <div>No custom courses yet. Click <strong>Add Course</strong> to add a new program.</div>
             </div>
             <?php endif; ?>
             <div class="auto-table-empty" data-st-empty hidden>

@@ -198,7 +198,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 // Skip duplicates (checked in bulk above)
                 if (isset($existingEmails[$email])) {
-                    $skipped[] = "Row " . ($i + 1) . " ({$name}): email {$email} already exists — skipped.";
+                    $skipped[] = "Row " . ($i + 1) . " ({$name}): email {$email} already exists, skipped.";
                     continue;
                 }
 
@@ -343,7 +343,7 @@ ob_start();
         <form method="POST" id="apw-form">
             <?= csrf_field() ?>
             <input type="hidden" name="action" value="set_admissions_window">
-            <div class="row row-cols-1 row-cols-md-3" style="--bs-gutter-x:var(--space-4);--bs-gutter-y:var(--space-4);margin-bottom:var(--space-3)">
+            <div class="sy-date-grid" style="margin-bottom:var(--space-3)">
                 <div>
                     <label class="form-label" for="apw-open">Admissions Opens</label>
                     <input type="date" id="apw-open" name="admissions_open" class="form-input"
@@ -427,7 +427,7 @@ ob_start();
         <form method="POST">
             <?= csrf_field() ?>
             <input type="hidden" name="action" value="set_enrollment_schedule">
-            <div class="row row-cols-1 row-cols-md-2" style="--bs-gutter-x:var(--space-4);--bs-gutter-y:var(--space-4);margin-bottom:var(--space-3)">
+            <div class="sy-date-grid" style="margin-bottom:var(--space-3)">
                 <div>
                     <label class="form-label" for="enr-date">Date</label>
                     <input type="date" id="enr-date" name="enrollment_date" class="form-input"
@@ -460,21 +460,14 @@ ob_start();
             </button>
         </div>
         <p style="font-size:var(--text-sm);color:var(--text-secondary);margin:0">
-            Upload an old Excel, CSV, PDF, or image of past admissions results — AI will extract the rows,
-            normalize course names and result statuses, and save them under the selected school year.
-            Imported records appear in <strong>Admin → Results</strong> under the matching school year filter.
+            Upload a file of past admissions results and AI will read it for you.
+            Imported records show up in <strong>Results</strong> under their school year.
         </p>
     </div>
 
     <!-- New cycle — destructive, so the action sits behind a confirmation popup -->
-    <div class="sy-sec sy-danger">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);margin-bottom:var(--space-2)">
-            <div class="card-title" style="margin:0">Start New Admission Cycle</div>
-            <button type="button" class="btn btn-danger" onclick="openNewCycleModal()">Start New Cycle</button>
-        </div>
-        <p class="card-description" style="margin:0">
-            Starts a new admissions cycle. The current exam is deactivated and all previous applicant data is preserved.
-        </p>
+    <div class="sy-sec">
+        <button type="button" class="btn btn-danger" onclick="openNewCycleModal()">Start New Admission Cycle</button>
     </div>
 
 </div><!-- /sy-col -->
@@ -594,7 +587,7 @@ ob_start();
                 </div>
                 <div>
                     <div style="font-weight:var(--weight-semibold);font-size:var(--text-base)">Import Historical Records with AI</div>
-                    <div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:1px">Upload an old file and AI will extract the admissions records</div>
+                    <div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:1px">Upload an old file and AI will read the records</div>
                 </div>
             </div>
             <button class="btn-icon" onclick="closeLegacyImportModal()">
@@ -626,7 +619,7 @@ ob_start();
                                placeholder="e.g. 2023-2024" pattern="\d{4}-\d{4}"
                                value="<?= e(date('Y') - 1) . '-' . e(date('Y')) ?>">
                         <span style="font-size:var(--text-xs);color:var(--text-tertiary)">
-                            Current SY: <strong><?= e($currentYear) ?></strong> — import into a past year only.
+                            Current SY: <strong><?= e($currentYear) ?></strong>. Import into a past year only.
                         </span>
                     </div>
                     <div id="legacy-sy-hint" style="display:none;font-size:var(--text-xs);color:var(--error);margin-top:4px"></div>
@@ -642,7 +635,7 @@ ob_start();
                         <?= icon('file', 20, 'color:var(--text-tertiary)') ?>
                     </div>
                     <div id="legacy-dropzone-label" style="font-size:var(--text-sm);font-weight:var(--weight-medium);color:var(--text-secondary)">Drop file here or <span style="color:var(--accent)">click to browse</span></div>
-                    <div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:4px">CSV · Excel (xlsx/xls) · PDF · DOCX · JPG · PNG — columns can be in any order</div>
+                    <div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:4px">CSV, Excel, PDF, DOCX, JPG or PNG. Columns can be in any order.</div>
                     <div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:2px">Need a template? <a href="/sample-legacy-admissions.csv" download style="color:var(--accent)" onclick="event.stopPropagation()">Download sample CSV</a></div>
                     <div id="legacy-file-tag-wrap" style="display:none;margin-top:var(--space-3)">
                         <span class="ai-file-tag">
@@ -1258,14 +1251,14 @@ function renderLegacyPreview(rows) {
         tr.style.borderBottom = '1px solid var(--border)';
         const score = (row.score != null && row.total != null)
             ? row.score + '/' + row.total
-            : (row.score != null ? String(row.score) : '—');
+            : (row.score != null ? String(row.score) : '-');
         tr.innerHTML = `
             <td style="padding:var(--space-2) var(--space-3)">
                 <input type="checkbox" class="legacy-row-check" data-idx="${i}" checked>
             </td>
-            <td style="padding:var(--space-2) var(--space-3)">${escHtml(row.name || '—')}</td>
-            <td style="padding:var(--space-2) var(--space-3);white-space:nowrap">${escHtml(row.type || '—')}</td>
-            <td style="padding:var(--space-2) var(--space-3);font-size:var(--text-xs)">${escHtml(row.course || '—')}</td>
+            <td style="padding:var(--space-2) var(--space-3)">${escHtml(row.name || '-')}</td>
+            <td style="padding:var(--space-2) var(--space-3);white-space:nowrap">${escHtml(row.type || '-')}</td>
+            <td style="padding:var(--space-2) var(--space-3);font-size:var(--text-xs)">${escHtml(row.course || '-')}</td>
             <td style="padding:var(--space-2) var(--space-3)">${resultBadge(row.result)}</td>
             <td style="padding:var(--space-2) var(--space-3);white-space:nowrap">${escHtml(score)}</td>
         `;
@@ -1380,7 +1373,7 @@ async function startLegacyProcessing() {
 
         const count = rows.length;
         document.getElementById('legacy-preview-count').textContent =
-            `${count} record${count !== 1 ? 's' : ''} detected — uncheck any you want to skip`;
+            `${count} record${count !== 1 ? 's' : ''} found. Uncheck any you want to skip.`;
         document.getElementById('legacy-save-footer').style.display = 'flex';
 
     } catch (err) {
@@ -1439,7 +1432,7 @@ async function saveLegacyRows() {
         alertDiv.style.marginBottom = 'var(--space-3)';
         alertDiv.innerHTML =
             `<strong>${json.inserted} record(s) imported</strong> into AY ${escHtml(syVal)}.` +
-            ` They now appear in Admin → Results under the ${escHtml(syVal)} filter.` +
+            ` They now appear in Results under ${escHtml(syVal)}.` +
             skippedHtml;
         document.querySelector('.admin-form-stack').prepend(alertDiv);
 
