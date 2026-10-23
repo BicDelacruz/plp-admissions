@@ -11,6 +11,7 @@
 //   $authTopbarLink   array   [text, label, href] shown on the right of the
 //                             wide top bar
 //   $hidePrivacyLink  bool    Hide the footer Privacy Policy link
+//   $loadTurnstile    bool    Security check page only: load the Turnstile script
 // ============================================================
 $schoolName  = school_setting('school_name', 'Pamantasan ng Lungsod ng Pasig');
 $accentColor = school_setting('accent_color', '#2d6a4f');
@@ -171,7 +172,7 @@ jQuery(function ($) {
     });
 });
 </script>
-<?php if (CAPTCHA_ENABLED): ?>
+<?php if (CAPTCHA_ENABLED && !empty($loadTurnstile)): ?>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <?php endif; ?>
 

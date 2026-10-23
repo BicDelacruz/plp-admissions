@@ -63,7 +63,7 @@ ob_start();
         <ul>
             <li><strong>Session cookie.</strong> Keeps you signed in while you use the site. Required.</li>
             <li><strong>Remember me cookie.</strong> Set only if you tick Remember me. Keeps you signed in on this device for up to 30 days. Signing out removes it.</li>
-            <li><strong>Cloudflare Turnstile.</strong> A security check on sign in and registration that tells people from bots. Cloudflare may set its own cookie or token for this.</li>
+            <li><strong>Cloudflare Turnstile.</strong> A quick security verification when you open the sign in, registration or password reset pages. It tells people from bots. Cloudflare may set its own cookie or token for this.</li>
             <li><strong>Google sign in.</strong> If you choose Continue with Google, Google sets its own cookies on its own pages. We set none for it beyond our session cookie.</li>
         </ul>
 

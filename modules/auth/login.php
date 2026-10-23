@@ -14,6 +14,9 @@ if (Auth::check()) {
     header("Location: " . Auth::homeUrl()); exit;
 }
 
+// Security verification runs once on page start, not on the form.
+captcha_gate('/login');
+
 $errors     = [];
 $didTimeout = Session::getFlash('timeout');
 $resetDone  = Session::getFlash('reset_done');
@@ -31,13 +34,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Basic validation
     if (!$email)    $errors['email']    = 'Email is required.';
     if (!$password) $errors['password'] = 'Password is required.';
-
-    if (empty($errors)) {
-        // Turnstile verification
-        if (!captcha_verify()) {
-            $errors['captcha'] = 'Please complete the check.';
-        }
-    }
 
     // Rate limiting check
     if (empty($errors) && is_login_locked($email)) {
@@ -150,17 +146,6 @@ ob_start();
             </label>
             <a class="auth-link" href="<?= url('/forgot-password') ?>">Forgot password?</a>
         </div>
-
-        <?php if (!empty($errors['captcha'])): ?>
-            <div class="alert alert-error" role="alert">
-                <?= icon('ic_fluent_info_24_regular', 16) ?>
-                <?= e($errors['captcha']) ?>
-            </div>
-        <?php endif; ?>
-
-        <?php if (CAPTCHA_ENABLED): ?>
-            <div class="cf-turnstile" data-sitekey="<?= e(TURNSTILE_SITE_KEY) ?>" data-theme="auto"></div>
-        <?php endif; ?>
 
         <button type="submit" class="btn btn-primary btn-block">Sign in</button>
     </form>

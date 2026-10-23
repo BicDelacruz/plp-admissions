@@ -6,6 +6,8 @@
 // ============================================================
 
 // -- Auth --------------------------------------------------------
+$router->get( '/security-check',  'auth/security_check');
+$router->post('/security-check',  'auth/security_check');
 $router->get( '/login',           'auth/login');
 $router->post('/login',           'auth/login');
 $router->get( '/register',        'auth/register');

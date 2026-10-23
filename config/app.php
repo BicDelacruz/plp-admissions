@@ -291,7 +291,7 @@ define('COURSE_PASSING_SCORES', [
     'BS Nursing (BSN)'                                                   => ['pass_from' => 4, 'confirmed' => false],
 ]);
 
-// -- Cloudflare Turnstile (captcha on login and register) -----------
+// -- Cloudflare Turnstile (one security check on page start, /security-check) --
 define('TURNSTILE_SITE_KEY',   getenv('TURNSTILE_SITE_KEY')   ?: '');
 define('TURNSTILE_SECRET_KEY', getenv('TURNSTILE_SECRET_KEY') ?: '');
 // On only when both keys are set, so forms still work without keys.

@@ -9,6 +9,9 @@ require_once CORE_PATH . '/bootstrap.php';
 
 if (Auth::check()) { header("Location: " . Auth::homeUrl()); exit; }
 
+// Security verification runs once on page start, not on the form.
+captcha_gate('/forgot-password');
+
 // "Use a different email" clears the flow.
 if (isset($_GET['new'])) {
     unset($_SESSION['reset_email'], $_SESSION['reset_sent_at'], $_SESSION['reset_miss']);

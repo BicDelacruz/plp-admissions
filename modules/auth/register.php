@@ -8,6 +8,9 @@ require_once CORE_PATH . '/bootstrap.php';
 
 if (Auth::check()) { header("Location: " . Auth::homeUrl()); exit; }
 
+// Security verification runs once on page start, not on the form.
+captcha_gate('/register');
+
 // Block registration outside the admissions window
 if (!admissions_is_open()) {
     $open  = admissions_open_date();
@@ -60,11 +63,6 @@ if ($googleMode) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
-
-    // Turnstile verification (skipped in Google mode: Google is the gate)
-    if (!$googleMode && !captcha_verify()) {
-        $errors['captcha'] = 'Please complete the check.';
-    }
 
     $old = [
         'first_name'     => trim($_POST['first_name']     ?? ''),
@@ -649,17 +647,7 @@ ob_start();
         </div>
         <?php endif; ?>
 
-        <?php if (!$googleMode && !empty($errors['captcha'])): ?>
-            <div class="alert alert-error" role="alert" style="margin-top:var(--space-4)">
-                <?= icon('ic_fluent_info_24_regular', 16) ?>
-                <?= e($errors['captcha']) ?>
-            </div>
-        <?php endif; ?>
-
         <div class="reg-submit">
-            <?php if (!$googleMode && CAPTCHA_ENABLED): ?>
-                <div class="cf-turnstile" data-sitekey="<?= e(TURNSTILE_SITE_KEY) ?>" data-theme="auto"></div>
-            <?php endif; ?>
             <button type="submit" class="btn btn-primary btn-lg">Create account</button>
         </div>
     </form>
@@ -826,7 +814,6 @@ document.addEventListener('DOMContentLoaded', function () {
     gap: var(--space-4);
     margin-top: var(--space-2);
 }
-.reg-submit .cf-turnstile { margin: 0 auto 0 0; }
 .reg-submit .btn { min-width: 240px; }
 
 .sex-toggle {

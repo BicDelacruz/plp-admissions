@@ -694,13 +694,42 @@ function file_url(string $filePath): string
 }
 
 // -- Captcha (Cloudflare Turnstile) -------------------------------
-function captcha_verify(): bool
+// The check runs once, on /security-check, before the sign in, register and
+// forgot-password pages open. A pass is kept in the session, so the forms
+// themselves carry no widget.
+const CAPTCHA_PASS_SECS = 43200; // 12 h (the session inactivity timeout can end it sooner)
+
+function captcha_passed(): bool
+{
+    if (!CAPTCHA_ENABLED) {
+        return true; // Skip if keys are not configured
+    }
+    return (int) Session::get('captcha_ok_until', 0) > time();
+}
+
+function captcha_mark_passed(): void
+{
+    Session::set('captcha_ok_until', time() + CAPTCHA_PASS_SECS);
+}
+
+/** Call at the top of a guest-only page. Sends the visitor to /security-check until they pass, then back to $path. */
+function captcha_gate(string $path): void
+{
+    if (captcha_passed()) {
+        return;
+    }
+    $qs = ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET' ? (string) ($_SERVER['QUERY_STRING'] ?? '') : '';
+    Session::set('captcha_next', $path . ($qs !== '' ? '?' . $qs : ''));
+    redirect('/security-check');
+}
+
+function captcha_verify(?string $token = null): bool
 {
     if (!CAPTCHA_ENABLED) {
         return true; // Skip if keys are not configured
     }
 
-    $token = $_POST['cf-turnstile-response'] ?? '';
+    $token ??= $_POST['cf-turnstile-response'] ?? '';
     if (!is_string($token) || $token === '') {
         return false;
     }
@@ -717,7 +746,7 @@ function captcha_verify(): bool
         ],
     ]));
 
-    // ponytail: fails closed. A Cloudflare outage blocks login and register. Upgrade: fail open with a log.
+    // ponytail: fails closed. A Cloudflare outage blocks the guest pages. Upgrade: fail open with a log.
     if (!$response) {
         return false;
     }
