@@ -44,11 +44,11 @@ jobs:
       - uses: actions/checkout@v5
 
       # Static UI consistency checks across every PHP view and app.css.
-      # Strict: date/time fields use the shared classes and a readable width.
-      # Ratchet (legacy debt in design_gate_baseline.json, may only go down):
-      # no em dashes in UI text, shared field and button classes, no inline
-      # hex colors or px font sizes, no hex colors outside the css tokens.
-      # After a cleanup, run the script with --update to lock in the gain.
+      # Every rule is strict, there is no baseline: date/time fields use the
+      # shared classes and a readable width, form fields and buttons use the
+      # shared classes, no em dashes in UI text, no inline hex colors or px
+      # font sizes, no hex colors outside the css tokens.
+      # core/email_html.php is the one exempt file (email clients need inline styles).
       - name: Check UI consistency
         run: python3 -I .github/scripts/design_gate.py .
 

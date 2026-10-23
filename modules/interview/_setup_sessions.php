@@ -128,7 +128,7 @@ foreach ($byDate as $date => $dateSlots) {
             <?php if ($canManage): ?>
                 <input type="checkbox" class="select-card-check sess-select-checkbox"
                        value="<?= (int)$slot['id'] ?>"
-                       <?= $undeletable ? 'disabled title="Has bookings — cannot remove"' : '' ?>
+                       <?= $undeletable ? 'disabled title="Has bookings - cannot remove"' : '' ?>
                        onclick="event.stopPropagation();onSessCheckboxChange(this)">
             <?php endif; ?>
 
@@ -209,7 +209,7 @@ foreach ($byDate as $date => $dateSlots) {
         <button type="button" class="btn btn-ghost btn-sm"
                 onclick="cancelSessSelectMode()">Cancel</button>
         <button type="submit" class="btn btn-sm" id="sess-bulk-delete-btn"
-                style="background:var(--error);color:#fff;border-color:var(--error)"
+                style="background:var(--error);color:var(--white);border-color:var(--error)"
                 onclick="return confirmSessBulkDelete()">
             Delete Selected
         </button>
@@ -218,7 +218,7 @@ foreach ($byDate as $date => $dateSlots) {
 <?php endif; ?>
 
 <!-- ─────────────────────────────────────────────────────────
-     ADD SESSION MODAL — with Single / Recurring toggle.
+     ADD SESSION MODAL - with Single / Recurring toggle.
      The toggle swaps which fields are visible and rewrites
      the hidden `action` so one form submits as either
      `add_session` or `batch_create`.
@@ -252,7 +252,7 @@ foreach ($byDate as $date => $dateSlots) {
                 <div>
                     <label class="form-label">Assigned Interviewer <span style="color:var(--error)">*</span></label>
                     <select name="assigned_to" class="form-control" required>
-                        <option value="">— Select staff —</option>
+                        <option value="">- Select staff -</option>
                         <?php foreach ($staffList as $s): ?>
                             <option value="<?= (int)$s['id'] ?>"><?= e($s['name']) ?></option>
                         <?php endforeach; ?>
@@ -266,7 +266,7 @@ foreach ($byDate as $date => $dateSlots) {
                 <div>
                     <label class="form-label">
                         Directions / Notes
-                        <span style="color:var(--text-tertiary);font-weight:400"> — optional</span>
+                        <span style="color:var(--text-tertiary);font-weight:400"> - optional</span>
                     </label>
                     <input type="text" name="location_notes" class="form-control"
                            placeholder="e.g. 2nd floor, turn left at the bulletin board">
@@ -354,7 +354,7 @@ foreach ($byDate as $date => $dateSlots) {
 </div>
 
 <!-- ─────────────────────────────────────────────────────────
-     EDIT SESSION MODAL — also hosts Close/Reopen and Delete
+     EDIT SESSION MODAL - also hosts Close/Reopen and Delete
      so the cards themselves stay clean.
 ───────────────────────────────────────────────────────── -->
 <div id="edit-session-modal" class="modal-backdrop" style="display:none">
@@ -373,7 +373,7 @@ foreach ($byDate as $date => $dateSlots) {
                 <div>
                     <label class="form-label">Assigned Interviewer <span style="color:var(--error)">*</span></label>
                     <select name="assigned_to" id="edit-sess-assigned" class="form-control" required>
-                        <option value="">— Select staff —</option>
+                        <option value="">- Select staff -</option>
                         <?php foreach ($staffList as $s): ?>
                             <option value="<?= (int)$s['id'] ?>"><?= e($s['name']) ?></option>
                         <?php endforeach; ?>
@@ -575,7 +575,7 @@ function openEditSession(data) {
         del.disabled = true;
         del.style.opacity = '.45';
         del.title = 'Cannot remove a session with bookings';
-        info.textContent = data.booked + ' applicant(s) booked — Remove disabled.';
+        info.textContent = data.booked + ' applicant(s) booked - Remove disabled.';
     } else {
         del.disabled = false;
         del.style.opacity = '';

@@ -212,7 +212,7 @@ ob_start();
 
     <?php if ($interviewStatus === 'completed'): ?>
         <!-- ============================================================
-             COMPLETED — evaluated by staff
+             COMPLETED - evaluated by staff
         ============================================================ -->
         <div class="card" style="padding:var(--space-6)">
             <div style="display:flex;align-items:center;gap:var(--space-4);margin-bottom:var(--space-5)">
@@ -235,7 +235,7 @@ ob_start();
 
     <?php elseif ($interviewStatus === 'absent'): ?>
         <!-- ============================================================
-             ABSENT — staff will reschedule
+             ABSENT - staff will reschedule
         ============================================================ -->
         <div class="card" style="padding:var(--space-6)">
             <div class="alert alert-error" style="margin-bottom:var(--space-4)">
@@ -244,14 +244,14 @@ ob_start();
             </div>
             <div style="font-size:var(--text-sm);color:var(--text-secondary)">
                 The admissions office will reschedule your interview shortly.
-                Please check back on this page — a new slot will appear
+                Please check back on this page - a new slot will appear
                 automatically once it's assigned.
             </div>
         </div>
 
     <?php elseif (in_array($myEntry['status'], ['checked_in', 'in_progress'], true) && $slotIsToday): ?>
         <!-- ============================================================
-             CHECKED IN STATE — queue number + desk instructions
+             CHECKED IN STATE - queue number + desk instructions
              (auto-checked-in at assignment time; only show queue UI on
              the actual interview day)
         ============================================================ -->
@@ -272,7 +272,7 @@ ob_start();
                 <?php if ($queuePosition !== null): ?>
                     <div style="font-size:var(--text-sm);color:var(--text-secondary);margin-bottom:var(--space-4)">
                         <?php if ($queuePosition === 1): ?>
-                            You are <strong>next</strong> — please be ready!
+                            You are <strong>next</strong> - please be ready!
                         <?php else: ?>
                             There <?= $queuePosition - 1 === 1 ? 'is' : 'are' ?>
                             <strong><?= $queuePosition - 1 ?></strong>
@@ -325,7 +325,7 @@ ob_start();
                         </div>
                         <div style="font-size:var(--text-xs);color:var(--text-tertiary)">
                             Submitted <?= date('M j, g:i A', strtotime($myReschedule['created_at'])) ?>
-                            — awaiting staff review.
+                            - awaiting staff review.
                         </div>
                     </div>
                 </div>
@@ -338,7 +338,7 @@ ob_start();
             <?php else: ?>
                 <?php if ($rescheduleDenied): ?>
                     <div class="alert alert-warning" style="margin-bottom:var(--space-3);font-size:var(--text-sm)">
-                        Your previous reschedule request was not approved — you've kept your current slot.
+                        Your previous reschedule request was not approved - you've kept your current slot.
                         <?php if (!empty($myReschedule['deny_reason'])): ?>
                             <div style="margin-top:var(--space-2);font-weight:var(--weight-medium)">
                                 Reason from staff:
@@ -418,7 +418,7 @@ ob_start();
                         </div>
                         <div style="font-size:var(--text-xs);color:var(--text-secondary);margin-top:var(--space-1)">
                             Submitted <?= date('M j, g:i A', strtotime($myReschedule['created_at'])) ?>
-                            — awaiting staff review. You'll see a new slot here once it's approved.
+                            - awaiting staff review. You'll see a new slot here once it's approved.
                         </div>
                         <?php if (!empty($myReschedule['reason'])): ?>
                             <div style="margin-top:var(--space-2);font-size:var(--text-sm);color:var(--text-secondary);
@@ -431,11 +431,11 @@ ob_start();
             <?php else: ?>
                 <?php if ($rescheduleApproved): ?>
                     <div class="alert alert-success" style="margin-top:var(--space-4);font-size:var(--text-sm)">
-                        Your reschedule request was approved — you've been moved to the slot shown above.
+                        Your reschedule request was approved - you've been moved to the slot shown above.
                     </div>
                 <?php elseif ($rescheduleDenied): ?>
                     <div class="alert alert-warning" style="margin-top:var(--space-4);font-size:var(--text-sm)">
-                        Your previous reschedule request was not approved — you've kept your current slot.
+                        Your previous reschedule request was not approved - you've kept your current slot.
                         <?php if (!empty($myReschedule['deny_reason'])): ?>
                             <div style="margin-top:var(--space-2);font-weight:var(--weight-medium)">
                                 Reason from staff:
@@ -508,7 +508,7 @@ ob_start();
 
 <?php else: ?>
     <!-- ============================================================
-         WAITING — passed exam, no slot yet.  Staff will auto-assign
+         WAITING - passed exam, no slot yet.  Staff will auto-assign
          as soon as a slot opens up for the student's department.
     ============================================================ -->
     <div class="card" style="padding:var(--space-6);text-align:center">
@@ -525,7 +525,7 @@ ob_start();
                 for <strong><?= e($studentDept) ?></strong>
             <?php endif; ?>
             as soon as a session becomes available. You'll see the date
-            and time here once it's booked — no action required.
+            and time here once it's booked - no action required.
         </div>
     </div>
 <?php endif; ?>

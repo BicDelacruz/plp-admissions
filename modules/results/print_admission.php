@@ -53,7 +53,7 @@ if (!$applicant) {
 }
 
 $applicantId = (int) $applicant['id'];
-$fullName    = format_full_name($applicant, $applicant['student_name'] ?? '—');
+$fullName    = format_full_name($applicant, $applicant['student_name'] ?? '-');
 $status      = (string) $applicant['overall_status'];
 
 $schoolName = school_setting('school_name', 'PLP Admissions');
@@ -72,7 +72,7 @@ audit_log('admission_print', 'Viewed printable admission record: ' . $fullName, 
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Admission Record — <?= e($fullName) ?> — <?= e($schoolName) ?></title>
+<title>Admission Record - <?= e($fullName) ?> - <?= e($schoolName) ?></title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap">
@@ -118,7 +118,7 @@ audit_log('admission_print', 'Viewed printable admission record: ' . $fullName, 
             <div class="ap-section-title">Withdrawal</div>
             <div class="ap-kv">
                 <div><span class="ap-k">Withdrawn</span>
-                    <?= !empty($applicant['withdrawn_at']) ? e(format_date($applicant['withdrawn_at'], 'M j, Y g:i A')) : '—' ?>
+                    <?= !empty($applicant['withdrawn_at']) ? e(format_date($applicant['withdrawn_at'], 'M j, Y g:i A')) : '-' ?>
                 </div>
                 <?php if (trim((string) ($applicant['withdrawn_reason'] ?? '')) !== ''): ?>
                 <div><span class="ap-k">Reason</span> <?= nl2br(e($applicant['withdrawn_reason'])) ?></div>

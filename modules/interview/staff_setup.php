@@ -209,7 +209,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } elseif ($deletedCount > 0) {
                 Session::flash('success', "{$deletedCount} session(s) removed.");
             } elseif ($skipped > 0) {
-                Session::flash('error', "Nothing removed — all {$skipped} selected session(s) have bookings.");
+                Session::flash('error', "Nothing removed - all {$skipped} selected session(s) have bookings.");
             }
             redirect('/staff/interviews/setup?college=' . urlencode($deptCtx));
         }
@@ -321,7 +321,7 @@ if ($college !== '') {
     ob_start();
     include __DIR__ . '/_setup_sessions.php';
     $content   = ob_get_clean();
-    $pageTitle   = e($college) . ' — Interview Sessions';
+    $pageTitle   = e($college) . ' - Interview Sessions';
     $pageHeading = $college;
     // SSO has no Interview Sessions landing (it redirects to setup), so start at Setup.
     $pageBreadcrumb = $isSSO

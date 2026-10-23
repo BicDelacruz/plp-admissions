@@ -120,7 +120,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= e($pageTitle) ?> — <?= e($schoolName) ?></title>
+    <title><?= e($pageTitle) ?> - <?= e($schoolName) ?></title>
     <meta name="robots" content="noindex, nofollow">
 
     <!-- Preconnect for Google Fonts -->
@@ -225,7 +225,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                             <?php if ($n['message']): ?>
                             <div style="font-size:var(--text-xs);color:var(--text-tertiary);line-height:1.4"><?= e(mb_strimwidth($n['message'], 0, 80, '...')) ?></div>
                             <?php endif; ?>
-                            <div style="font-size:10px;color:var(--text-tertiary);margin-top:2px"><?= date('M j, g:i A', strtotime($n['created_at'])) ?></div>
+                            <div style="font-size:var(--text-2xs);color:var(--text-tertiary);margin-top:2px"><?= date('M j, g:i A', strtotime($n['created_at'])) ?></div>
                         </a>
                     <?php endforeach;
                     endif; ?>
@@ -261,7 +261,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                         background:var(--border);transition:background .2s;flex-shrink:0;pointer-events:none;">
                         <div style="
                             position:absolute;top:3px;left:3px;width:12px;height:12px;
-                            border-radius:50%;background:#fff;
+                            border-radius:50%;background:var(--white);
                             transition:transform .2s;
                             transform:translateX(0);">
                         </div>
@@ -377,7 +377,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                                 background:var(--border);transition:background .2s;flex-shrink:0;pointer-events:none;">
                                 <div style="
                                     position:absolute;top:3px;left:3px;width:12px;height:12px;
-                                    border-radius:50%;background:#fff;
+                                    border-radius:50%;background:var(--white);
                                     transition:transform .2s;
                                     transform:translateX(0);">
                                 </div>
@@ -608,11 +608,11 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
             <?= csrf_field() ?>
             <input type="hidden" name="action" value="withdraw">
             <div class="modal-body" style="display:flex;flex-direction:column;gap:var(--space-4)">
-                <div style="background:#fff7ed;border:1px solid #f97316;border-radius:var(--radius);padding:var(--space-4)">
+                <div style="background:var(--warning-bg);border:1px solid var(--warning);border-radius:var(--radius);padding:var(--space-4)">
                     <div style="display:flex;gap:var(--space-3);align-items:flex-start">
                         <?= icon('warning-circle:fill', 18, 'margin-top:1px;color:#f97316') ?>
                         <div>
-                            <div style="font-weight:var(--weight-semibold);font-size:var(--text-sm);color:#c2410c;margin-bottom:2px">This cannot be undone</div>
+                            <div style="font-weight:var(--weight-semibold);font-size:var(--text-sm);color:var(--warning);margin-bottom:2px">This cannot be undone</div>
                             <p style="font-size:var(--text-sm);color:var(--text-secondary)">
                                 Withdrawing permanently removes you from the admissions process.
                             </p>

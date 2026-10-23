@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Anything else is dropped up front so the if-blocks below short-circuit.
     $deanWritable = ['update_tiers', 'update_course_caps'];
     if (!$canManageCourses && !in_array($action, $deanWritable, true)) {
-        $errors[] = 'Read-only access — only SSO and Admin can manage courses.';
+        $errors[] = 'Read-only access - only SSO and Admin can manage courses.';
         $action   = '';
     }
 
@@ -256,7 +256,7 @@ ob_start();
 <?php
 // Strand pills for a table cell. Neutral badges, same as the other tables.
 $strandPills = function (array $list): string {
-    if (!$list) return '<span style="font-size:var(--text-xs);color:var(--text-tertiary)">—</span>';
+    if (!$list) return '<span style="font-size:var(--text-xs);color:var(--text-tertiary)">-</span>';
     $out = '<div style="display:flex;gap:4px;flex-wrap:wrap;padding:var(--space-2) 0">';
     foreach ($list as $sk) $out .= '<span class="badge badge-neutral">' . e($sk) . '</span>';
     return $out . '</div>';
@@ -421,7 +421,7 @@ $customByName = array_column($customCourses, null, 'course_name');
     </div>
 
     <?php if ($canManageCourses): /* Dean is scoped to their own college's
-              tier thresholds + max-slots only — Custom Courses and the SHS
+              tier thresholds + max-slots only - Custom Courses and the SHS
               Strand reference are out of scope for that role. */ ?>
 
     <!-- ── Custom Courses table ─────────────────────────────────── -->
@@ -770,7 +770,7 @@ function saveRowEdit(i) {
             highEl.value = Math.min(10, avgVal + 1);
         }
         var finalAvg = parseInt(avgEl.value, 10) || 4;
-        lowEl.textContent = finalAvg <= 1 ? '—' : '1–' + (finalAvg - 1);
+        lowEl.textContent = finalAvg <= 1 ? '-' : '1–' + (finalAvg - 1);
     });
 })();
 

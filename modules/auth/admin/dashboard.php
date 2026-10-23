@@ -277,7 +277,7 @@ ob_start();
 .db-controls { display:flex; align-items:center; gap:var(--space-2); flex-wrap:wrap; }
 
 /* ── 3-column grid: 30% | 40% | 30%
-   Col1 and Col2 are plain flex stacks — no row-spanning.
+   Col1 and Col2 are plain flex stacks - no row-spanning.
    ───────────────────────────────────── */
 .db-grid {
     display: grid;
@@ -424,7 +424,7 @@ ob_start();
             <?php if (count($allSYs) > 1): ?>
             <div style="display:flex;align-items:center;gap:var(--space-2);">
                 <label style="font-size:var(--text-sm);color:var(--text-secondary);white-space:nowrap;">School Year</label>
-                <select onchange="location.href=this.value" aria-label="School year">
+                <select class="toolbar-select" onchange="location.href=this.value" aria-label="School year">
                     <?php foreach ($allSYs as $sy): ?>
                         <?php
                         $params = $_GET;

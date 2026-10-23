@@ -298,7 +298,7 @@ if ($allApproved && $applicant['overall_status'] === 'documents'):
 <?php
     $studentFullName = trim(($applicant['first_name'] ?? '') . ' ' . ($applicant['middle_name'] ?? '') . ' ' . ($applicant['last_name'] ?? ''));
     if ($applicant['suffix'] ?? '') $studentFullName .= ', ' . $applicant['suffix'];
-    if (!$studentFullName) $studentFullName = $applicant['student_name'] ?? '—';
+    if (!$studentFullName) $studentFullName = $applicant['student_name'] ?? '-';
     $strandLabel = isset(SHS_STRANDS[$applicant['shs_strand'] ?? '']) ? SHS_STRANDS[$applicant['shs_strand']] : ($applicant['shs_strand'] ?? '');
 ?>
 <div id="file-viewer-modal" style="
@@ -327,13 +327,7 @@ if ($allApproved && $applicant['overall_status'] === 'documents'):
             flex-shrink:0;
         ">
             <!-- Prev -->
-            <button id="fv-prev" onclick="fvNavigate(-1)" type="button" style="
-                display:flex;align-items:center;justify-content:center;
-                width:var(--control-height);height:var(--control-height);border-radius:var(--radius);
-                border:1px solid var(--border);background:var(--bg);
-                color:var(--text-secondary);cursor:pointer;flex-shrink:0;
-                transition:background var(--transition-fast),color var(--transition-fast);
-            " title="Previous (←)">
+            <button id="fv-prev" onclick="fvNavigate(-1)" type="button" class="btn btn-secondary" style="width:var(--control-height);padding:0;flex-shrink:0" title="Previous (←)">
                 <?= icon('ic_fluent_chevron_left_24_regular', 15) ?>
             </button>
 
@@ -344,13 +338,7 @@ if ($allApproved && $applicant['overall_status'] === 'documents'):
             </div>
 
             <!-- Next -->
-            <button id="fv-next" onclick="fvNavigate(1)" type="button" style="
-                display:flex;align-items:center;justify-content:center;
-                width:var(--control-height);height:var(--control-height);border-radius:var(--radius);
-                border:1px solid var(--border);background:var(--bg);
-                color:var(--text-secondary);cursor:pointer;flex-shrink:0;
-                transition:background var(--transition-fast),color var(--transition-fast);
-            " title="Next (→)">
+            <button id="fv-next" onclick="fvNavigate(1)" type="button" class="btn btn-secondary" style="width:var(--control-height);padding:0;flex-shrink:0" title="Next (→)">
                 <?= icon('ic_fluent_chevron_right_24_regular', 15) ?>
             </button>
 
@@ -394,7 +382,7 @@ if ($allApproved && $applicant['overall_status'] === 'documents'):
                     "></div>
                     <div id="fv-hint" style="
                         position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
-                        background:rgba(0,0,0,0.55);color:#fff;
+                        background:rgba(0,0,0,0.55);color:var(--white);
                         font-size:var(--text-xs);padding:5px 14px;border-radius:var(--radius);
                         pointer-events:none;opacity:0;transition:opacity .4s ease;white-space:nowrap;
                     ">Scroll to zoom · Drag to pan when zoomed in</div>
@@ -418,7 +406,7 @@ if ($allApproved && $applicant['overall_status'] === 'documents'):
                         </div>
                         <div>
                             <div style="color:var(--text-tertiary);font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px">Email</div>
-                            <div><?= e($applicant['email'] ?? '—') ?></div>
+                            <div><?= e($applicant['email'] ?? '-') ?></div>
                         </div>
                         <?php if (!empty($applicant['phone'])): ?>
                         <div>
@@ -449,11 +437,11 @@ if ($allApproved && $applicant['overall_status'] === 'documents'):
 
                         <div>
                             <div style="color:var(--text-tertiary);font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px">Applicant Type</div>
-                            <div><?= e(ucfirst($applicant['applicant_type'] ?? '—')) ?></div>
+                            <div><?= e(ucfirst($applicant['applicant_type'] ?? '-')) ?></div>
                         </div>
                         <div>
                             <div style="color:var(--text-tertiary);font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px">Course Applied</div>
-                            <div style="font-weight:var(--weight-medium)"><?= e($applicant['course_applied'] ?? '—') ?></div>
+                            <div style="font-weight:var(--weight-medium)"><?= e($applicant['course_applied'] ?? '-') ?></div>
                         </div>
                         <?php if ($strandLabel): ?>
                         <div>
@@ -463,7 +451,7 @@ if ($allApproved && $applicant['overall_status'] === 'documents'):
                         <?php endif; ?>
                         <div>
                             <div style="color:var(--text-tertiary);font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px">School Year</div>
-                            <div><?= e($applicant['school_year'] ?? '—') ?></div>
+                            <div><?= e($applicant['school_year'] ?? '-') ?></div>
                         </div>
                     </div>
                 </div>
@@ -545,7 +533,7 @@ if ($allApproved && $applicant['overall_status'] === 'documents'):
         var wrap=document.getElementById('fv-transform-wrap');
         var isPdf=f.url.toLowerCase().split('?')[0].endsWith('.pdf');
         if(isPdf){
-            wrap.innerHTML='<iframe src="'+f.url+'" style="width:100%;height:100%;border:none;background:#fff;"></iframe>';
+            wrap.innerHTML='<iframe src="'+f.url+'" style="width:100%;height:100%;border:none;background:var(--white);"></iframe>';
         } else {
             wrap.innerHTML='<img src="'+f.url+'" alt="Document preview" style="max-width:100%;max-height:100%;border-radius:var(--radius);box-shadow:var(--shadow-md);display:block;pointer-events:none;user-select:none;-webkit-user-drag:none;">';
         }
@@ -751,8 +739,8 @@ function showUndoToast(msg) {
     toast.id = 'undo-toast';
     toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:10000;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-lg);padding:12px 20px;display:flex;align-items:center;gap:12px;font-size:var(--text-sm);min-width:320px;animation:slideUp .25s ease';
     toast.innerHTML = '<span style="flex:1">' + msg + '</span>'
-        + '<button onclick="undoApproveAll()" style="background:none;border:1px solid var(--border);border-radius:var(--radius);padding:4px 14px;cursor:pointer;font-size:var(--text-sm);color:var(--text-primary);font-weight:600">Undo</button>'
-        + '<button onclick="dismissToast()" style="background:none;border:none;cursor:pointer;color:var(--text-tertiary);font-size:16px;padding:0 4px">&times;</button>';
+        + '<button onclick="undoApproveAll()" class="btn btn-secondary btn-sm">Undo</button>'
+        + '<button onclick="dismissToast()" class="btn btn-icon" aria-label="Dismiss">&times;</button>';
     document.body.appendChild(toast);
 
     window._undoToastTimer = setTimeout(function() {
@@ -975,7 +963,7 @@ $sortParams = ['status' => $statusFilter, 'type' => $typeFilter, 'course' => $co
                                style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent)">
                     </td>
                     <td>
-                        <?php // Single-line row — the email lives in the review detail
+                        <?php // Single-line row - the email lives in the review detail
                               // page; the tooltip surfaces it on hover for quick context. ?>
                         <span class="auto-table-clip" style="font-weight:var(--weight-medium)" title="<?= e($row['email']) ?>"><?= e(format_full_name($row)) ?></span>
                     </td>
@@ -986,7 +974,7 @@ $sortParams = ['status' => $statusFilter, 'type' => $typeFilter, 'course' => $co
                         <?php if ($hasPending): ?>
                             <span style="color:var(--warning);font-weight:var(--weight-semibold);font-size:var(--text-sm)"><?= (int)$row['pending_review'] ?> to review</span>
                         <?php else: ?>
-                            <span style="color:var(--text-tertiary);font-size:var(--text-sm)">—</span>
+                            <span style="color:var(--text-tertiary);font-size:var(--text-sm)">-</span>
                         <?php endif; ?>
                     </td>
                     <td style="font-size:var(--text-sm);color:var(--text-tertiary)"><?= format_date($row['created_at'], 'M j, Y') ?></td>

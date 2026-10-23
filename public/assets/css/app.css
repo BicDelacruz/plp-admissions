@@ -192,6 +192,22 @@
     --chart-red:    #E24B4A;
     --chart-pink:   #D4537E;
     --chart-lime:   #639922;
+
+    /* Fixed colors that are not theme-dependent (same in light and dark) */
+    --white:          #ffffff;
+    --auth-ink:       #1a2420;
+    --auth-bg-deep:   #0c2a1a;
+    --auth-bullet:    #6fcf97;
+    --nav-dot-pending:#f59e0b;
+    --note-bg:        #fff3bf;
+    --note-text:      #5c4400;
+    --badge-blue-bg:  #E6F1FB;
+    --badge-blue-text:#185FA5;
+
+    /* Small font sizes used by compact UI */
+    --text-2xs:       0.625rem;
+    --text-icon:      1.75rem;
+    --text-icon-lg:   2rem;
 }
 
 /* Dark mode */
@@ -717,7 +733,7 @@ button { cursor: pointer; }
     border-radius: 50%;
 }
 .nav-dot--alert   { background: var(--error); }
-.nav-dot--pending { background: #f59e0b; }
+.nav-dot--pending { background: var(--nav-dot-pending); }
 
 /* Sidebar footer — profile menu. Padding + column live with .sidebar-header above. */
 
@@ -904,7 +920,7 @@ button { cursor: pointer; }
 .step.done .step-dot {
     background: var(--accent);
     border-color: var(--accent);
-    color: #fff;
+    color: var(--white);
 }
 
 .step.active .step-dot {
@@ -1368,7 +1384,7 @@ textarea:-ms-input-placeholder {
 /* Outline danger (e.g. Close Admissions) */
 .btn-outline-danger { background: transparent; color: var(--error); border-color: var(--error); }
 .btn-outline-danger:hover,
-.btn-outline-danger:focus-visible { background: var(--error-bg, #fee2e2); }
+.btn-outline-danger:focus-visible { background: var(--error-bg); }
 
 /* Focus ring for all buttons */
 .btn:focus-visible {
@@ -1515,8 +1531,8 @@ tbody tr:hover { background: var(--bg-overlay); }
     min-height: 100vh;
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    background: #fff;
-    color: #1a2420;
+    background: var(--white);
+    color: var(--auth-ink);
 }
 .auth-aside {
     position: relative;
@@ -1526,8 +1542,8 @@ tbody tr:hover { background: var(--bg-overlay); }
     justify-content: space-between;
     gap: var(--space-8);
     padding: clamp(32px, 5vw, 64px);
-    color: #fff;
-    background: var(--auth-photo) center / cover no-repeat, #0c2a1a;
+    color: var(--white);
+    background: var(--auth-photo) center / cover no-repeat, var(--auth-bg-deep);
     /* Stays put while a long page (privacy) scrolls on the right. */
     position: sticky;
     top: 0;
@@ -1544,7 +1560,7 @@ tbody tr:hover { background: var(--bg-overlay); }
     z-index: -1;
 }
 .auth-brand { display: flex; align-items: center; gap: var(--space-4); }
-.auth-brand-logo { width: 48px; height: 48px; object-fit: contain; flex: none; background: #fff; padding: 4px; }
+.auth-brand-logo { width: 48px; height: 48px; object-fit: contain; flex: none; background: var(--white); padding: 4px; }
 .auth-brand-title { margin: 0; font-size: var(--text-base); font-weight: var(--weight-semibold); line-height: 1.2; }
 .auth-brand-sub { margin: 2px 0 0; font-size: var(--text-xs); letter-spacing: .06em; text-transform: uppercase; color: rgba(255,255,255,.72); }
 .auth-aside-copy { max-width: 440px; }
@@ -1559,7 +1575,7 @@ tbody tr:hover { background: var(--bg-overlay); }
 .auth-aside-copy p { margin: 0; color: rgba(255,255,255,.82); line-height: 1.6; text-wrap: pretty; }
 .auth-points { list-style: none; margin: var(--space-4) 0 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-3); }
 .auth-points li { display: flex; align-items: center; gap: var(--space-3); font-size: var(--text-sm); color: rgba(255,255,255,.9); }
-.auth-points li::before { content: ''; width: 6px; height: 6px; flex: none; background: #6fcf97; border-radius: 50% !important; }
+.auth-points li::before { content: ''; width: 6px; height: 6px; flex: none; background: var(--auth-bullet); border-radius: 50% !important; }
 .auth-aside-foot { margin: 0; font-size: var(--text-xs); color: rgba(255,255,255,.6); }
 
 .auth-pane {
@@ -1567,7 +1583,7 @@ tbody tr:hover { background: var(--bg-overlay); }
     flex-direction: column;
     min-height: 100vh;
     padding: clamp(24px, 5vw, 64px);
-    background: #fff;
+    background: var(--white);
 }
 .auth-main { flex: 1; display: flex; align-items: center; justify-content: center; }
 .auth-card {
@@ -1589,7 +1605,7 @@ tbody tr:hover { background: var(--bg-overlay); }
 .privacy-body li { margin-bottom: var(--space-2); }
 .privacy-body a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
 .privacy-meta { color: var(--text-secondary); }
-.privacy-todo { background: #fff3bf; color: #5c4400; padding: 0 var(--space-1); border-radius: var(--radius); font-weight: var(--weight-semibold); }
+.privacy-todo { background: var(--note-bg); color: var(--note-text); padding: 0 var(--space-1); border-radius: var(--radius); font-weight: var(--weight-semibold); }
 .auth-legal { padding-top: var(--space-6); text-align: center; font-size: var(--text-xs); }
 .auth-legal a { color: var(--text-tertiary); text-decoration: underline; text-underline-offset: 3px; }
 .auth-legal a:hover { color: var(--text-primary); opacity: 1; }
@@ -2342,7 +2358,7 @@ textarea:focus-visible {
 
 .badge-green   { background: var(--color-high-bg);    color: var(--color-high-text); }
 .badge-amber   { background: var(--color-avg-bg);     color: var(--color-avg-text);  }
-.badge-blue    { background: #E6F1FB;                  color: #185FA5;                }
+.badge-blue    { background: var(--badge-blue-bg);                  color: var(--badge-blue-text);                }
 
 /* ── DASHBOARD: pipeline bar chart ─────────────────────── */
 /*
@@ -2725,7 +2741,7 @@ textarea:focus-visible {
     font-weight: var(--weight-semibold);
     line-height: 16px;
     text-align: center;
-    color: #fff;
+    color: var(--white);
     background: var(--error);
     border-radius: var(--radius);
     pointer-events: none;
@@ -2777,7 +2793,7 @@ textarea:focus-visible {
     right: 0;
     height: 100vh;
     width: min(540px, 100vw);
-    background: var(--surface, #fff);
+    background: var(--surface, var(--white));
     box-shadow: -8px 0 24px rgba(0, 0, 0, .12);
     transform: translateX(100%);
     transition: transform .22s cubic-bezier(.2,.7,.3,1);
@@ -2954,7 +2970,7 @@ body.ap-drawer-locked { overflow: hidden; }
     text-decoration: none;
 }
 .ap-doc-link:hover {
-    background: var(--surface, #fff);
+    background: var(--surface, var(--white));
     color: var(--accent);
 }
 
@@ -2992,8 +3008,8 @@ body.ap-drawer-locked { overflow: hidden; }
     font-size: var(--text-xs);
     color: var(--text-tertiary);
 }
-.btn-pass   { background: var(--success-bg, #d1fae5); color: var(--success, #15803d); border-color: var(--success, #15803d); }
-.btn-reject { background: var(--error-bg, #fee2e2);   color: var(--error, #b91c1c);   border-color: var(--error, #b91c1c); }
+.btn-pass   { background: var(--success-bg); color: var(--success); border-color: var(--success); }
+.btn-reject { background: var(--error-bg);   color: var(--error);   border-color: var(--error); }
 
 /* Audit list */
 .ap-audit {
@@ -3986,7 +4002,7 @@ html select:not([multiple]):not([size]).is-open {
     padding: 2px var(--space-2);
     border-radius: var(--radius);
     background: var(--accent);
-    color: #fff;
+    color: var(--white);
     font-size: 10px;
     font-weight: var(--weight-semibold);
     text-transform: uppercase;
@@ -3996,7 +4012,7 @@ html select:not([multiple]):not([size]).is-open {
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: #fff;
+    background: var(--white);
     animation: q-pulse-dot 1.4s infinite;
 }
 /* Dashed "+ Add" card: same anatomy and left alignment as every other
@@ -4239,7 +4255,7 @@ img:not([class*="logo"]):not([src$=".svg"]) {
     min-height: 297mm;
     margin: var(--space-6) auto;
     padding: 18mm 16mm;
-    background: #fff;
+    background: var(--white);
     border: 1px solid var(--border-strong);
     box-shadow: 0 8px 24px -8px rgba(15, 15, 15, 0.2);
 }
@@ -4309,7 +4325,7 @@ img:not([class*="logo"]):not([src$=".svg"]) {
 }
 
 @media print {
-    .print-page { background: #fff; }
+    .print-page { background: var(--white); }
     .print-page .pr-toolbar { display: none; }
     .print-page .pr-sheet {
         width: auto;

@@ -523,7 +523,7 @@ elseif ($selectedExamId) $view = 'editor';
 ?>
 
 <?php /* ════════════════════════════════════════════════════
-   LANDING — two big entry-point cards
+   LANDING - two big entry-point cards
 ════════════════════════════════════════════════════ */ ?>
 <?php if ($view === 'landing'): ?>
 
@@ -570,7 +570,7 @@ elseif ($selectedExamId) $view = 'editor';
 </div>
 
 <?php /* ════════════════════════════════════════════════════
-   EXAM DIRECTORY — card grid of all exams
+   EXAM DIRECTORY - card grid of all exams
 ════════════════════════════════════════════════════ */ ?>
 <?php elseif ($view === 'exams'): ?>
 
@@ -608,7 +608,7 @@ elseif ($selectedExamId) $view = 'editor';
 </div>
 
 <?php /* ════════════════════════════════════════════════════
-   EXAM EDITOR — full question builder for a selected exam
+   EXAM EDITOR - full question builder for a selected exam
 ════════════════════════════════════════════════════ */ ?>
 <?php else: ?>
 
@@ -882,7 +882,7 @@ elseif ($selectedExamId) $view = 'editor';
                     <div class="section-questions" id="sec-questions-<?= $sec['id'] ?>" style="display:flex;flex-direction:column;padding:0">
                         <?php if (empty($secQs)): ?>
                             <div id="sec-empty-<?= $sec['id'] ?>" style="padding:var(--space-4) var(--space-5);border:1.5px dashed var(--border);border-radius:var(--radius);text-align:center;color:var(--text-tertiary);font-size:var(--text-sm)">
-                                No questions yet — click <strong>Add question</strong> below to get started.
+                                No questions yet - click <strong>Add question</strong> below to get started.
                             </div>
                         <?php else: ?>
                             <?php foreach ($secQs as $q): renderQuestionCard($q, $globalQNum, $QUESTION_TYPES, $CHOICE_TYPES); endforeach; ?>
@@ -1349,7 +1349,7 @@ function buildEditChoiceRow(choice, idx, qid, qType) {
            </button>`
         : '<div style="width:22px"></div>';
     return `<div class="iq-choice-row" data-choice-idx="${idx}">
-        <input type="${inputType}" name="${name}" value="${idx}" ${choice.correct?'checked':''} style="accent-color:var(--accent);flex-shrink:0"
+        <input type="${inputType}" class="choice-input" name="${name}" value="${idx}" ${choice.correct?'checked':''} style="accent-color:var(--accent);flex-shrink:0"
                onchange="syncEditCorrect(${qid},${idx},'${qType}',this)">
         <input type="text" class="form-control" value="${escQA(choice.text)}" placeholder="Choice ${String.fromCharCode(65+idx)}"
                oninput="IQ_EDIT_CHOICES[${qid}][${idx}].text=this.value">
@@ -1546,7 +1546,7 @@ function renderChoiceRow(choice, idx, secId, secType) {
            </button>`
         : '<div style="width:22px"></div>';
     return `<div class="iq-choice-row" data-choice-idx="${idx}">
-        <input type="${inputType}" name="${name}" value="${idx}" ${checked} style="accent-color:var(--accent);flex-shrink:0"
+        <input type="${inputType}" class="choice-input" name="${name}" value="${idx}" ${checked} style="accent-color:var(--accent);flex-shrink:0"
                onchange="syncChoiceCorrect(${secId}, ${idx}, '${secType}', this)">
         <input type="text" class="form-control" value="${escapeHtmlAttr(choice.text)}"
                placeholder="Choice ${String.fromCharCode(65+idx)}"
@@ -1704,7 +1704,7 @@ function togglePassingPanel() {
             highEl.value = Math.min(10, avgVal + 1);
         }
         const finalAvg = parseInt(avgEl.value, 10) || 4;
-        lowEl.textContent = finalAvg <= 1 ? '—' : '1–' + (finalAvg - 1);
+        lowEl.textContent = finalAvg <= 1 ? '-' : '1–' + (finalAvg - 1);
     });
 })();
 
@@ -1819,8 +1819,8 @@ function togglePassingPanel() {
                 <div class="ai-status-dot"></div>
                 <div id="ai-puter-status-text" style="flex:1">Checking Puter connection…</div>
                 <a id="ai-puter-link" href="https://puter.com" target="_blank" style="display:none;font-size:var(--text-xs);font-weight:var(--weight-medium);color:var(--accent);text-decoration:none;white-space:nowrap">Create account <?= icon('ic_fluent_arrow_right_24_regular', 14) ?></a>
-                <button id="ai-puter-signin-btn" onclick="puterSignIn()" style="display:none;font-size:var(--text-xs);font-weight:var(--weight-medium);color:var(--accent);background:none;border:none;cursor:pointer;padding:0;white-space:nowrap">Sign in <?= icon('ic_fluent_arrow_right_24_regular', 14) ?></button>
-                <button id="ai-puter-signout-btn" onclick="puterSignOut()" style="display:none;font-size:var(--text-xs);color:var(--text-tertiary);background:none;border:none;cursor:pointer;padding:0">Sign out</button>
+                <button id="ai-puter-signin-btn" onclick="puterSignIn()" class="btn btn-ghost btn-sm" style="display:none;color:var(--accent)">Sign in <?= icon('ic_fluent_arrow_right_24_regular', 14) ?></button>
+                <button id="ai-puter-signout-btn" onclick="puterSignOut()" class="btn btn-ghost btn-sm" style="display:none">Sign out</button>
             </div>
             <div id="ai-step-upload">
                 <div class="ai-dropzone" id="ai-drop-zone" onclick="document.getElementById('ai-file-input').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleAiFileDrop(event)">
@@ -1864,7 +1864,7 @@ function togglePassingPanel() {
                 <div id="ai-questions-preview" style="display:flex;flex-direction:column;gap:var(--space-2);max-height:320px;overflow-y:auto"></div>
             </div>
             <div id="ai-step-error" style="display:none;flex-direction:column;gap:var(--space-3)">
-                <div style="display:flex;align-items:flex-start;gap:10px;background:#fef2f2;border:1px solid #fca5a5;border-radius:var(--radius);padding:12px 14px;font-size:var(--text-sm);color:#991b1b">
+                <div style="display:flex;align-items:flex-start;gap:10px;background:var(--error-bg);border:1px solid var(--error);border-radius:var(--radius);padding:12px 14px;font-size:var(--text-sm);color:var(--error)">
                     <?= icon('warning-circle:fill', 16, 'margin-top:1px') ?>
                     <span id="ai-error-msg"></span>
                 </div>
@@ -2070,7 +2070,7 @@ async function startAiProcessing() {
         if (typeof content === 'string') {
             const len = content.trim().length;
             if (len < 5) {
-                throw new Error('Could not extract any readable text from this file. If it is a scanned PDF, save it as JPG/PNG instead and re-upload — the AI can read images.');
+                throw new Error('Could not extract any readable text from this file. If it is a scanned PDF, save it as JPG/PNG instead and re-upload - the AI can read images.');
             }
             if (len < 50 && (ext === 'pdf' || ext === 'doc' || ext === 'docx')) {
                 throw new Error('Only ' + len + ' characters of text could be extracted from this ' + ext.toUpperCase() + '. It is most likely a scanned document with no selectable text. Save the pages as JPG/PNG images and upload one of those instead.');
@@ -2142,7 +2142,7 @@ function extractPuterText(response) {
 // ── AI prompt — extracts sections + questions ─────────────────
 const AI_PROMPT = `You are an expert exam question extractor for Philippine school exams. Extract ALL sections and ALL questions from the exam content.
 
-Return ONLY a valid JSON array of sections — no markdown, no explanation, no extra text.
+Return ONLY a valid JSON array of sections - no markdown, no explanation, no extra text.
 
 Structure:
 [
@@ -2169,23 +2169,23 @@ SECTION TYPE RULES:
 - "short_answer"    → Identification, Fill in the blank, Enumeration, Completion
 - "paragraph"       → Essay, Explain, Discuss, Long answer
 
-IDENTIFYING CORRECT ANSWERS (critical — read carefully):
+IDENTIFYING CORRECT ANSWERS (critical - read carefully):
 - In Philippine printed exams, the correct answer is shown in BOLD, UNDERLINED, or ALL-CAPS in the answer choices
-- Look very carefully at each choice — whichever one appears visually emphasized (bold/underlined/caps) is the correct answer
+- Look very carefully at each choice - whichever one appears visually emphasized (bold/underlined/caps) is the correct answer
 - correct_index = 0-based position of the correct choice (0=a, 1=b, 2=c, 3=d)
 - If no answer is marked, set correct_index to 0
 - For short_answer/identification: set correct_answer to the expected answer if shown (e.g. "QL", "QUALITATIVE", etc.)
-- Do NOT include any "description", hint, or "correct answer indicated as bold" text in the output — only the fields listed in the schema above
+- Do NOT include any "description", hint, or "correct answer indicated as bold" text in the output - only the fields listed in the schema above
 
 CHOICE FORMATTING:
 - Strip letter/number prefixes from choices (e.g. "a. Paris" → "Paris", "A) Paris" → "Paris", "1. Paris" → "Paris")
 - Keep the choice text only, no labels
 
-TRUE/FALSE SECTIONS — IMPORTANT:
+TRUE/FALSE SECTIONS - IMPORTANT:
 - Each numbered statement is a SEPARATE question
 - question_text = the statement itself (e.g. "The sky is blue")
 - choices = ["True", "False"] for every question
-- Do NOT extract the instructions ("Write TRUE if...") as a question — that is a direction, not a question
+- Do NOT extract the instructions ("Write TRUE if...") as a question - that is a direction, not a question
 - correct_index = 0 if True is correct, 1 if False is correct (or 0 if unknown)
 
 IDENTIFICATION/SHORT ANSWER SECTIONS:
@@ -2195,14 +2195,14 @@ IDENTIFICATION/SHORT ANSWER SECTIONS:
 - Expand abbreviations: QL/Q.L. → "QUALITATIVE", QT/Q.T. → "QUANTITATIVE"
 
 GENERAL RULES:
-- Extract EVERY numbered question — do not skip any
+- Extract EVERY numbered question - do not skip any
 - section_description = copy any directions/instructions shown at the top of that section
 - Do NOT treat section headings or instructions as questions
 - Output ONLY the JSON array, nothing else
 
-OUTPUT FORMAT (strict — failures here break the import):
+OUTPUT FORMAT (strict - failures here break the import):
 - The very first character of your response must be \`[\` and the very last must be \`]\`
-- Do NOT wrap the array in an object (no \`{"sections": [...]}\` — just the bare array)
+- Do NOT wrap the array in an object (no \`{"sections": [...]}\` - just the bare array)
 - Do NOT include a trailing comma after the last item
 - Do NOT include comments
 - Do NOT include any prose, summary, or markdown fences before/after the array`;
@@ -2375,7 +2375,7 @@ function parseAiResp(raw, dp) {
         const snippet = raw.length > 240 ? raw.slice(0, 240) + '… (+' + (raw.length - 240) + ' more chars)' : raw;
         throw new Error(
             'AI response could not be parsed as JSON. The model may have returned prose, ' +
-            'or the response was cut off mid-answer. Try clicking Process again — if it ' +
+            'or the response was cut off mid-answer. Try clicking Process again - if it ' +
             'keeps failing, use a shorter or clearer file.\n\nFirst part of the response:\n' + snippet
         );
     }
@@ -2417,8 +2417,8 @@ function renderAiPreview(sections) {
         // Section header
         const secHead=document.createElement('div');
         secHead.style.cssText=`background:${sc.bg};border:1.5px solid ${sc.border};border-radius:var(--radius);padding:8px 12px;margin-top:8px`;
-        let secDesc = sec.section_description ? `<div style="font-size:11px;color:${sc.text};opacity:.75;margin-top:2px">${escHtml(sec.section_description)}</div>` : '';
-        secHead.innerHTML=`<div style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;font-weight:600;color:${sc.text}">${escHtml(sec.section_title)}</span><span style="font-size:11px;color:${sc.text};opacity:.7;margin-left:auto">${sec.section_type.replace(/_/g,' ')} · ${sec.questions.length} question${sec.questions.length!==1?'s':''}</span></div>${secDesc}`;
+        let secDesc = sec.section_description ? `<div style="font-size:var(--text-xs);color:${sc.text};opacity:.75;margin-top:2px">${escHtml(sec.section_description)}</div>` : '';
+        secHead.innerHTML=`<div style="display:flex;align-items:center;gap:8px"><span style="font-size:var(--text-xs);font-weight:600;color:${sc.text}">${escHtml(sec.section_title)}</span><span style="font-size:var(--text-xs);color:${sc.text};opacity:.7;margin-left:auto">${sec.section_type.replace(/_/g,' ')} · ${sec.questions.length} question${sec.questions.length!==1?'s':''}</span></div>${secDesc}`;
         wrap.appendChild(secHead);
 
         // Questions
@@ -2430,16 +2430,16 @@ function renderAiPreview(sections) {
                 choices='<div style="display:flex;flex-direction:column;gap:2px;margin-top:6px">'+q.choices.map((c,ci)=>{
                     const ok=q.question_type==='checkboxes'?(q.correct_indices||[]).includes(ci):ci===parseInt(q.correct_index);
                     const dot=ok
-                        ? `<span style="width:14px;height:14px;border-radius:50%;background:#15803d;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center"><i class="ph-bold ph-check" aria-hidden="true" style="font-size:8px;color:#fff"></i></span>`
-                        : `<span style="width:14px;height:14px;border-radius:50%;border:1.5px solid #d1d5db;flex-shrink:0;display:inline-block"></span>`;
-                    return`<div style="display:flex;align-items:center;gap:8px;padding:var(--space-1) 0;font-size:var(--text-sm);color:${ok?'#15803d':'#374151'};${ok?'font-weight:600':''}">${dot}${escHtml(c)}</div>`;
+                        ? `<span style="width:14px;height:14px;border-radius:50%;background:var(--success);flex-shrink:0;display:inline-flex;align-items:center;justify-content:center"><i class="ph-bold ph-check" aria-hidden="true" style="font-size:var(--text-2xs);color:var(--white)"></i></span>`
+                        : `<span style="width:14px;height:14px;border-radius:50%;border:1.5px solid var(--border-strong);flex-shrink:0;display:inline-block"></span>`;
+                    return`<div style="display:flex;align-items:center;gap:8px;padding:var(--space-1) 0;font-size:var(--text-sm);color:${ok?'var(--success)':'var(--text-secondary)'};${ok?'font-weight:600':''}">${dot}${escHtml(c)}</div>`;
                 }).join('')+'</div>';
             } else if(q.question_type==='short_answer'){
-                choices=`<div style="margin-top:6px;font-size:12px;color:#6b7280">${q.correct_answer?'Expected: <strong style=\'color:#111827\'">'+escHtml(q.correct_answer)+'</strong>':'Short answer — reviewed manually'}</div>`;
+                choices=`<div style="margin-top:6px;font-size:var(--text-xs);color:var(--text-tertiary)">${q.correct_answer?'Expected: <strong style=\'color:#111827\'">'+escHtml(q.correct_answer)+'</strong>':'Short answer - reviewed manually'}</div>`;
             } else {
-                choices=`<div style="margin-top:6px;font-size:12px;color:#6b7280">Paragraph — reviewed manually</div>`;
+                choices=`<div style="margin-top:6px;font-size:var(--text-xs);color:var(--text-tertiary)">Paragraph - reviewed manually</div>`;
             }
-            card.innerHTML=`<div class="ai-q-card-head"><span style="background:#2d6a4f;color:#fff;border-radius:var(--radius);padding:1px 7px;font-weight:600;font-size:11px">Q${globalQ}</span><span style="font-size:11px;color:#6b7280">${q.question_type.replace(/_/g,' ')}</span><span style="margin-left:auto;font-size:11px;color:#6b7280">${q.points} pt${q.points!==1?'s':''}</span></div><div class="ai-q-card-body"><div class="ai-q-text">${escHtml(q.question_text)}</div>${choices}</div>`;
+            card.innerHTML=`<div class="ai-q-card-head"><span style="background:var(--accent);color:var(--white);border-radius:var(--radius);padding:1px 7px;font-weight:600;font-size:var(--text-xs)">Q${globalQ}</span><span style="font-size:var(--text-xs);color:var(--text-tertiary)">${q.question_type.replace(/_/g,' ')}</span><span style="margin-left:auto;font-size:var(--text-xs);color:var(--text-tertiary)">${q.points} pt${q.points!==1?'s':''}</span></div><div class="ai-q-card-body"><div class="ai-q-text">${escHtml(q.question_text)}</div>${choices}</div>`;
             wrap.appendChild(card);
         });
     });

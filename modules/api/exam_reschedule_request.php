@@ -29,7 +29,7 @@ if (!$applicant) {
 // — once they've moved on to interview/result/released, the exam side
 // is fixed.
 if (($applicant['overall_status'] ?? '') !== 'exam') {
-    Session::flash('error', 'Your exam stage is finished — reschedule unavailable.');
+    Session::flash('error', 'Your exam stage is finished - reschedule unavailable.');
     redirect('/student/exam');
 }
 
@@ -43,7 +43,7 @@ $stmt = $db->prepare(
 $stmt->execute([$applicant['id']]);
 $mySlot = $stmt->fetch();
 if (!$mySlot) {
-    Session::flash('error', 'No exam slot assigned yet — nothing to reschedule.');
+    Session::flash('error', 'No exam slot assigned yet - nothing to reschedule.');
     redirect('/student/exam');
 }
 

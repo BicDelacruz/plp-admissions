@@ -18,7 +18,7 @@
             <a href="<?= url('/staff/interviews/setup') ?>?college=<?= urlencode($dept) ?>"
                class="select-card college-card">
                 <?php if ($needsSetup): ?>
-                    <span class="select-card-dot" title="No upcoming sessions — needs setup"></span>
+                    <span class="select-card-dot" title="No upcoming sessions - needs setup"></span>
                 <?php endif; ?>
                 <div class="select-card-title"><?= e($dept) ?></div>
                 <div class="select-card-meta">

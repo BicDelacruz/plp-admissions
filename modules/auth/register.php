@@ -138,7 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($capRow && (int)$capRow['accepted'] >= (int)$capRow['max_slots']) {
                 $errors['course_applied'] = 'This course has reached its enrollment cap for ' . $regYear2 . '. Please choose an available course.';
             }
-        } catch (\Throwable $e) { /* ignore — table may not exist yet */ }
+        } catch (\Throwable $e) { /* ignore - table may not exist yet */ }
     }
     if (!$googleMode && strlen($password) < 8)
         $errors['password']   = 'Password must be at least 8 characters.';
@@ -399,7 +399,7 @@ ob_start();
                         <option value="<?= e($course) ?>"
                             <?= ($old['course_applied'] ?? '') === $course ? 'selected' : '' ?>
                             <?= $isFull ? 'disabled' : '' ?>>
-                            <?= e($course) ?><?= $isFull ? ' — FULL' : '' ?>
+                            <?= e($course) ?><?= $isFull ? ' - FULL' : '' ?>
                         </option>
                     <?php endforeach; ?>
                 </select>

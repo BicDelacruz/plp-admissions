@@ -84,7 +84,7 @@ define('AI_MODEL_KEY', getenv('AI_MODEL_KEY') ?: '');
 // SSO and Dean are top-level roles for the role-redesign rollout.
 define('ROLE_STUDENT',   'student');
 define('ROLE_STAFF',     'staff');
-define('ROLE_PROFESSOR', 'staff');     // alias — DB enum stays 'staff'
+define('ROLE_PROFESSOR', 'staff');     // alias - DB enum stays 'staff'
 define('ROLE_PROCTOR',   'proctor');
 define('ROLE_SSO',       'sso');
 define('ROLE_DEAN',      'dean');
@@ -120,13 +120,13 @@ define('DOCS_FRESHMAN', [
 
 // -- Transferee-only docs ----------------------------------------
 define('DOCS_TRANSFEREE', [
-    'tor'                => 'TOR or Certificate of Grades — "For Evaluation Purposes Only"',
+    'tor'                => 'TOR or Certificate of Grades - "For Evaluation Purposes Only"',
 ]);
 
 // -- Foreign student docs (kept for system completeness) ---------
 // Foreign applicants follow DOCS_CORE plus these extras.
 define('DOCS_FOREIGN', [
-    'tor'                => 'TOR or Certificate of Grades — "For Evaluation Purposes Only"',
+    'tor'                => 'TOR or Certificate of Grades - "For Evaluation Purposes Only"',
     'passport'           => 'Passport',
     'visa_permit'        => 'Visa or Study Permit',
     'alien_cert'         => 'Alien Certificate of Registration',
@@ -219,13 +219,13 @@ define('COURSE_STRAND_MAP', [
 // from hitting a registration dead-end. Add them back here and to COURSE_STRAND_MAP
 // if PLP adds a qualifying course in a future school year.
 define('SHS_STRANDS', [
-    'ABM'        => 'ABM — Accountancy, Business and Management',
-    'STEM'       => 'STEM — Science, Technology, Engineering and Mathematics',
-    'HUMSS'      => 'HUMSS — Humanities and Social Sciences',
-    'GAS'        => 'GAS — General Academic Strand',
-    'TVL-HE'     => 'TVL — Home Economics',
-    'TVL-ICT'    => 'TVL — Information and Communications Technology',
-    'TVL-Sports' => 'TVL — Sports',
+    'ABM'        => 'ABM - Accountancy, Business and Management',
+    'STEM'       => 'STEM - Science, Technology, Engineering and Mathematics',
+    'HUMSS'      => 'HUMSS - Humanities and Social Sciences',
+    'GAS'        => 'GAS - General Academic Strand',
+    'TVL-HE'     => 'TVL - Home Economics',
+    'TVL-ICT'    => 'TVL - Information and Communications Technology',
+    'TVL-Sports' => 'TVL - Sports',
 ]);
 
 // -- Document status labels -------------------------------------

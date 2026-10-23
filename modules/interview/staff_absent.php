@@ -175,7 +175,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 if (!$candidate) {
                     $deptLabel = $department !== '' ? " for {$department}" : '';
-                    $approveErr = "Cannot approve — there's no open interview slot{$deptLabel} yet. "
+                    $approveErr = "Cannot approve - there's no open interview slot{$deptLabel} yet. "
                                 . 'Please create a slot first, then come back and approve this request.';
                     throw new \RuntimeException($approveErr);
                 }
@@ -249,7 +249,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                    . '.';
             notify_reschedule_decision($applicantId, 'interview', 'approved', $extra);
 
-            Session::flash('success', 'Reschedule request approved — student assigned to a new slot.');
+            Session::flash('success', 'Reschedule request approved - student assigned to a new slot.');
         } else {
             Session::flash('error', $approveErr ?? 'Reschedule could not be approved.');
         }
@@ -276,7 +276,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             audit_log('reschedule_request_denied',
                 "Denied reschedule request #{$requestId} for applicant #{$req['applicant_id']}"
-                . ($denyReason !== '' ? " — {$denyReason}" : ''),
+                . ($denyReason !== '' ? " - {$denyReason}" : ''),
                 'applicant', (int)$req['applicant_id']);
 
             // In-app notification + email — surface the deny reason if
@@ -286,7 +286,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                    : 'Your original slot stays the same.';
             notify_reschedule_decision((int)$req['applicant_id'], 'interview', 'denied', $extra);
 
-            Session::flash('success', 'Reschedule request denied — student keeps their current slot.');
+            Session::flash('success', 'Reschedule request denied - student keeps their current slot.');
         }
         redirect('/staff/interviews/absent?tab=requests');
     }
@@ -324,7 +324,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     . ($fail > 0 ? " {$fail} could not be rescheduled (no open slot)." : ''));
             } else {
                 Session::flash('error',
-                    'No applicants could be rescheduled — make sure there are open slots for their department.');
+                    'No applicants could be rescheduled - make sure there are open slots for their department.');
             }
             redirect('/staff/interviews/absent');
         }
@@ -670,7 +670,7 @@ if (!$isDean) {
             <tbody>
             <?php foreach ($absent as $row):
                 $hist = $historyByApplicant[(int)$row['applicant_id']] ?? [];
-                $courseDept = ($row['course_applied'] ?: '—') . ' · ' . ($row['student_department'] ?: 'no department');
+                $courseDept = ($row['course_applied'] ?: '-') . ' · ' . ($row['student_department'] ?: 'no department');
             ?>
                 <tr>
                     <?php if ($canReschedule): ?>
@@ -686,14 +686,14 @@ if (!$isDean) {
                         <span class="auto-table-clip" style="font-weight:var(--weight-medium)"><?= e(format_full_name($row)) ?></span>
                     </td>
                     <td style="font-size:var(--text-sm)" title="<?= e($courseDept) ?>">
-                        <span class="auto-table-clip"><?= e($row['course_applied'] ?: '—') ?><span style="color:var(--text-tertiary)"> · <?= e($row['student_department'] ?: 'no department') ?></span></span>
+                        <span class="auto-table-clip"><?= e($row['course_applied'] ?: '-') ?><span style="color:var(--text-tertiary)"> · <?= e($row['student_department'] ?: 'no department') ?></span></span>
                     </td>
                     <td style="font-size:var(--text-sm)">
                         <span class="auto-table-clip">
                         <?php if ($row['missed_date']): ?>
                             <?= format_date($row['missed_date']) ?><?php if ($row['missed_time']): ?><span style="color:var(--text-tertiary)"> · <?= format_time($row['missed_time']) ?></span><?php endif; ?>
                         <?php else: ?>
-                            —
+                            -
                         <?php endif; ?>
                         </span>
                     </td>
@@ -807,7 +807,7 @@ if (!$isDean) {
             <tbody>
             <?php foreach ($reschedRequests as $rr):
                 // Single-line current-slot label; the full text is also a tooltip.
-                $curSlotLabel = '—';
+                $curSlotLabel = '-';
                 if ($rr['cur_date']) {
                     $curSlotLabel = format_date($rr['cur_date']);
                     if ($rr['cur_time']) {
@@ -815,7 +815,7 @@ if (!$isDean) {
                                       . ($rr['cur_end_time'] ? ' – ' . format_time($rr['cur_end_time']) : '');
                     }
                 }
-                $courseLabel = ($rr['course_applied'] ?: '—') . ' · ' . ($rr['student_department'] ?: 'no department');
+                $courseLabel = ($rr['course_applied'] ?: '-') . ' · ' . ($rr['student_department'] ?: 'no department');
                 $approveFormId = 'resched-approve-' . (int)$rr['id'];
                 $denyFormId    = 'resched-deny-'    . (int)$rr['id'];
             ?>
@@ -824,7 +824,7 @@ if (!$isDean) {
                         <span class="auto-table-clip" style="font-weight:var(--weight-medium)"><?= e(format_full_name($rr)) ?></span>
                     </td>
                     <td style="font-size:var(--text-sm)" title="<?= e($courseLabel) ?>">
-                        <span class="auto-table-clip"><?= e($rr['course_applied'] ?: '—') ?><span style="color:var(--text-tertiary)"> · <?= e($rr['student_department'] ?: 'no department') ?></span></span>
+                        <span class="auto-table-clip"><?= e($rr['course_applied'] ?: '-') ?><span style="color:var(--text-tertiary)"> · <?= e($rr['student_department'] ?: 'no department') ?></span></span>
                     </td>
                     <td style="font-size:var(--text-sm)" title="<?= e($curSlotLabel) ?>">
                         <span class="auto-table-clip"><?= e($curSlotLabel) ?></span>
@@ -912,5 +912,5 @@ $pageTitle = $activeTab === 'requests' ? 'Reschedule Requests' : 'Absent Student
 $pageBreadcrumb = [['label' => 'Interview Sessions', 'to' => '/staff/interviews']];
 $pageActions = ($canReschedule ? ui_button('Cancel a slot (bulk move)', ['href' => url('/staff/interviews/cancel-slot'), 'variant' => 'ghost', 'icon' => 'ic_fluent_arrow_right_24_regular', 'icon_pos' => 'after']) : '');
 $activeNav = $activeTab === 'requests' ? 'reschedule' : 'interviews';
-$pageWide  = true; // table-heavy page — match staff_slots / staff_review / staff_manage
+$pageWide  = true; // table-heavy page - match staff_slots / staff_review / staff_manage
 include VIEWS_PATH . '/layouts/app.php';

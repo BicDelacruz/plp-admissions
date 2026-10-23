@@ -32,7 +32,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= e($pageTitle) ?> — <?= e($schoolName) ?></title>
+    <title><?= e($pageTitle) ?> - <?= e($schoolName) ?></title>
     <meta name="robots" content="noindex, nofollow">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -125,7 +125,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
 <script>
 // Auth UI (jQuery): show-password toggle, confirm-password check, loading label.
 jQuery(function ($) {
-    var eye = '<i class="ph-bold ph-eye" style="font-size:18px" aria-hidden="true"></i>';
+    var eye = '<i class="ph-bold ph-eye" style="font-size:var(--text-xl)" aria-hidden="true"></i>';
 
     // One show/hide password toggle for every auth page.
     $('input[type="password"]').each(function () {

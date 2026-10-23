@@ -99,12 +99,10 @@ function notify_stage_transition(int $applicantId, string $newStatus, string $ex
         if ($user && !empty($user['email'])) {
             $fullLink = rtrim(BASE_URL, '/') . $link;
             $emailBody = '<p>' . e($message) . '</p>'
-                . '<p style="margin-top:16px"><a href="' . e($fullLink) . '" '
-                . 'style="display:inline-block;padding:10px 24px;background:' . e(school_setting('accent_color', '#2d6a4f')) . ';color:#fff;'
-                . 'text-decoration:none;border-radius:8px;font-weight:bold">View Details</a></p>';
+                . email_button($fullLink, 'View Details');
             send_email(
                 $user['email'],
-                $title . ' — ' . school_setting('school_name', 'PLP Admissions'),
+                $title . ' - ' . school_setting('school_name', 'PLP Admissions'),
                 email_template($title, $emailBody),
                 $user['name']
             );
@@ -121,9 +119,7 @@ function send_registration_email(string $email, string $name): void
 {
     $body = '<p>Welcome, <strong>' . e($name) . '</strong>!</p>'
         . '<p>Your account has been created successfully. Please log in and upload your required documents to continue with your application.</p>'
-        . '<p style="margin-top:16px"><a href="' . e(rtrim(BASE_URL, '/')) . '/student/documents" '
-        . 'style="display:inline-block;padding:10px 24px;background:' . e(school_setting('accent_color', '#2d6a4f')) . ';color:#fff;'
-        . 'text-decoration:none;border-radius:8px;font-weight:bold">Upload Documents</a></p>';
+        . email_button(rtrim(BASE_URL, '/') . '/student/documents', 'Upload Documents');
     send_email(
         $email,
         'Welcome to ' . school_setting('school_name', 'PLP Admissions'),
@@ -159,7 +155,7 @@ function send_registration_email(string $email, string $name): void
  */
 function auto_assign_exam_slot(int $applicantId): ?int
 {
-    $debug = [];  // collects reasons for failure — written to error_log if we return null
+    $debug = [];  // collects reasons for failure - written to error_log if we return null
 
     if (school_setting('auto_assign_exam_slots', '1') !== '1') {
         error_log("[auto_assign #{$applicantId}] SKIP: auto_assign_exam_slots setting is OFF");
@@ -488,7 +484,7 @@ function backfill_interview_slot_assignments(?int $actorUserId = null): int
                 $assigned++;
             }
         } catch (\Throwable $e) {
-            error_log("backfill_interview_slot_assignments: applicant #{$aid} failed — " . $e->getMessage());
+            error_log("backfill_interview_slot_assignments: applicant #{$aid} failed - " . $e->getMessage());
         }
     }
     return $assigned;
@@ -831,24 +827,20 @@ function verify_user_by_code(string $email, string $code): array
 function send_verification_email(string $email, string $name, string $token, ?string $code = null): void
 {
     $verifyUrl = rtrim(BASE_URL, '/') . '/verify-email?token=' . $token;
-    $accent    = e(school_setting('accent_color', '#2d6a4f'));
 
     $body  = '<p>Hello, <strong>' . e($name) . '</strong>!</p>'
         . '<p>Please verify your email address to activate your account.</p>';
 
     if ($code !== null && $code !== '') {
-        $body .= '<p style="margin:16px 0 6px 0;color:#6b7280;font-size:13px">Verification code:</p>'
-            . '<p style="margin:0 0 16px 0;font-family:monospace;font-size:28px;font-weight:bold;'
-            . 'letter-spacing:.4em;color:' . $accent . '">' . e($code) . '</p>';
+        $body .= email_muted('Verification code:', 'margin:16px 0 6px 0;')
+            . email_code((string) $code);
     }
 
-    $body .= '<p style="margin-top:16px"><a href="' . e($verifyUrl) . '" '
-        . 'style="display:inline-block;padding:12px 32px;background:' . $accent . ';color:#fff;'
-        . 'text-decoration:none;border-radius:8px;font-weight:bold;font-size:16px">Verify Email</a></p>'
-        . '<p style="margin-top:16px;color:#6b7280;font-size:13px">If the button doesn\'t work, copy this link:<br>'
-        . '<a href="' . e($verifyUrl) . '" style="color:' . $accent . '">' . e($verifyUrl) . '</a></p>';
+    $body .= email_button($verifyUrl, 'Verify Email', null, true)
+        . email_muted('If the button doesn\'t work, copy this link:<br>'
+            . email_link($verifyUrl), 'margin-top:16px;');
 
-    send_email($email, 'Verify Your Email — ' . school_setting('school_name', 'PLP Admissions'), email_template('Verify Your Email', $body), $name);
+    send_email($email, 'Verify Your Email - ' . school_setting('school_name', 'PLP Admissions'), email_template('Verify Your Email', $body), $name);
 }
 
 // ----------------------------------------------------------------
@@ -908,13 +900,11 @@ function reset_code_check(array $row, string $input, int $now): string
 
 function send_reset_code_email(string $email, string $code): bool
 {
-    $accent = e(school_setting('accent_color', '#2d6a4f'));
     $body = '<p>We got a request to reset the password for your account.</p>'
-        . '<p style="margin:16px 0 6px 0;color:#6b7280;font-size:13px">Your password reset code:</p>'
-        . '<p style="margin:0 0 16px 0;font-family:monospace;font-size:28px;font-weight:bold;'
-        . 'letter-spacing:.4em;color:' . $accent . '">' . e($code) . '</p>'
-        . '<p style="color:#6b7280;font-size:13px">This code expires in 15 minutes. '
-        . 'If you did not ask for it, ignore this email. Your password stays the same.</p>';
+        . email_muted('Your password reset code:', 'margin:16px 0 6px 0;')
+        . email_code($code)
+        . email_muted('This code expires in 15 minutes. '
+            . 'If you did not ask for it, ignore this email. Your password stays the same.');
 
     return send_email($email, 'Your PLP password reset code', email_template('Password Reset Code', $body));
 }
@@ -994,12 +984,10 @@ function notify_reschedule_decision(
         if (!empty($user['email'])) {
             $fullLink  = rtrim(BASE_URL, '/') . $link;
             $emailBody = '<p>' . e($msg) . '</p>'
-                       . '<p style="margin-top:16px"><a href="' . e($fullLink) . '" '
-                       . 'style="display:inline-block;padding:10px 24px;background:' . e(school_setting('accent_color', '#2d6a4f')) . ';color:#fff;'
-                       . 'text-decoration:none;border-radius:8px;font-weight:bold">View Details</a></p>';
+                       . email_button($fullLink, 'View Details');
             send_email(
                 (string)$user['email'],
-                $title . ' — ' . school_setting('school_name', 'PLP Admissions'),
+                $title . ' - ' . school_setting('school_name', 'PLP Admissions'),
                 email_template($title, $emailBody),
                 (string)$user['name']
             );
@@ -1328,7 +1316,7 @@ function auto_expire_accepted(): int
         // Mark as slot_expired
         $pdo->prepare(
             "UPDATE admission_results SET result = 'rejected',
-                    remarks = CONCAT(COALESCE(remarks,''), '\nSlot expired — no action within {$deadlineDays} days')
+                    remarks = CONCAT(COALESCE(remarks,''), '\nSlot expired - no action within {$deadlineDays} days')
              WHERE applicant_id = ?"
         )->execute([$row['id']]);
 

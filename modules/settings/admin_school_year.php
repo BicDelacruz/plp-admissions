@@ -73,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = 'Type "Start new cycle" to confirm.';
         } else {
             $db->exec('UPDATE exams SET is_active=0');
-            audit_log('new_cycle_started', 'Started new admission cycle — exam deactivated.');
+            audit_log('new_cycle_started', 'Started new admission cycle - exam deactivated.');
             $success[] = 'New cycle started. Previous data preserved.';
         }
     }
@@ -291,7 +291,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $admissionsOpen    = school_setting('admissions_open',  '');
 $admissionsClose   = school_setting('admissions_close', '');
 $docDeadline       = school_setting('document_deadline', '');
-$currentYear       = school_setting('current_school_year', '—');
+$currentYear       = school_setting('current_school_year', '-');
 $enrollmentDate    = school_setting('enrollment_date',  '');
 $enrollmentTime    = school_setting('enrollment_time',  '');
 $enrollmentVenue   = school_setting('enrollment_venue', '');
@@ -519,7 +519,7 @@ ob_start();
 </div><!-- /sy-card -->
 
 <!-- ════════════════════════════════════════════════════════════
-     AI IMPORT MODAL — Legacy Records
+     AI IMPORT MODAL - Legacy Records
      (CSS classes mirror exam/staff_manage.php exactly)
 ════════════════════════════════════════════════════════════ -->
 <style>
@@ -603,8 +603,8 @@ ob_start();
                 <div class="ai-status-dot"></div>
                 <div id="legacy-puter-status-text" style="flex:1">Checking Puter connection…</div>
                 <a id="legacy-puter-link" href="https://puter.com" target="_blank" style="display:none;font-size:var(--text-xs);font-weight:var(--weight-medium);color:var(--accent);text-decoration:none;white-space:nowrap">Create account <?= icon('ic_fluent_arrow_right_24_regular', 14) ?></a>
-                <button id="legacy-puter-signin-btn" onclick="legacyPuterSignIn()" style="display:none;font-size:var(--text-xs);font-weight:var(--weight-medium);color:var(--accent);background:none;border:none;cursor:pointer;padding:0;white-space:nowrap">Sign in <?= icon('ic_fluent_arrow_right_24_regular', 14) ?></button>
-                <button id="legacy-puter-signout-btn" onclick="legacyPuterSignOut()" style="display:none;font-size:var(--text-xs);color:var(--text-tertiary);background:none;border:none;cursor:pointer;padding:0">Sign out</button>
+                <button id="legacy-puter-signin-btn" onclick="legacyPuterSignIn()" class="btn btn-ghost btn-sm" style="display:none;color:var(--accent)">Sign in <?= icon('ic_fluent_arrow_right_24_regular', 14) ?></button>
+                <button id="legacy-puter-signout-btn" onclick="legacyPuterSignOut()" class="btn btn-ghost btn-sm" style="display:none">Sign out</button>
             </div>
 
             <!-- Step: upload -->
@@ -700,7 +700,7 @@ ob_start();
 
             <!-- Step: error -->
             <div id="legacy-step-error" style="display:none;flex-direction:column;gap:var(--space-3)">
-                <div style="display:flex;align-items:flex-start;gap:10px;background:#fef2f2;border:1px solid #fca5a5;border-radius:var(--radius);padding:12px 14px;font-size:var(--text-sm);color:#991b1b">
+                <div style="display:flex;align-items:flex-start;gap:10px;background:var(--error-bg);border:1px solid var(--error);border-radius:var(--radius);padding:12px 14px;font-size:var(--text-sm);color:var(--error)">
                     <?= icon('warning-circle:fill', 16, 'margin-top:1px') ?>
                     <span id="legacy-error-msg"></span>
                 </div>
@@ -981,7 +981,7 @@ Your ONLY job: return a JSON object that maps each output field to the matching 
 Output exactly this shape (no markdown, no prose, just the JSON object):
 {
   "name": "column name if name is in one field, or null",
-  "name_parts": ["col1","col2","col3"] or null (if name is split across columns, list them in order: last/first/middle or first/last — whatever the file uses),
+  "name_parts": ["col1","col2","col3"] or null (if name is split across columns, list them in order: last/first/middle or first/last - whatever the file uses),
   "email":   "column name or null",
   "type":    "column name or null",
   "course":  "column name or null",

@@ -84,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
     if (!$canEvaluate) {
-        Session::flash('error', 'Read-only access — only the session interviewer can record evaluations.');
+        Session::flash('error', 'Read-only access - only the session interviewer can record evaluations.');
         redirect('/staff/interviews/' . $slotId . '/roster');
     }
 
@@ -138,7 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect('/staff/interviews/' . $slotId . '/roster');
         }
         if (empty($errors) && empty($toSave)) {
-            $errors[] = 'Nothing to save — no students on this slot.';
+            $errors[] = 'Nothing to save - no students on this slot.';
         }
     }
 }
@@ -243,7 +243,7 @@ ob_start();
         <div class="auto-table-card">
 
             <!-- Toolbar: search + status filter + save, one row, inside the card.
-                 No name= on the controls — they are not part of the submission. -->
+                 No name= on the controls - they are not part of the submission. -->
             <div class="auto-table-toolbar" id="sv-toolbar">
                 <div class="auto-table-search">
                     <?= icon('ic_fluent_search_24_filled', 14) ?>
@@ -267,7 +267,7 @@ ob_start();
                     <button type="submit" class="btn btn-primary btn-sm">Save evaluations</button>
                 <?php else: ?>
                     <span class="badge badge-neutral"
-                          title="Read-only — only the session interviewer can record evaluations">
+                          title="Read-only - only the session interviewer can record evaluations">
                         Read-only
                     </span>
                 <?php endif; ?>
@@ -303,15 +303,15 @@ ob_start();
                             data-search="<?= e($searchHay) ?>"
                             data-status="<?= e($rowStatus) ?>">
                             <td style="font-size:var(--text-sm)">
-                                <?php // Single-line row — email shows as tooltip on hover. ?>
+                                <?php // Single-line row - email shows as tooltip on hover. ?>
                                 <span class="auto-table-clip" style="font-weight:var(--weight-medium)"
                                       title="<?= e($row['student_email']) ?>"><?= e($fullName) ?></span>
                             </td>
                             <td style="font-size:var(--text-sm)" title="<?= e($row['course_applied'] ?: '') ?>">
-                                <span class="auto-table-clip"><?= e($row['course_applied'] ?: '—') ?></span>
+                                <span class="auto-table-clip"><?= e($row['course_applied'] ?: '-') ?></span>
                             </td>
                             <td style="font-size:var(--text-sm)" title="<?= e($row['student_department'] ?: '') ?>">
-                                <span class="auto-table-clip"><?= e($row['student_department'] ?: '—') ?></span>
+                                <span class="auto-table-clip"><?= e($row['student_department'] ?: '-') ?></span>
                             </td>
                             <td style="text-align:center">
                                 <label style="display:inline-flex;align-items:center;cursor:<?= $isLocked ? 'default' : 'pointer' ?>">
@@ -571,5 +571,5 @@ $content   = ob_get_clean();
 $pageTitle = 'Interview Roster';
 $pageBreadcrumb = [['label' => 'Interview Sessions', 'to' => '/staff/interviews']];
 $activeNav = 'interviews';
-$pageWide  = true; // table-heavy page — same as the other auto-table pages
+$pageWide  = true; // table-heavy page - same as the other auto-table pages
 include VIEWS_PATH . '/layouts/app.php';

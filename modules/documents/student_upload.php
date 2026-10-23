@@ -982,7 +982,7 @@ function openUploadModal(slug, label) {
     // Reset drop zone
     document.getElementById('file-input').value = '';
     document.getElementById('drop-content').innerHTML =
-        '<i class="ph-fill ph-image" aria-hidden="true" style="font-size:32px;color:var(--text-tertiary);margin-bottom:var(--space-3)"></i>' +
+        '<i class="ph-fill ph-image" aria-hidden="true" style="font-size:var(--text-icon-lg);color:var(--text-tertiary);margin-bottom:var(--space-3)"></i>' +
         '<p style="font-weight:var(--weight-medium)">Drop your file here</p>' +
         '<p style="font-size:var(--text-sm);color:var(--text-tertiary)">or <span style="color:var(--accent)">browse</span></p>' +
         '<p style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:var(--space-2)">PDF, JPG, PNG or WEBP · max 4 MB</p>';
@@ -1004,10 +1004,10 @@ function showResultModal(ok, title, msg) {
 
     if (ok) {
         iconEl.style.background = 'var(--success-bg, #d1fae5)';
-        iconEl.innerHTML = '<i class="ph-fill ph-check" aria-hidden="true" style="font-size:28px;color:var(--success,#059669)"></i>';
+        iconEl.innerHTML = '<i class="ph-fill ph-check" aria-hidden="true" style="font-size:var(--text-icon);color:var(--success)"></i>';
     } else {
         iconEl.style.background = 'var(--error-bg, #fee2e2)';
-        iconEl.innerHTML = '<i class="ph-fill ph-x" aria-hidden="true" style="font-size:28px;color:var(--error,#dc2626)"></i>';
+        iconEl.innerHTML = '<i class="ph-fill ph-x" aria-hidden="true" style="font-size:var(--text-icon);color:var(--error)"></i>';
     }
 
     titleEl.textContent = title;
@@ -1139,7 +1139,7 @@ document.getElementById('file-input').addEventListener('change', function() {
 
 function updateDropLabel(name) {
     document.getElementById('drop-content').innerHTML =
-        '<i class="ph-fill ph-file-text" aria-hidden="true" style="font-size:28px;color:var(--accent);margin-bottom:var(--space-2)"></i>' +
+        '<i class="ph-fill ph-file-text" aria-hidden="true" style="font-size:var(--text-icon);color:var(--accent);margin-bottom:var(--space-2)"></i>' +
         '<p style="font-weight:var(--weight-medium);color:var(--accent)">' + name + '</p>' +
         '<p style="font-size:var(--text-sm);color:var(--text-tertiary)">Ready to upload</p>';
 }
@@ -1171,26 +1171,14 @@ function updateDropLabel(name) {
             border-bottom:1px solid var(--border);
             flex-shrink:0;
         ">
-            <button id="fv-prev" onclick="fvNavigate(-1)" type="button" style="
-                display:flex;align-items:center;justify-content:center;
-                width:var(--control-height);height:var(--control-height);border-radius:var(--radius);
-                border:1px solid var(--border);background:var(--bg);
-                color:var(--text-secondary);cursor:pointer;flex-shrink:0;
-                transition:background var(--transition-fast),color var(--transition-fast);
-            " title="Previous (←)">
+            <button id="fv-prev" onclick="fvNavigate(-1)" type="button" class="btn btn-secondary" style="width:var(--control-height);padding:0;flex-shrink:0" title="Previous (←)">
                 <?= icon('ic_fluent_chevron_left_24_regular', 15) ?>
             </button>
             <div style="flex:1;min-width:0">
                 <div id="fv-label" style="font-weight:var(--weight-semibold);font-size:var(--text-sm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
                 <div id="fv-counter" style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:var(--space-1)"></div>
             </div>
-            <button id="fv-next" onclick="fvNavigate(1)" type="button" style="
-                display:flex;align-items:center;justify-content:center;
-                width:var(--control-height);height:var(--control-height);border-radius:var(--radius);
-                border:1px solid var(--border);background:var(--bg);
-                color:var(--text-secondary);cursor:pointer;flex-shrink:0;
-                transition:background var(--transition-fast),color var(--transition-fast);
-            " title="Next (→)">
+            <button id="fv-next" onclick="fvNavigate(1)" type="button" class="btn btn-secondary" style="width:var(--control-height);padding:0;flex-shrink:0" title="Next (→)">
                 <?= icon('ic_fluent_chevron_right_24_regular', 15) ?>
             </button>
             <div style="width:1px;height:24px;background:var(--border);flex-shrink:0"></div>
@@ -1226,7 +1214,7 @@ function updateDropLabel(name) {
             </div>
             <div id="fv-hint" style="
                 position:absolute;bottom:var(--space-2);left:50%;transform:translateX(-50%);
-                background:rgba(0,0,0,0.55);color:#fff;
+                background:rgba(0,0,0,0.55);color:var(--white);
                 font-size:var(--text-xs);padding:var(--space-1) var(--space-4);border-radius:var(--radius);
                 pointer-events:none;opacity:0;transition:opacity .4s ease;white-space:nowrap;
             ">Scroll to zoom · Drag to pan when zoomed in</div>
@@ -1292,7 +1280,7 @@ function updateDropLabel(name) {
         var wrap=document.getElementById('fv-transform-wrap');
         var isPdf=f.url.toLowerCase().split('?')[0].endsWith('.pdf');
         if(isPdf){
-            wrap.innerHTML='<iframe src="'+f.url+'" style="width:100%;height:78vh;border:none;border-radius:var(--radius);background:#fff;"></iframe>';
+            wrap.innerHTML='<iframe src="'+f.url+'" style="width:100%;height:78vh;border:none;border-radius:var(--radius);background:var(--white);"></iframe>';
         } else {
             wrap.innerHTML='<img src="'+f.url+'" alt="Document preview" style="max-width:100%;max-height:78vh;border-radius:var(--radius);box-shadow:var(--shadow-md);display:block;pointer-events:none;user-select:none;-webkit-user-drag:none;">';
         }
@@ -1596,7 +1584,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function dropdown(r, cats, pre) {
         var $sel = $('<select class="form-select batch-select">').append($('<option value="">').text('Choose document type…'));
         $.each(cats, function (_, c) {
-            var $o = $('<option>').val(c.category).text(c.label + (c.note ? ' — ' + c.note : ''));
+            var $o = $('<option>').val(c.category).text(c.label + (c.note ? ' - ' + c.note : ''));
             if (!c.available) $o.prop('disabled', true);
             $sel.append($o);
         });

@@ -7,7 +7,7 @@
 // the drawer with:
 //
 //     <a href="#" onclick="openApplicantPanel(123); return false">…</a>
-//     <button type="button" onclick="openApplicantPanel(123)">…</button>
+//     ui_button('Open', ['attrs' => ['onclick' => 'openApplicantPanel(123)']])
 //
 // or by adding a `data-applicant-panel="123"` attribute to any
 // element — the IIFE below auto-wires those click handlers too.

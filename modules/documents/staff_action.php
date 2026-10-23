@@ -47,7 +47,7 @@ switch ($action) {
 
         $undoableStatuses = ['submitted', 'documents', 'exam'];
         if (!in_array($appl['overall_status'] ?? '', $undoableStatuses, true) || $examTaken) {
-            Session::flash('error', 'Cannot undo — applicant already in exam stage.');
+            Session::flash('error', 'Cannot undo - applicant already in exam stage.');
             redirect('/staff/applicants/' . $applicantId);
         }
 
@@ -342,7 +342,7 @@ switch ($action) {
         }
 
         Session::flash('success', 'Resubmission requested. Student has been notified.');
-        audit_log('document_resubmission_requested', "Requested resubmission for document ID {$id} — {$remarks}", 'document', $id);
+        audit_log('document_resubmission_requested', "Requested resubmission for document ID {$id} - {$remarks}", 'document', $id);
         redirect('/staff/applicants/' . $applicantId);
         break;
 

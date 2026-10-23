@@ -402,14 +402,14 @@ ob_start();
     <div id="iq-flash-success" class="alert alert-success" style="margin-bottom:var(--space-4);display:flex;align-items:center;gap:var(--space-3);flex-shrink:0">
         <?= icon('ic_fluent_checkmark_circle_24_regular', 16) ?>
         <span style="flex:1"><?= e($msg) ?></span>
-        <button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:inherit;font-size:18px;line-height:1;padding:0 2px">&times;</button>
+        <button onclick="this.parentElement.remove()" class="btn btn-icon" style="color:inherit" aria-label="Dismiss">&times;</button>
     </div>
 <?php endif; ?>
 <?php if ($msg = Session::getFlash('error')): ?>
     <div id="iq-flash-error" class="alert alert-error" style="margin-bottom:var(--space-4);display:flex;align-items:center;gap:var(--space-3);flex-shrink:0">
         <?= icon('ic_fluent_info_24_regular', 16) ?>
         <span style="flex:1"><?= e($msg) ?></span>
-        <button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:inherit;font-size:18px;line-height:1;padding:0 2px">&times;</button>
+        <button onclick="this.parentElement.remove()" class="btn btn-icon" style="color:inherit" aria-label="Dismiss">&times;</button>
     </div>
 <?php endif; ?>
 <script>
@@ -448,7 +448,7 @@ ob_start();
      DESK INFO STRIP (Professor only)
      Only shown when a desk location has been set for this professor
      by SSO / Admin during interview setup. If empty, render nothing
-     — setup is not the professor's responsibility.
+     - setup is not the professor's responsibility.
 ============================================================ -->
 <?php if (!$isAdmin && !$isSSO && !$isDean && $deskLabel): ?>
     <div style="display:flex;align-items:center;gap:var(--space-3);flex-shrink:0;
@@ -505,7 +505,7 @@ ob_start();
 <?php else: ?>
 
 <!-- ============================================================
-     TABLE — one .auto-table-wrap (measured by AutoPageSize): the card
+     TABLE - one .auto-table-wrap (measured by AutoPageSize): the card
      holds the search + date/slot filters fused to the fixed-height
      table, and the pagination bar sits under it. Same structure as
      the audit log.
@@ -610,7 +610,7 @@ ob_start();
             ?>
                 <tr class="<?= $rowClass ?>">
                     <td>
-                        <?php // Single-line row — plain name.
+                        <?php // Single-line row - plain name.
                               // Eval result moved into the Status column.
                               // Details open from the eye View button only. ?>
                         <span class="auto-table-clip iq-name-cell"><?= e($name) ?></span>
@@ -619,16 +619,16 @@ ob_start();
                     <?php if ($canSeeAll && $showAll): ?>
                         <td style="font-size:var(--text-sm)">
                             <?php $col = (string)($r['slot_department'] ?? ''); ?>
-                            <span class="auto-table-clip"><?= $col !== '' ? e($col) : '<span style="color:var(--text-tertiary)">—</span>' ?></span>
+                            <span class="auto-table-clip"><?= $col !== '' ? e($col) : '<span style="color:var(--text-tertiary)">-</span>' ?></span>
                         </td>
                     <?php endif; ?>
 
                     <td style="font-size:var(--text-sm)" title="<?= e($course) ?>">
-                        <span class="auto-table-clip"><?= $course !== '' ? e($course) : '<span style="color:var(--text-tertiary)">—</span>' ?></span>
+                        <span class="auto-table-clip"><?= $course !== '' ? e($course) : '<span style="color:var(--text-tertiary)">-</span>' ?></span>
                     </td>
 
                     <td style="font-size:var(--text-sm)">
-                        <span class="auto-table-clip"><?= $type !== '' ? e(ucfirst($type)) : '<span style="color:var(--text-tertiary)">—</span>' ?></span>
+                        <span class="auto-table-clip"><?= $type !== '' ? e(ucfirst($type)) : '<span style="color:var(--text-tertiary)">-</span>' ?></span>
                     </td>
 
                     <td>
@@ -653,7 +653,7 @@ ob_start();
                               <?= ($isFinal && $existing !== '') ? 'title="' . e($existing) . '"' : '' ?>>
                             <?php if ($isInProg): ?>
                                 <span style="display:inline-block;width:6px;height:6px;border-radius:50%;
-                                             background:#fff;animation:pulse-dot 1.4s infinite;margin-right:4px"></span>
+                                             background:var(--white);animation:pulse-dot 1.4s infinite;margin-right:4px"></span>
                             <?php endif; ?>
                             <?= e($statusBadgeText) ?>
                         </span>
@@ -723,7 +723,7 @@ ob_start();
 <?php endif; // empty($rows) ?>
 
 <!-- ============================================================
-     EVALUATION MODAL — notes + Pass / Reject
+     EVALUATION MODAL - notes + Pass / Reject
 ============================================================ -->
 <div id="eval-modal" class="modal-backdrop" style="display:none" aria-hidden="true">
     <div class="modal" style="max-width:860px;display:flex;flex-direction:column;overflow:hidden">
@@ -849,8 +849,8 @@ function openEvalModal(d) {
     // Applicant details panel
     document.getElementById('eval-detail-name').textContent = d.name || '';
     document.getElementById('eval-detail-email').textContent = d.email || '';
-    document.getElementById('eval-detail-type').textContent = d.type ? d.type.charAt(0).toUpperCase() + d.type.slice(1) : '—';
-    document.getElementById('eval-detail-course').textContent = d.course || '—';
+    document.getElementById('eval-detail-type').textContent = d.type ? d.type.charAt(0).toUpperCase() + d.type.slice(1) : '-';
+    document.getElementById('eval-detail-course').textContent = d.course || '-';
 
     _showField('eval-detail-phone', d.phone);
     _showField('eval-detail-bday', d.birthdate);
@@ -865,9 +865,9 @@ function openEvalModal(d) {
     if (d.exam_score !== null && d.exam_total !== null) {
         var scoreText = d.exam_score + '/' + d.exam_total;
         if (d.exam_passed === 1) {
-            scoreText += ' — <span style="color:var(--success);font-weight:var(--weight-semibold)">Passed</span>';
+            scoreText += ' - <span style="color:var(--success);font-weight:var(--weight-semibold)">Passed</span>';
         } else if (d.exam_passed === 0) {
-            scoreText += ' — <span style="color:var(--error);font-weight:var(--weight-semibold)">Did not pass</span>';
+            scoreText += ' - <span style="color:var(--error);font-weight:var(--weight-semibold)">Did not pass</span>';
         }
         examEl.innerHTML = scoreText;
         examWrap.style.display = '';

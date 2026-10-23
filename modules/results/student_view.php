@@ -117,7 +117,7 @@ ob_start();
                 <div>
                     <div style="font-size:var(--text-xs);text-transform:uppercase;letter-spacing:.06em;color:var(--text-tertiary);margin-bottom:var(--space-1)">Withdrawn On</div>
                     <div style="font-weight:var(--weight-medium);font-size:var(--text-sm)">
-                        <?= $applicant['withdrawn_at'] ? format_date($applicant['withdrawn_at'], 'F j, Y') : '—' ?>
+                        <?= $applicant['withdrawn_at'] ? format_date($applicant['withdrawn_at'], 'F j, Y') : '-' ?>
                     </div>
                 </div>
                 <div>
@@ -171,7 +171,7 @@ ob_start();
         </div>
 
         <p style="font-size:var(--text-sm);color:var(--text-secondary);text-align:center;margin-bottom:var(--space-6);max-width:520px;margin-left:auto;margin-right:auto">
-            One step left — bring the <strong>original copies</strong> of your documents on the date below so we can verify them. After that, you're officially enrolled.
+            One step left - bring the <strong>original copies</strong> of your documents on the date below so we can verify them. After that, you're officially enrolled.
         </p>
 
         <!-- Enrollment schedule -->
@@ -194,7 +194,7 @@ ob_start();
                 </div>
             <?php else: ?>
                 <p style="font-size:var(--text-sm);color:var(--text-tertiary);margin:0">
-                    The admissions office hasn't posted the enrollment schedule yet — check back soon, or watch your email for the announcement.
+                    The admissions office hasn't posted the enrollment schedule yet - check back soon, or watch your email for the announcement.
                 </p>
             <?php endif; ?>
         </div>
@@ -278,9 +278,9 @@ ob_start();
 
         <!-- Course suggestion from staff -->
         <?php if ($suggestion && $suggestion['status'] === 'pending'): ?>
-        <div style="border:1.5px solid #f59e0b;background:#fffbeb;border-radius:var(--radius);padding:var(--space-5);margin-bottom:var(--space-5)">
+        <div style="border:1.5px solid var(--warning);background:var(--warning-bg);border-radius:var(--radius);padding:var(--space-5);margin-bottom:var(--space-5)">
             <div style="display:flex;align-items:flex-start;gap:var(--space-3)">
-                <div style="width:36px;height:36px;border-radius:50%;background:#fef3c7;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <div style="width:36px;height:36px;border-radius:50%;background:var(--warning-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">
                     <?= icon('lightbulb', 16, 'color:#f59e0b') ?>
                 </div>
                 <div style="flex:1">
@@ -288,7 +288,7 @@ ob_start();
                     <p style="font-size:var(--text-sm);color:var(--text-secondary);margin-bottom:var(--space-3)">
                         Admissions suggested an alternative course:
                     </p>
-                    <div style="background:white;border:1px solid #fde68a;border-radius:var(--radius);padding:var(--space-3) var(--space-4);font-weight:var(--weight-semibold);font-size:var(--text-sm);margin-bottom:var(--space-3)">
+                    <div style="background:white;border:1px solid var(--warning);border-radius:var(--radius);padding:var(--space-3) var(--space-4);font-weight:var(--weight-semibold);font-size:var(--text-sm);margin-bottom:var(--space-3)">
                         <?= e($suggestion['suggested_course']) ?>
                     </div>
                     <?php if ($suggestion['note']): ?>
@@ -323,14 +323,14 @@ ob_start();
             $altCourses = strand_qualified_courses($studentRank, $applicant['course_applied'], $studentStrand);
         ?>
         <?php if (!empty($altCourses)): ?>
-        <div style="border:1.5px solid #6366f1;background:#eef2ff;border-radius:var(--radius);padding:var(--space-5);margin-bottom:var(--space-5)">
+        <div style="border:1.5px solid var(--info);background:var(--info-bg);border-radius:var(--radius);padding:var(--space-5);margin-bottom:var(--space-5)">
             <div style="display:flex;align-items:flex-start;gap:var(--space-3)">
-                <div style="width:36px;height:36px;border-radius:50%;background:#e0e7ff;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <div style="width:36px;height:36px;border-radius:50%;background:var(--info-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">
                     <?= icon('crosshair', 18, 'color:#6366f1') ?>
                 </div>
                 <div style="flex:1">
-                    <div style="font-weight:var(--weight-semibold);font-size:var(--text-sm);color:#4338ca;margin-bottom:var(--space-1)">
-                        Good News — Other Doors Are Open For You
+                    <div style="font-weight:var(--weight-semibold);font-size:var(--text-sm);color:var(--info);margin-bottom:var(--space-1)">
+                        Good News - Other Doors Are Open For You
                     </div>
                     <p style="font-size:var(--text-sm);color:var(--text-secondary);margin-bottom:var(--space-3)">
                         While your score didn't meet the threshold for
@@ -342,15 +342,15 @@ ob_start();
                     <ul style="margin:0 0 var(--space-4) 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:var(--space-2)">
                         <?php foreach ($altCourses as $ac): ?>
                         <li style="display:flex;align-items:center;gap:var(--space-3);
-                                   background:white;border:1px solid #c7d2fe;border-radius:var(--radius);
+                                   background:white;border:1px solid var(--info);border-radius:var(--radius);
                                    padding:var(--space-2) var(--space-3)">
                             <?= icon('check-circle:fill', 14, 'color:#6366f1') ?>
                             <span style="font-size:var(--text-sm);font-weight:var(--weight-medium)"><?= e($ac) ?></span>
                         </li>
                         <?php endforeach; ?>
                     </ul>
-                    <div style="background:#e0e7ff;border-radius:var(--radius);padding:var(--space-3);font-size:var(--text-xs);color:#3730a3">
-                        <strong>What to do next:</strong> Visit the admissions office to apply for one of these programs — no re-exam needed.
+                    <div style="background:var(--info-bg);border-radius:var(--radius);padding:var(--space-3);font-size:var(--text-xs);color:var(--info)">
+                        <strong>What to do next:</strong> Visit the admissions office to apply for one of these programs - no re-exam needed.
                     </div>
                 </div>
             </div>

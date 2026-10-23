@@ -231,7 +231,7 @@ if ($isSlotFuture) {
                 <div style="font-size:var(--text-lg);font-weight:var(--weight-medium)"><?= e($mySlot['room_label']) ?></div>
             </div>
             <p style="font-size:var(--text-sm);color:var(--text-secondary);margin:0">
-                On exam day, log in here. The proctor in your room will announce the access code when the exam opens — you'll have 5 minutes to enter it to start.
+                On exam day, log in here. The proctor in your room will announce the access code when the exam opens - you'll have 5 minutes to enter it to start.
             </p>
         </div>
 
@@ -246,7 +246,7 @@ if ($isSlotFuture) {
                 </div>
                 <div style="font-size:var(--text-xs);color:var(--text-secondary);margin-top:2px">
                     Submitted <?= date('M j, g:i A', strtotime($myExamReschedule['created_at'])) ?>
-                    — awaiting staff review. You'll see a new slot here once it's approved.
+                    - awaiting staff review. You'll see a new slot here once it's approved.
                 </div>
                 <?php if (!empty($myExamReschedule['reason'])): ?>
                     <div style="margin-top:var(--space-2);font-size:var(--text-sm);color:var(--text-secondary);
@@ -258,11 +258,11 @@ if ($isSlotFuture) {
         <?php else: ?>
             <?php if ($examRescheduleApproved): ?>
                 <div class="alert alert-success" style="margin-top:var(--space-4);font-size:var(--text-sm)">
-                    Your reschedule request was approved — you've been moved to the slot shown above.
+                    Your reschedule request was approved - you've been moved to the slot shown above.
                 </div>
             <?php elseif ($examRescheduleDenied): ?>
                 <div class="alert alert-warning" style="margin-top:var(--space-4);font-size:var(--text-sm)">
-                    Your previous reschedule request was not approved — you've kept your current slot.
+                    Your previous reschedule request was not approved - you've kept your current slot.
                     <?php if (!empty($myExamReschedule['deny_reason'])): ?>
                         <div style="margin-top:var(--space-2);font-weight:var(--weight-medium)">
                             Reason from staff:
@@ -361,7 +361,7 @@ if ($isSlotPast) {
                 </div>
                 <div style="font-size:var(--text-xs);color:var(--text-secondary);margin-top:2px">
                     Submitted <?= date('M j, g:i A', strtotime($myExamReschedule['created_at'])) ?>
-                    — awaiting staff review.
+                    - awaiting staff review.
                 </div>
                 <?php if (!empty($myExamReschedule['reason'])): ?>
                     <div style="margin-top:var(--space-2);font-size:var(--text-sm);color:var(--text-secondary);
@@ -466,7 +466,7 @@ $needsPwGate  = $isSlotToday;
 $isUnlocked   = isset($_SESSION[$pwGateKey]);
 
 $slotOpensTs   = strtotime($mySlot['exam_date'] . ' ' . $mySlot['slot_time']);
-$isLateLockout = false; // disabled — proctor decides via the Extend button
+$isLateLockout = false; // disabled - proctor decides via the Extend button
 
 if ($needsPwGate && !$isUnlocked) {
     $pwValid    = exam_password_is_valid($mySlot);
@@ -516,7 +516,7 @@ if ($needsPwGate && !$isUnlocked) {
                 <div class="alert alert-warning" style="margin-bottom:var(--space-4);text-align:left">
                     <strong>No active code right now.</strong>
                     The access code has not been issued yet or has expired.
-                    Please wait for your proctor to provide one — they will generate a fresh
+                    Please wait for your proctor to provide one - they will generate a fresh
                     code from this room's slot in the Exam Slots page.
                 </div>
             <?php endif; ?>
@@ -747,7 +747,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php if ($passed): ?>
         <!-- Passed → next step CTA -->
         <div class="card" style="padding:var(--space-5);display:flex;align-items:center;gap:var(--space-4)">
-            <div style="width:40px;height:40px;border-radius:50%;background:#dcfce7;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <div style="width:40px;height:40px;border-radius:50%;background:var(--success-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">
                 <?= icon('check', 18, 'color:#22c55e') ?>
             </div>
             <div style="flex:1">
@@ -762,7 +762,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php if (!empty($altCourses)): ?>
         <div class="card" style="padding:var(--space-5);margin-bottom:var(--space-4)">
             <div style="display:flex;align-items:flex-start;gap:var(--space-3);margin-bottom:var(--space-4)">
-                <div style="width:36px;height:36px;border-radius:50%;background:#fef3c7;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <div style="width:36px;height:36px;border-radius:50%;background:var(--warning-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">
                     <?= icon('warning-circle:fill', 16, 'color:#f59e0b') ?>
                 </div>
                 <div>
@@ -800,7 +800,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php else: ?>
         <div class="card" style="padding:var(--space-5);margin-bottom:var(--space-4)">
             <div style="display:flex;align-items:center;gap:var(--space-3)">
-                <div style="width:36px;height:36px;border-radius:50%;background:#fee2e2;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <div style="width:36px;height:36px;border-radius:50%;background:var(--error-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">
                     <?= icon('x', 16, 'color:#ef4444') ?>
                 </div>
                 <div style="font-size:var(--text-sm);color:var(--text-secondary)">
@@ -1185,7 +1185,7 @@ ob_start();
                 <select name="answers[<?= $q['id'] ?>]" class="form-select exam-select"
                         <?= $required ? 'required' : '' ?>
                         onchange="markAnswered(<?= $q['id'] ?>)">
-                    <option value="">— Select an answer —</option>
+                    <option value="">- Select an answer -</option>
                     <?php foreach ($choiceMap as $ci):
                         $choice = $choices[$ci]; ?>
                         <option value="<?= $ci ?>"><?= e($choice) ?></option>

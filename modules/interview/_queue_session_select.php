@@ -66,7 +66,7 @@ ob_start();
         <?php foreach ($sessions as $s):
             $isLive    = ((int) $s['in_progress']) > 0;
             $href      = url('/staff/interviews/queue') . '?slot=' . (int) $s['id'];
-            $timeLabel = $s['slot_time'] ? date('g:i A', strtotime($s['slot_time'])) : '—';
+            $timeLabel = $s['slot_time'] ? date('g:i A', strtotime($s['slot_time'])) : '-';
             if ($s['end_time']) {
                 $timeLabel .= ' &ndash; ' . date('g:i A', strtotime($s['end_time']));
             }

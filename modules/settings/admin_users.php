@@ -236,7 +236,7 @@ ob_start();
                     </td>
                     <td style="font-size:var(--text-sm)">
                         <?php if (in_array($u['role'], [ROLE_ADMIN, ROLE_SSO], true)): ?>
-                            <span style="color:var(--text-secondary);font-size:var(--text-xs)">—</span>
+                            <span style="color:var(--text-secondary);font-size:var(--text-xs)">-</span>
                         <?php else: ?>
                         <form method="POST" style="display:block">
                             <?= csrf_field() ?>
@@ -244,7 +244,7 @@ ob_start();
                             <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
                             <select name="department" class="form-control" style="width:100%"
                                     onchange="this.form.submit()">
-                                <option value="">— none —</option>
+                                <option value="">- none -</option>
                                 <?php foreach ($availableDepts as $deptName): ?>
                                     <option value="<?= e($deptName) ?>"
                                             <?= ($u['department'] ?? '') === $deptName ? 'selected' : '' ?>>
@@ -373,10 +373,10 @@ ob_start();
                 <div>
                     <label class="form-label" id="dept-label">
                         Department
-                        <span id="dept-hint" style="color:var(--text-tertiary);font-weight:400"> — optional for SSO and Admin</span>
+                        <span id="dept-hint" style="color:var(--text-tertiary);font-weight:400"> - optional for SSO and Admin</span>
                     </label>
                     <select name="department" id="dept-select" class="form-control">
-                        <option value="">— none —</option>
+                        <option value="">- none -</option>
                         <?php foreach ($availableDepts as $deptName): ?>
                             <option value="<?= e($deptName) ?>"><?= e($deptName) ?></option>
                         <?php endforeach; ?>
@@ -457,7 +457,7 @@ function openResetModal(uid, name) {
         }
         if (deptHint && !hideDept) {
             deptHint.textContent = needsDept
-                ? ' — required'
+                ? ' - required'
                 : '';
         }
     }

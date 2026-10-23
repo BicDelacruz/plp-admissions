@@ -169,7 +169,7 @@ if ($format === 'csv') {
             fputcsv($out, [
                 date('Y-m-d', strtotime($slot['exam_date'])),
                 date('H:i',   strtotime($slot['slot_time'])),
-                $slot['department'] ?: '—',
+                $slot['department'] ?: '-',
                 $slot['room_label'],
                 $slot['capacity'],
                 '', '(empty)',
@@ -181,7 +181,7 @@ if ($format === 'csv') {
             fputcsv($out, [
                 date('Y-m-d', strtotime($slot['exam_date'])),
                 date('H:i',   strtotime($slot['slot_time'])),
-                $slot['department'] ?: '—',
+                $slot['department'] ?: '-',
                 $slot['room_label'],
                 $slot['capacity'],
                 $i,
@@ -224,7 +224,7 @@ if ($format === 'print') {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title><?= e($pageTitleSheet) ?> — <?= e($schoolName) ?></title>
+<title><?= e($pageTitleSheet) ?> - <?= e($schoolName) ?></title>
 <style>
   /* ── Screen styles ──────────────────────────────────────── */
   :root {
@@ -330,7 +330,7 @@ if ($format === 'print') {
         <a href="<?= url('/staff/exam/slots') ?>" class="btn">← Back to Slots</a>
         <form method="GET" action="" style="display:flex;gap:8px;align-items:center;margin-left:8px">
             <label style="font-size:10pt;color:var(--muted)">Date:</label>
-            <select name="date" onchange="this.form.submit()">
+            <select name="date" class="toolbar-select" onchange="this.form.submit()">
                 <option value="">All upcoming</option>
                 <?php foreach ($datesAvail as $d): ?>
                     <option value="<?= e($d) ?>" <?= $filterDate === $d ? 'selected' : '' ?>>
@@ -340,7 +340,7 @@ if ($format === 'print') {
             </select>
             <?php if ($isAdmin && $deptsAvail): ?>
                 <label style="font-size:10pt;color:var(--muted);margin-left:8px">College:</label>
-                <select name="dept" onchange="this.form.submit()">
+                <select name="dept" class="toolbar-select" onchange="this.form.submit()">
                     <option value="">All colleges</option>
                     <?php foreach ($deptsAvail as $d): ?>
                         <option value="<?= e($d) ?>" <?= $filterDept === $d ? 'selected' : '' ?>>
@@ -384,7 +384,7 @@ if ($format === 'print') {
                 <img src="<?= e($logoUrl) ?>" alt="" onerror="this.style.display='none'">
             <?php endif; ?>
             <div class="meta">
-                <h1>Entrance Exam — Room Assignment</h1>
+                <h1>Entrance Exam - Room Assignment</h1>
                 <p class="school"><?= e($schoolName) ?></p>
                 <p class="sy">School Year <?= e($schoolYear) ?></p>
             </div>
@@ -393,7 +393,7 @@ if ($format === 'print') {
         <div class="room-info">
             <div>
                 <div class="label">College</div>
-                <div class="value"><?= e($slot['department'] ?: '—') ?></div>
+                <div class="value"><?= e($slot['department'] ?: '-') ?></div>
             </div>
             <div>
                 <div class="label">Date</div>
@@ -645,8 +645,8 @@ ob_start();
                     <td style="font-size:var(--text-sm)">
                         <span class="auto-table-clip"><?= e(date('g:i A', strtotime($r['slot_time']))) ?></span>
                     </td>
-                    <td style="font-size:var(--text-sm)" title="<?= e($r['department'] ?: '—') ?>">
-                        <span class="auto-table-clip"><?= e($r['department'] ?: '—') ?></span>
+                    <td style="font-size:var(--text-sm)" title="<?= e($r['department'] ?: '-') ?>">
+                        <span class="auto-table-clip"><?= e($r['department'] ?: '-') ?></span>
                     </td>
                     <td style="font-size:var(--text-sm)" title="<?= e($r['room_label']) ?> (<?= (int)$r['capacity'] ?> seats)">
                         <span class="auto-table-clip" style="font-weight:var(--weight-medium)"><?= e($r['room_label']) ?></span>
@@ -656,7 +656,7 @@ ob_start();
                         <span class="auto-table-clip" style="font-weight:var(--weight-medium)"><?= e(format_exam_roster_name($r)) ?></span>
                     </td>
                     <td style="font-size:var(--text-sm);color:var(--text-secondary)" title="<?= e($r['course_applied'] ?? '') ?>">
-                        <span class="auto-table-clip"><?= e(($r['course_applied'] ?? '') !== '' ? $r['course_applied'] : '—') ?></span>
+                        <span class="auto-table-clip"><?= e(($r['course_applied'] ?? '') !== '' ? $r['course_applied'] : '-') ?></span>
                     </td>
                 </tr>
                 <?php endforeach; ?>
@@ -686,5 +686,5 @@ $content   = ob_get_clean();
 $pageTitle = 'Exam Room Roster';
 $pageBreadcrumb = [['label' => 'Exam Slots', 'to' => '/staff/exam/slots']];
 $activeNav = 'exam';
-$pageWide  = true; // table-heavy page — match staff_slots / staff_review / staff_manage
+$pageWide  = true; // table-heavy page - match staff_slots / staff_review / staff_manage
 include VIEWS_PATH . '/layouts/app.php';

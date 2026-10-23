@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect('/staff/exam/cancel-slot');
         }
         if ($reason === '') {
-            Session::flash('error', 'Please enter a reason — it\'s shown to the affected students.');
+            Session::flash('error', 'Please enter a reason - it\'s shown to the affected students.');
             redirect('/staff/exam/cancel-slot');
         }
 
@@ -167,7 +167,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($db->inTransaction()) $db->rollBack();
             if (!$errMsg) {
                 error_log('bulk cancel_slot (exam) failed: ' . $e->getMessage());
-                $errMsg = 'Could not cancel that slot — please try again.';
+                $errMsg = 'Could not cancel that slot - please try again.';
             }
             Session::flash('error', $errMsg);
             redirect('/staff/exam/cancel-slot');
@@ -190,7 +190,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         audit_log(
             'exam_slot_cancelled_bulk',
             "Cancelled exam slot #{$sourceId} and moved " . count($movedIds)
-            . " applicant(s) to slot #{$targetId} — {$reason}",
+            . " applicant(s) to slot #{$targetId} - {$reason}",
             'exam_slot',
             $sourceId
         );
@@ -239,7 +239,7 @@ ob_start();
         For typhoon closures, room conflicts, or any time you need
         to move everyone in an exam slot at once. Pick the slot to
         cancel, pick a replacement slot with enough capacity, and
-        write a short reason — every affected student will get an
+        write a short reason - every affected student will get an
         in-app notification and email with the new date / time / room.
     </p>
 </div>
@@ -285,7 +285,7 @@ ob_start();
                             <?php endif; ?>
                         </span>
                     </td>
-                    <td style="padding:var(--space-3) var(--space-4)"><?= e($s['room_label'] ?: '—') ?></td>
+                    <td style="padding:var(--space-3) var(--space-4)"><?= e($s['room_label'] ?: '-') ?></td>
                     <td style="padding:var(--space-3) var(--space-4)"><?= e($s['department'] ?: 'any') ?></td>
                     <td style="padding:var(--space-3) var(--space-4)">
                         <strong><?= (int)$s['filled'] ?></strong> / <?= (int)$s['capacity'] ?>
@@ -293,7 +293,7 @@ ob_start();
                     <td style="padding:var(--space-3) var(--space-4)">
                         <?php if (empty($options)): ?>
                             <div style="font-size:var(--text-xs);color:var(--text-tertiary)">
-                                No open slot has enough capacity yet — create one first.
+                                No open slot has enough capacity yet - create one first.
                             </div>
                         <?php else: ?>
                             <form method="POST" style="display:flex;flex-direction:column;gap:var(--space-2)"
@@ -338,5 +338,5 @@ $content   = ob_get_clean();
 $pageTitle = 'Cancel Exam Slot (Bulk)';
 $pageBreadcrumb = [['label' => 'Exam Slots', 'to' => '/staff/exam/slots']];
 $activeNav = 'exam';
-$pageWide  = true; // table-heavy page — match staff_slots / staff_review / staff_manage
+$pageWide  = true; // table-heavy page - match staff_slots / staff_review / staff_manage
 include VIEWS_PATH . '/layouts/app.php';

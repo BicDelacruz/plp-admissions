@@ -130,7 +130,7 @@ $statsStmt = db()->prepare(
              WHERE ar2.applicant_id = a.id LIMIT 1) = 'accepted' THEN 1 ELSE 0 END) AS cnt_accepted,
        /* Withdrawn is tracked on applicants.overall_status, not admission_results.
           The legacy 'waitlisted' tier was retired in the role redesign, so the
-          third KPI tile now shows Withdrawn — a live operational signal. */
+          third KPI tile now shows Withdrawn - a live operational signal. */
        SUM(CASE WHEN a.overall_status = 'withdrawn' THEN 1 ELSE 0 END)       AS cnt_withdrawn,
        SUM(CASE WHEN (SELECT ar2.result FROM admission_results ar2
              WHERE ar2.applicant_id = a.id LIMIT 1) = 'rejected' THEN 1 ELSE 0 END) AS cnt_rejected

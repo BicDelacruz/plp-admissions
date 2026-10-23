@@ -60,7 +60,7 @@ if ($action === 'override') {
     // schedule posted.
     if ($decision === 'accepted' && !enrollment_schedule_posted()) {
         Session::flash('error',
-            'Cannot override to Accept — the enrollment schedule isn\'t posted yet. '
+            'Cannot override to Accept - the enrollment schedule isn\'t posted yet. '
             . 'SSO needs to set it in School Year → Enrollment Schedule first.');
         redirect('/staff/results');
     }
@@ -70,7 +70,7 @@ if ($action === 'override') {
     $exists->execute([$applicantId]);
     $prev = $exists->fetchColumn();
     if ($prev === false) {
-        Session::flash('error', 'Cannot override — applicant has no released result yet.');
+        Session::flash('error', 'Cannot override - applicant has no released result yet.');
         redirect('/staff/results');
     }
 
@@ -142,7 +142,7 @@ if (!in_array($decision, ['accepted', 'rejected'], true)) {
 // schedule to exist before any acceptance is released.
 if ($decision === 'accepted' && !enrollment_schedule_posted()) {
     Session::flash('error',
-        'Cannot release Accept — the enrollment schedule isn\'t posted yet. '
+        'Cannot release Accept - the enrollment schedule isn\'t posted yet. '
         . 'SSO needs to set it in School Year → Enrollment Schedule first.');
     redirect('/staff/results');
 }
@@ -154,7 +154,7 @@ $interviewRes = $row['evaluation_result'];
 // can still override later — but only after the Professor records a
 // Pass/Reject so the recommendation is on file.
 if ($interviewRes !== 'pass' && $interviewRes !== 'reject' && $examPassed !== 0) {
-    Session::flash('error', 'Cannot release yet — interview must be evaluated first.');
+    Session::flash('error', 'Cannot release yet - interview must be evaluated first.');
     redirect('/staff/results');
 }
 

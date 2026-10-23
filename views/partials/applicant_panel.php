@@ -49,7 +49,7 @@ if (!$_app):
     return;
 endif;
 
-$_fullName = format_full_name($_app, $_app['student_name'] ?? '—');
+$_fullName = format_full_name($_app, $_app['student_name'] ?? '-');
 $_initials = strtoupper(substr($_fullName, 0, 1));
 
 // ── Documents ───────────────────────────────────────────────
@@ -192,7 +192,7 @@ $_panelStatusColor = function (string $s): string {
                             <?= icon('ic_fluent_eye_show_24_regular', 14) ?>
                         </a>
                     <?php elseif ($_showLinks): ?>
-                        <span class="ap-muted">—</span>
+                        <span class="ap-muted">-</span>
                     <?php endif; ?>
                 </div>
             <?php endforeach; ?>
@@ -400,7 +400,7 @@ $_panelStatusColor = function (string $s): string {
                     <div class="ap-audit-text">
                         <strong><?= e(ucwords(str_replace('_', ' ', $_a['action']))) ?></strong>
                         <?php if (!empty($_a['description'])): ?>
-                            <span class="ap-muted"> — <?= e($_a['description']) ?></span>
+                            <span class="ap-muted"> - <?= e($_a['description']) ?></span>
                         <?php endif; ?>
                         <?php if (!empty($_a['user_name'])): ?>
                             <div class="ap-audit-by">by <?= e($_a['user_name']) ?></div>

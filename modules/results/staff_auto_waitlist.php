@@ -13,6 +13,6 @@ Auth::requireRole(ROLE_ADMIN);
 csrf_check();
 
 Session::flash('info',
-    'Auto-Waitlist has been removed. Results are now Accept or Decline only — '
+    'Auto-Waitlist has been removed. Results are now Accept or Decline only - '
     . 'use Auto-Release Results instead.');
 redirect('/staff/results');

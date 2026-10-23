@@ -97,7 +97,7 @@ switch ($action) {
         audit_log('interview_completed_with_eval',
             "Completed interview queue ID {$id}: {$evalResult}",
             'interview_queue', $id);
-        Session::flash('success', 'Interview completed — ' . ucfirst($evalResult) . '.');
+        Session::flash('success', 'Interview completed - ' . ucfirst($evalResult) . '.');
         redirect('/staff/interviews/queue');
         break;
 

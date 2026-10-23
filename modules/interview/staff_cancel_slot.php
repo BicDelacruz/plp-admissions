@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect('/staff/interviews/cancel-slot');
         }
         if ($reason === '') {
-            Session::flash('error', 'Please enter a reason — it\'s shown to the affected students.');
+            Session::flash('error', 'Please enter a reason - it\'s shown to the affected students.');
             redirect('/staff/interviews/cancel-slot');
         }
 
@@ -183,7 +183,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($db->inTransaction()) $db->rollBack();
             if (!$errMsg) {
                 error_log('bulk cancel_slot (interview) failed: ' . $e->getMessage());
-                $errMsg = 'Could not cancel that slot — please try again.';
+                $errMsg = 'Could not cancel that slot - please try again.';
             }
             Session::flash('error', $errMsg);
             redirect('/staff/interviews/cancel-slot');
@@ -206,7 +206,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         audit_log(
             'interview_slot_cancelled_bulk',
             "Cancelled interview slot #{$sourceId} and moved " . count($movedIds)
-            . " applicant(s) to slot #{$targetId} — {$reason}",
+            . " applicant(s) to slot #{$targetId} - {$reason}",
             'interview_slot',
             $sourceId
         );
@@ -295,7 +295,7 @@ ob_start();
         Use this for typhoon closures or any time you need to move
         everyone in a slot at once. Pick the slot to cancel, pick a
         replacement slot with enough capacity, and write a short
-        reason — every affected student will get an in-app
+        reason - every affected student will get an in-app
         notification and email with the new date / time.
     </p>
 </div>
@@ -367,14 +367,14 @@ ob_start();
                             <?php endif; ?>
                         </span>
                     </td>
-                    <td style="font-size:var(--text-sm)"><span class="auto-table-clip"><?= e($s['interviewer_name'] ?: '—') ?></span></td>
+                    <td style="font-size:var(--text-sm)"><span class="auto-table-clip"><?= e($s['interviewer_name'] ?: '-') ?></span></td>
                     <td style="font-size:var(--text-sm)"><span class="auto-table-clip"><?= e($s['department'] ?: 'any') ?></span></td>
                     <td style="font-size:var(--text-sm)">
                         <strong><?= (int)$s['booked'] ?></strong> / <?= (int)$s['capacity'] ?>
                     </td>
                     <?php if (empty($options)): ?>
                     <td colspan="3" style="font-size:var(--text-xs);color:var(--text-tertiary)">
-                        <span class="auto-table-clip">No open slot has enough capacity yet — create one first.</span>
+                        <span class="auto-table-clip">No open slot has enough capacity yet - create one first.</span>
                     </td>
                     <?php else: ?>
                     <td>
@@ -440,5 +440,5 @@ $pageBreadcrumb = [
     ['label' => 'Interview Setup',    'to' => '/staff/interviews/setup'],
 ];
 $activeNav = 'interview';
-$pageWide  = true; // table-heavy page — match staff_slots / staff_review / staff_manage
+$pageWide  = true; // table-heavy page - match staff_slots / staff_review / staff_manage
 include VIEWS_PATH . '/layouts/app.php';

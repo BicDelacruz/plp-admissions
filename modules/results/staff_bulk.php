@@ -40,7 +40,7 @@ if ($action === 'close_admissions') {
 
     $reason = trim($_POST['reason'] ?? '');
     if ($reason === '') {
-        $reason = 'Admissions cycle closed — bulk rejection of unreleased applicants.';
+        $reason = 'Admissions cycle closed - bulk rejection of unreleased applicants.';
     }
 
     // Optional course filter (defensive — UI doesn't currently send one).
@@ -86,7 +86,7 @@ if ($action === 'close_admissions') {
         Session::flash('success',
             "Closed admissions. {$count} unreleased applicant(s) bulk-rejected.");
     } else {
-        Session::flash('info', 'No unreleased applicants left — nothing to close.');
+        Session::flash('info', 'No unreleased applicants left - nothing to close.');
     }
     redirect('/staff/results');
 }
@@ -107,7 +107,7 @@ if (empty($ids) || !in_array($action, ['release_selected', 'bulk_accept', 'bulk_
 if (in_array($action, ['bulk_accept', 'release_selected'], true)
     && !enrollment_schedule_posted()) {
     Session::flash('error',
-        'Cannot release Accept — the enrollment schedule isn\'t posted yet. '
+        'Cannot release Accept - the enrollment schedule isn\'t posted yet. '
         . 'SSO needs to set it in School Year → Enrollment Schedule first.');
     redirect('/staff/results');
 }

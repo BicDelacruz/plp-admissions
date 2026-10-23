@@ -2,27 +2,22 @@
 """Design gate: UI consistency checks across the whole app.
 
 Usage:
-  python3 -I .github/scripts/design_gate.py <project_root>            check
-  python3 -I .github/scripts/design_gate.py <project_root> --update   rewrite baseline
+  python3 -I .github/scripts/design_gate.py <project_root>
 
-Two kinds of rules:
-
-  STRICT   must have zero violations, always.
-  RATCHET  the app already has legacy violations. They are recorded per file in
-           design_gate_baseline.json. The gate fails when any file gets WORSE
-           than its baseline, so nothing new slips in. When you clean a file up,
-           run with --update to lock in the lower number.
+Every rule is strict: any violation fails the gate. There is no baseline file.
+The only exemption is core/email_html.php for inline color and size rules, because
+email clients ignore CSS variables.
 """
-import json
 import pathlib
 import re
 import sys
 
 root = pathlib.Path(sys.argv[1]).resolve()
-update = "--update" in sys.argv[2:]
-baseline_path = root / ".github/scripts/design_gate_baseline.json"
 
 SKIP_DIRS = {".git", "lib", "vendor", "node_modules", "uploads"}
+# Email clients ignore CSS variables, so HTML email markup needs literal hex colors and
+# px sizes. That markup lives in this one file. Exempt from the inline color/size rules only.
+EMAIL_HTML_FILE = "core/email_html.php"
 COMMENT_START = ("//", "/*", "*", "#", "<!--", "-->", "--")
 
 EM_DASH = "—"
@@ -46,6 +41,18 @@ RE_STYLE_ATTR = re.compile(r'style="([^"]*)"', re.S)
 RE_HEX = re.compile(r"#[0-9a-fA-F]{3,8}\b")
 RE_FONT_PX = re.compile(r"font-size:\s*\d+px")
 FIELD_CLASSES = ("form-input", "form-control", "form-select", "form-textarea", "dp-date-in")
+# Distinct controls that own their CSS and are deliberately not .btn or .form-*.
+# A class is matched as a whole token. Add to these lists only for a real,
+# styled component, never to silence one violation.
+COMPONENT_BUTTON_CLASSES = {
+    "dp-item", "seg-control-item", "drag-handle", "iq-add-choice", "rm",
+    "student-header-avatar", "auth-pw-eye", "ap-drawer-close", "nav-item",
+    "sidebar-logo-toggle",
+}
+COMPONENT_FIELD_CLASSES = {
+    "toolbar-select", "choice-input", "inline-edit-input", "exam-inline",
+    "short-answer-input", "paragraph-input",
+}
 NON_TEXT_INPUT = {"hidden", "checkbox", "radio", "file", "submit", "button", "range", "color", "image"}
 
 
@@ -66,18 +73,17 @@ def attr(tag, name):
     return m.group(1) if m else None
 
 
+def has_component(tag, allowed):
+    cls = re.sub(r"<\?.*?\?>", " ", attr(tag, "class") or "", flags=re.S)  # drop inline PHP
+    return bool(set(cls.split()) & allowed)
+
+
 def has_class(tag, wanted):
     cls = attr(tag, "class") or ""
     return any(w in cls for w in wanted)
 
 
 strict = []          # [(file, line, message)]
-counts = {}          # rule -> file -> count
-
-
-def ratchet(rule, rel):
-    counts.setdefault(rule, {})
-    counts[rule][rel] = counts[rule].get(rel, 0) + 1
 
 
 for f, rel in php_files():
@@ -94,34 +100,35 @@ for f, rel in php_files():
         if w and int(w.group(1)) < 150:
             strict.append((rel, ln, "date/time input is %spx wide, minimum is 150px" % w.group(1)))
 
-    # ── RATCHET: em dashes in anything that is not a comment line ─
-    for line in text.splitlines():
+    # ── STRICT: em dashes in anything that is not a comment line ─
+    for n, line in enumerate(text.splitlines(), 1):
         if EM_DASH in line and not line.lstrip().startswith(COMMENT_START):
-            ratchet("no-em-dash", rel)
+            strict.append((rel, n, "em dash in UI text, use a hyphen or rewrite"))
 
-    # ── RATCHET: form fields without the shared classes ─────────
-    for _, t in find_tags(text, "input"):
+    # ── STRICT: form fields without the shared classes ──────────
+    for pos, t in find_tags(text, "input"):
         if (attr(t, "type") or "text").lower() in NON_TEXT_INPUT:
             continue
-        if not has_class(t, FIELD_CLASSES):
-            ratchet("shared-field-class", rel)
+        if not has_class(t, FIELD_CLASSES) and not has_component(t, COMPONENT_FIELD_CLASSES):
+            strict.append((rel, line_of(text, pos), "field lacks a shared field class"))
     for tagname in ("select", "textarea"):
-        for _, t in find_tags(text, tagname):
-            if not has_class(t, FIELD_CLASSES):
-                ratchet("shared-field-class", rel)
+        for pos, t in find_tags(text, tagname):
+            if not has_class(t, FIELD_CLASSES) and not has_component(t, COMPONENT_FIELD_CLASSES):
+                strict.append((rel, line_of(text, pos), "%s lacks a shared field class" % tagname))
 
-    # ── RATCHET: buttons without the shared button classes ──────
-    for _, t in find_tags(text, "button"):
-        if not has_class(t, ("btn",)):
-            ratchet("shared-button-class", rel)
+    # ── STRICT: buttons without the shared button classes ───────
+    for pos, t in find_tags(text, "button"):
+        if not has_class(t, ("btn",)) and not has_component(t, COMPONENT_BUTTON_CLASSES):
+            strict.append((rel, line_of(text, pos), "button lacks a btn class (use ui_button or btn variants)"))
 
-    # ── RATCHET: hardcoded colors and px font sizes in inline styles
-    for m in RE_STYLE_ATTR.finditer(text):
+    # ── STRICT: hardcoded colors and px font sizes in inline styles
+    for m in ([] if rel == EMAIL_HTML_FILE else RE_STYLE_ATTR.finditer(text)):
         style = m.group(1)
+        ln = line_of(text, m.start())
         if RE_HEX.search(style):
-            ratchet("inline-hex-color", rel)
+            strict.append((rel, ln, "inline hex color, use a var(--token)"))
         if RE_FONT_PX.search(style):
-            ratchet("inline-px-font-size", rel)
+            strict.append((rel, ln, "inline px font size, use a --text-* token"))
 
 # ── STRICT: app.css must keep the shared date field rules ───────
 css_path = root / "public/assets/css/app.css"
@@ -130,9 +137,9 @@ for sel in ('.form-input[type="date"]', '.form-control[type="date"]'):
     if sel not in css:
         strict.append(("public/assets/css/app.css", 0, "missing shared date field rule: " + sel))
 
-# ── RATCHET: hardcoded hex colors in app.css outside the :root token block
-outside_root, depth, in_root = 0, 0, False
-for line in css.splitlines():
+# ── STRICT: hardcoded hex colors in app.css outside the :root token block
+depth, in_root = 0, False
+for n, line in enumerate(css.splitlines(), 1):
     s = line.strip()
     if s.startswith(":root") or s.startswith("html[data-theme") or s.startswith('[data-theme'):
         in_root = True
@@ -142,40 +149,12 @@ for line in css.splitlines():
             in_root, depth = False, 0
         continue
     if RE_HEX.search(line) and not s.startswith(("/*", "*", "//")):
-        outside_root += 1
-if outside_root:
-    counts.setdefault("css-hex-outside-tokens", {})["public/assets/css/app.css"] = outside_root
+        strict.append(("public/assets/css/app.css", n, "hex color outside the :root tokens, add a token"))
 
-# ── Baseline handling ───────────────────────────────────────────
-counts = {r: dict(sorted(v.items())) for r, v in sorted(counts.items())}
-
-if update:
-    baseline_path.write_text(json.dumps(counts, indent=2) + "\n", encoding="utf-8")
-    total = sum(sum(v.values()) for v in counts.values())
-    print("Baseline written: %d legacy violations across %d rules." % (total, len(counts)))
-    sys.exit(1 if strict else 0)
-
-baseline = json.loads(baseline_path.read_text(encoding="utf-8")) if baseline_path.exists() else {}
-regressions, improved = [], []
-for rule in sorted(set(counts) | set(baseline)):
-    cur, base = counts.get(rule, {}), baseline.get(rule, {})
-    for rel in sorted(set(cur) | set(base)):
-        c, b = cur.get(rel, 0), base.get(rel, 0)
-        if c > b:
-            regressions.append("%s: %s has %d (baseline %d)" % (rule, rel, c, b))
-        elif c < b:
-            improved.append("%s: %s dropped %d -> %d" % (rule, rel, b, c))
-
+# ── Report ──────────────────────────────────────────────────────
 for rel, ln, msg in strict:
     print("FAIL %s%s  %s" % (rel, (":%d" % ln) if ln else "", msg))
-for r in regressions:
-    print("FAIL (new violation) " + r)
-if improved:
-    print("\nCleaner than baseline. Run with --update to lock it in:")
-    for i in improved:
-        print("  " + i)
-
-if strict or regressions:
-    print("\nDesign gate failed. Use the shared classes and var(--token) values, no em dashes in UI text.")
+if strict:
+    print("\nDesign gate failed: %d violation(s). Use the shared classes and var(--token) values, no em dashes in UI text." % len(strict))
     sys.exit(1)
 print("Design gate passed")

@@ -79,14 +79,14 @@ try {
     $_navReschedPending = (int)$_navDb->query(
         "SELECT COUNT(*) FROM reschedule_requests WHERE status='pending'"
     )->fetchColumn() > 0;
-} catch (\Throwable $e) { /* table missing — silent */ }
+} catch (\Throwable $e) { /* table missing - silent */ }
 
 // Exam reschedule requests — pending count for SSO/Admin.
 try {
     $_navExamReschedPending = (int)$_navDb->query(
         "SELECT COUNT(*) FROM exam_reschedule_requests WHERE status='pending'"
     )->fetchColumn() > 0;
-} catch (\Throwable $e) { /* table missing — silent */ }
+} catch (\Throwable $e) { /* table missing - silent */ }
 
 // Documents — at least one document row in 'uploaded' (= submitted
 // by student, awaiting staff review). Admin / SSO only.
@@ -95,7 +95,7 @@ if ($navRole === ROLE_ADMIN || $navRole === ROLE_SSO) {
         $_navDocsPending = (int)$_navDb->query(
             "SELECT COUNT(*) FROM documents WHERE status='uploaded'"
         )->fetchColumn() > 0;
-    } catch (\Throwable $e) { /* table missing — silent */ }
+    } catch (\Throwable $e) { /* table missing - silent */ }
 }
 
 // Results — at least one applicant in the ready_accept / ready_reject
@@ -132,7 +132,7 @@ try {
     } else {
         $_navResPending = (int)$_navDb->query($_navResSql)->fetchColumn() > 0;
     }
-} catch (\Throwable $e) { /* tables missing — silent */ }
+} catch (\Throwable $e) { /* tables missing - silent */ }
 
 // Dean's "Interviews" link goes to the queue page (read-only), since
 // /staff/interviews shows a setup-card landing that's geared toward

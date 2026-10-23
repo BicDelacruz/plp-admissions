@@ -168,7 +168,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // proctor's roster.)
             if (!$candidateSlotId) {
                 $deptLabel = $department !== '' ? " for {$department}" : '';
-                $slotErr   = "Cannot approve — there's no open exam slot{$deptLabel} yet. "
+                $slotErr   = "Cannot approve - there's no open exam slot{$deptLabel} yet. "
                            . 'Please create a slot first, then come back and approve this request.';
             }
         }
@@ -277,7 +277,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             notify_reschedule_decision($applicantId, 'exam', 'approved', $extraInfo);
 
-            Session::flash('success', 'Exam reschedule approved — student moved to a new slot.');
+            Session::flash('success', 'Exam reschedule approved - student moved to a new slot.');
         } else {
             Session::flash(
                 'error',
@@ -307,7 +307,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             audit_log(
                 'exam_reschedule_request_denied',
                 "Denied exam reschedule request #{$requestId} for applicant #{$req['applicant_id']}"
-                . ($denyReason !== '' ? " — {$denyReason}" : ''),
+                . ($denyReason !== '' ? " - {$denyReason}" : ''),
                 'applicant',
                 (int)$req['applicant_id']
             );
@@ -317,7 +317,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                    : 'Your original slot stays the same.';
             notify_reschedule_decision((int)$req['applicant_id'], 'exam', 'denied', $extra);
 
-            Session::flash('success', 'Exam reschedule denied — student keeps their current slot.');
+            Session::flash('success', 'Exam reschedule denied - student keeps their current slot.');
         }
         redirect('/staff/exam/reschedule');
     }
@@ -502,7 +502,7 @@ ob_start();
             <tbody>
             <?php foreach ($reschedRequests as $rr):
                 // Single-line current-slot label; the full text is also a tooltip.
-                $curSlotLabel = '—';
+                $curSlotLabel = '-';
                 if ($rr['cur_date']) {
                     $parts = [format_date($rr['cur_date'])];
                     if ($rr['cur_time']) {
@@ -513,7 +513,7 @@ ob_start();
                     if ($rr['cur_room']) $parts[] = $rr['cur_room'];
                     $curSlotLabel = implode(' · ', $parts);
                 }
-                $courseLabel = ($rr['course_applied'] ?: '—')
+                $courseLabel = ($rr['course_applied'] ?: '-')
                              . ($rr['student_department'] ? ' · ' . $rr['student_department'] : '');
                 $approveFormId = 'resched-approve-' . (int)$rr['id'];
                 $denyFormId    = 'resched-deny-'    . (int)$rr['id'];
@@ -524,7 +524,7 @@ ob_start();
                               title="<?= e($rr['student_email']) ?>"><?= e(format_full_name($rr)) ?></span>
                     </td>
                     <td style="font-size:var(--text-sm)" title="<?= e($courseLabel) ?>">
-                        <span class="auto-table-clip"><?= e($rr['course_applied'] ?: '—') ?><?php if ($rr['student_department']): ?><span style="color:var(--text-tertiary)"> · <?= e($rr['student_department']) ?></span><?php endif; ?></span>
+                        <span class="auto-table-clip"><?= e($rr['course_applied'] ?: '-') ?><?php if ($rr['student_department']): ?><span style="color:var(--text-tertiary)"> · <?= e($rr['student_department']) ?></span><?php endif; ?></span>
                     </td>
                     <td style="font-size:var(--text-sm)" title="<?= e($curSlotLabel) ?>">
                         <span class="auto-table-clip"><?= e($curSlotLabel) ?></span>
@@ -612,5 +612,5 @@ $pageTitle = 'Exam Reschedule Requests';
 $pageBreadcrumb = [['label' => 'Exam Slots', 'to' => '/staff/exam/slots']];
 $pageActions = ($canReschedule ? ui_button('Cancel a slot (bulk move)', ['href' => url('/staff/exam/cancel-slot'), 'variant' => 'ghost', 'icon' => 'ic_fluent_arrow_right_24_regular', 'icon_pos' => 'after']) : '');
 $activeNav = 'exam-reschedule';
-$pageWide  = true; // table-heavy page — match staff_slots / staff_review / staff_manage
+$pageWide  = true; // table-heavy page - match staff_slots / staff_review / staff_manage
 include VIEWS_PATH . '/layouts/app.php';

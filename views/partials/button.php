@@ -4,19 +4,25 @@
 // Shared button component. One renderer for every button that sits
 // in a page heading (and any other place that wants the standard
 // look), so size, spacing and icon placement never drift per page.
-// Mirrors lakbay-pasig's <Button variant size> (components/ui/button.tsx).
+// Mirrors lakbay-pasig's Button component (components/ui/button.tsx).
 //
 //   ui_button('Add Session', [
 //       'variant' => 'primary',          // primary|secondary|ghost|success|danger|outline-danger|'' (plain)
 //       'size'    => '',                 // ''=default, 'sm', 'lg' (type/padding only; height is always --control-height)
 //       'icon'    => 'plus',             // any icon() name
 //       'icon_pos'=> 'before',           // before|after
-//       'href'    => url('/somewhere'),  // set => <a>, omitted => <button>
-//       'type'    => 'button',           // <button> only
+//       'href'    => url('/somewhere'),  // set => link element, omitted => button element
+//       'type'    => 'button',           // button element only
 //       'attrs'   => ['id' => 'x', 'onclick' => 'go()', 'title' => '...'],
 //   ]);
 //
 // Label and attribute values are escaped. Returns an HTML string.
+//
+// Raw button tags: a hand-written button must carry a btn class (use
+// btn btn-secondary btn-sm, btn btn-icon and so on) or, when it is a
+// distinct control with its own CSS (segmented toggle, menu item, drag
+// handle), one of the classes registered in COMPONENT_BUTTON_CLASSES in
+// .github/scripts/design_gate.py. The design gate enforces this.
 // Sizes live in app.css (.btn / .btn-sm / .btn-lg); this file only
 // picks the classes, it never hard-codes pixel sizes.
 // ============================================================

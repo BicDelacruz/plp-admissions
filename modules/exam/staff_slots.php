@@ -155,7 +155,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($action === 'extend_slot_code') {
             if (empty($slotRow['access_password'])) {
-                $respond(false, 'No code set yet — generate one first.');
+                $respond(false, 'No code set yet - generate one first.');
             }
             $db->prepare('UPDATE exam_slot_schedule SET password_issued_at = NOW() WHERE id = ?')
                ->execute([$slotId]);
@@ -185,7 +185,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // (Admin/SSO only — same as the rest of the slot mutators.)
     if ($action === 'update_room_label') {
         if (!$canManage) {
-            _slots_respond(false, 'Read-only access — only SSO and Admin can rename rooms.', $ctxCollege, $ctxSlotId);
+            _slots_respond(false, 'Read-only access - only SSO and Admin can rename rooms.', $ctxCollege, $ctxSlotId);
         }
         $slotId  = (int)($_POST['slot_id']    ?? 0);
         $newRoom = trim((string)($_POST['room_label'] ?? ''));
@@ -206,7 +206,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Dean and Proctor reach this page in read-only mode — if any
     // other action posts through, reject it.
     if (!$canManage) {
-        Session::flash('error', 'Read-only — only SSO and Admin can modify exam slots.');
+        Session::flash('error', 'Read-only - only SSO and Admin can modify exam slots.');
         _slots_redirect_back($ctxCollege, $ctxSlotId);
     }
 
@@ -409,7 +409,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($deletedCount > 0) {
             Session::flash('success', "{$deletedCount} slot(s) removed.");
         } elseif ($skipped > 0) {
-            Session::flash('error', "Nothing removed — all {$skipped} selected slot(s) have applicants.");
+            Session::flash('error', "Nothing removed - all {$skipped} selected slot(s) have applicants.");
         }
         _slots_redirect_back($ctxCollege);
     }
@@ -838,7 +838,7 @@ ob_start();
 <?php if ($mode === 'colleges'): ?>
 
     <!-- ============================================================
-         MODE 1 — COLLEGE SELECTOR
+         MODE 1 - COLLEGE SELECTOR
          (Admins land here. Staff are auto-routed to their college.)
     ============================================================ -->
     <?php if (empty($departments)): ?>
@@ -854,7 +854,7 @@ ob_start();
             ?>
                 <a href="<?= e(url('/staff/exam/slots') . '?college=' . urlencode($dept)) ?>" class="select-card college-card">
                     <?php if ($deptNeedsSetup): ?>
-                        <span class="select-card-dot" title="No upcoming slots — needs setup"></span>
+                        <span class="select-card-dot" title="No upcoming slots - needs setup"></span>
                     <?php endif; ?>
                     <div class="select-card-title"><?= e($dept) ?></div>
                     <div class="select-card-meta">
@@ -873,7 +873,7 @@ ob_start();
 <?php elseif ($mode === 'slots'): ?>
 
     <!-- ============================================================
-         MODE 2 — SLOT CARD GRID FOR ONE COLLEGE
+         MODE 2 - SLOT CARD GRID FOR ONE COLLEGE
     ============================================================ -->
     <div data-page-actions>
     <?php if ($canManage && !empty($slotsForCollege)): ?>
@@ -968,7 +968,7 @@ ob_start();
                 <?php if ($canManage): ?>
                     <input type="checkbox" class="select-card-check es-select-checkbox"
                            value="<?= $sid ?>"
-                           <?= $esUndeletable ? 'disabled title="Has applicants — cannot remove"' : '' ?>
+                           <?= $esUndeletable ? 'disabled title="Has applicants - cannot remove"' : '' ?>
                            onclick="event.stopPropagation();onEsCheckboxChange(this)">
                 <?php endif; ?>
 
@@ -1065,7 +1065,7 @@ ob_start();
             <button type="button" class="btn btn-ghost btn-sm"
                     onclick="cancelEsSelectMode()">Cancel</button>
             <button type="submit" class="btn btn-sm" id="es-bulk-delete-btn"
-                    style="background:var(--error);color:#fff;border-color:var(--error)"
+                    style="background:var(--error);color:var(--white);border-color:var(--error)"
                     onclick="return confirmEsBulkDelete()">
                 Delete Selected
             </button>
@@ -1078,7 +1078,7 @@ ob_start();
 <?php elseif ($mode === 'roster'): ?>
 
     <!-- ============================================================
-         MODE 3 — SLOT ROSTER (full-page table)
+         MODE 3 - SLOT ROSTER (full-page table)
     ============================================================ -->
     <?php
     $sid       = (int)$slotDetail['id'];
@@ -1287,10 +1287,10 @@ ob_start();
                             <span class="auto-table-clip" style="font-weight:var(--weight-medium)"><?= e(format_full_name($row)) ?></span>
                         </td>
                         <td style="font-size:var(--text-xs);color:var(--text-tertiary)" title="<?= e($row['student_email'] ?? '') ?>">
-                            <span class="auto-table-clip"><?= e(!empty($row['student_email']) ? $row['student_email'] : '—') ?></span>
+                            <span class="auto-table-clip"><?= e(!empty($row['student_email']) ? $row['student_email'] : '-') ?></span>
                         </td>
                         <td style="font-size:var(--text-sm)" title="<?= e($row['course_applied'] ?? '') ?>">
-                            <span class="auto-table-clip"><?= e($row['course_applied'] ?: '—') ?></span>
+                            <span class="auto-table-clip"><?= e($row['course_applied'] ?: '-') ?></span>
                         </td>
                         <td>
                             <span class="badge badge-neutral">
@@ -1301,7 +1301,7 @@ ob_start();
                             <span class="auto-table-clip">
                             <?= $row['assigned_at']
                                 ? e(date('M j, g:i A', strtotime($row['assigned_at'])))
-                                : '—' ?>
+                                : '-' ?>
                             </span>
                         </td>
                         <?php if ($canManage && !$isPast): ?>
@@ -1354,7 +1354,7 @@ ob_start();
 
 
 <!-- ============================================================
-     MODALS — shared across all modes that may need them.
+     MODALS - shared across all modes that may need them.
 ============================================================ -->
 
 <?php if ($mode !== 'colleges'): ?>
@@ -1517,7 +1517,7 @@ ob_start();
                         <label class="form-label">College / Department <span style="color:var(--error)">*</span></label>
                         <?php if ($canManage): ?>
                             <select name="department" id="edit-slot-dept" class="form-control" required>
-                                <option value="">— Select college —</option>
+                                <option value="">- Select college -</option>
                                 <?php foreach ($departments as $dept): ?>
                                     <option value="<?= e($dept) ?>"><?= e($dept) ?></option>
                                 <?php endforeach; ?>
@@ -1559,7 +1559,7 @@ ob_start();
                     </div>
                 </div>
                 <div class="modal-footer" style="justify-content:space-between">
-                    <?php // Inline delete (only when slot is empty — server still validates) ?>
+                    <?php // Inline delete (only when slot is empty - server still validates) ?>
                     <button type="submit" form="delete-slot-form" class="btn btn-ghost"
                             id="edit-slot-delete-btn"
                             style="color:var(--error)"
@@ -1608,7 +1608,7 @@ ob_start();
                         <input type="number" name="exam_daily_cap" class="form-control"
                                value="<?= $examDailyCap ?>" min="1" max="10000">
                     </div>
-                    <?php $roomsNeeded = $examRoomCap > 0 ? ceil($examDailyCap / $examRoomCap) : '—'; ?>
+                    <?php $roomsNeeded = $examRoomCap > 0 ? ceil($examDailyCap / $examRoomCap) : '-'; ?>
                     <div style="background:var(--bg-subtle);border-radius:var(--radius);
                                 padding:var(--space-3) var(--space-4);font-size:var(--text-xs);
                                 color:var(--text-secondary)">
@@ -1855,7 +1855,7 @@ function startSlotCodeCountdown(secsLeft) {
             if (genBtn)    genBtn.style.display    = 'inline-flex';
         } else {
             timerEl.style.display = '';
-            timerEl.textContent = 'Expired — reissuing…';
+            timerEl.textContent = 'Expired - reissuing…';
             timerEl.classList.add('is-expired');
             if (displayEl) {
                 displayEl.classList.add('is-empty');

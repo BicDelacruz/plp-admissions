@@ -440,7 +440,7 @@ function bulk_assign_pending_applicants(?string $department = null, ?int $actorU
                 break;
             }
         } catch (\Throwable $e) {
-            error_log("bulk_assign_pending_applicants: applicant #{$aid} failed — " . $e->getMessage());
+            error_log("bulk_assign_pending_applicants: applicant #{$aid} failed - " . $e->getMessage());
         }
     }
 
@@ -487,7 +487,7 @@ function record_interview_evaluation(
         $result = null; // ignore anything staff sent through for absent rows
     } else {
         if ($result !== 'pass' && $result !== 'reject') {
-            return false; // missing / invalid evaluation — UI should prevent
+            return false; // missing / invalid evaluation - UI should prevent
         }
     }
 
@@ -773,7 +773,7 @@ function auto_detect_interview_no_shows(?int $slotId = null, ?int $actorUserId =
                 error_log('notify_staff_no_show failed: ' . $e->getMessage());
             }
         } catch (\Throwable $e) {
-            error_log('auto_detect_interview_no_shows: queue #' . $r['queue_id'] . ' failed — ' . $e->getMessage());
+            error_log('auto_detect_interview_no_shows: queue #' . $r['queue_id'] . ' failed - ' . $e->getMessage());
         }
     }
 
@@ -827,12 +827,10 @@ function _notify_applicant_marked_absent(int $applicantId, string $slotDate, str
             $base   = defined('BASE_URL') ? BASE_URL : '';
             $link   = rtrim((string)$base, '/') . '/student/interview';
             $body   = '<p>' . htmlspecialchars($msg, ENT_QUOTES, 'UTF-8') . '</p>'
-                    . '<p style="margin-top:16px"><a href="' . htmlspecialchars($link, ENT_QUOTES, 'UTF-8') . '" '
-                    . 'style="display:inline-block;padding:10px 24px;background:' . htmlspecialchars($accent, ENT_QUOTES, 'UTF-8') . ';color:#fff;'
-                    . 'text-decoration:none;border-radius:8px;font-weight:bold">Request a reschedule</a></p>';
+                    . email_button($link, 'Request a reschedule', (string)$accent);
             send_email(
                 (string)$user['email'],
-                $title . ' — ' . $school,
+                $title . ' - ' . $school,
                 email_template($title, $body),
                 (string)$user['name']
             );
@@ -993,7 +991,7 @@ function _audit_slot_change(
     // Always emit to error_log so ops has a trail even when audit table
     // is unavailable (slot assignment should never be silent).
     error_log(sprintf(
-        '[interview] %s actor=%s entity=%s#%s — %s',
+        '[interview] %s actor=%s entity=%s#%s - %s',
         $action,
         $actorUserId !== null ? (string)$actorUserId : 'system',
         $entityType,

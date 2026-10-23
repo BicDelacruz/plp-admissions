@@ -244,13 +244,13 @@ ob_start();
                     </td>
                     <?php endif; ?>
                     <td>
-                        <span class="badge <?= $actionBadge($log['action']) ?>" style="font-size:10px">
+                        <span class="badge <?= $actionBadge($log['action']) ?>" style="font-size:var(--text-2xs)">
                             <?= e($actionLabel($log['action'])) ?>
                         </span>
                     </td>
                     <td style="font-size:var(--text-sm);color:var(--text-secondary)"
                         title="<?= e($log['description'] ?? '') ?>">
-                        <span class="auto-table-clip"><?= e($log['description'] ?? '—') ?></span>
+                        <span class="auto-table-clip"><?= e($log['description'] ?? '-') ?></span>
                     </td>
                 </tr>
                 <?php endforeach; ?>

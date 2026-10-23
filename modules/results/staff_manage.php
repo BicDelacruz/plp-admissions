@@ -286,12 +286,12 @@ ob_start();
      table card's toolbar, fused to the table (see below).
 
      Tab cleanup (vs Chunk 4):
-       • "All" tab dropped — no useful filter, just clutter.
-       • "Awaiting interview" tab dropped — SSO can't act on it
+       • "All" tab dropped - no useful filter, just clutter.
+       • "Awaiting interview" tab dropped - SSO can't act on it
          here. Rendered instead as a small grey chip below this
          bar that links into the Interviews queue (where the
          action actually lives).
-       • "Filter" dropdown dropped — was a duplicate of these
+       • "Filter" dropdown dropped - was a duplicate of these
          tabs. Search + Auto-Release stay on the left.
        • "Withdrawn" kept but de-emphasized (muted style).
 ============================================================ -->
@@ -468,7 +468,7 @@ $sortParams = ['q' => $search, 'result' => $filterRes, 'per_page' => $perPage, '
                     <?php endif; ?>
 
                     <td>
-                        <?php // Single-line row — plain name (email on hover).
+                        <?php // Single-line row - plain name (email on hover).
                               // Details open from the eye View button only. ?>
                         <span class="auto-table-clip" title="<?= e($row['email']) ?>"
                               style="font-weight:var(--weight-medium);color:var(--text-primary)"><?= e($fullName) ?></span>
@@ -496,7 +496,7 @@ $sortParams = ['q' => $search, 'result' => $filterRes, 'per_page' => $perPage, '
                                 <div style="font-size:var(--text-xs);color:var(--text-tertiary)"><?= e($row['exam_note']) ?></div>
                             <?php endif; ?>
                         <?php else: ?>
-                            <span style="color:var(--text-tertiary)">—</span>
+                            <span style="color:var(--text-tertiary)">-</span>
                         <?php endif; ?>
                     </td>
 
@@ -533,7 +533,7 @@ $sortParams = ['q' => $search, 'result' => $filterRes, 'per_page' => $perPage, '
                                 <?= e($ilabel) ?>
                             </span>
                         <?php else: ?>
-                            <span style="color:var(--text-tertiary)">—</span>
+                            <span style="color:var(--text-tertiary)">-</span>
                         <?php endif; ?>
                     </td>
 
@@ -557,7 +557,7 @@ $sortParams = ['q' => $search, 'result' => $filterRes, 'per_page' => $perPage, '
 
                     <!-- Released-on date -->
                     <td style="font-size:var(--text-sm);color:var(--text-tertiary)">
-                        <?= $row['released_at'] ? format_date($row['released_at'], 'M j, Y') : '—' ?>
+                        <?= $row['released_at'] ? format_date($row['released_at'], 'M j, Y') : '-' ?>
                     </td>
 
                     <!-- Actions -->
@@ -604,7 +604,7 @@ $sortParams = ['q' => $search, 'result' => $filterRes, 'per_page' => $perPage, '
                                     <input type="hidden" name="action"   value="release">
                                     <input type="hidden" name="decision" value="accepted">
                                     <button type="submit" class="btn btn-sm"
-                                            style="background:var(--success);color:#fff;border-color:var(--success);font-size:var(--text-xs);display:inline-flex;align-items:center;gap:4px"
+                                            style="background:var(--success);color:var(--white);border-color:var(--success);font-size:var(--text-xs);display:inline-flex;align-items:center;gap:4px"
                                             onclick="return confirm(<?= htmlspecialchars(json_encode($confirmAccept), ENT_QUOTES) ?>)">
                                         <?= icon('ic_fluent_checkmark_circle_24_regular', 13) ?>
                                         Accept
@@ -629,7 +629,7 @@ $sortParams = ['q' => $search, 'result' => $filterRes, 'per_page' => $perPage, '
                                     <input type="hidden" name="action"   value="release">
                                     <input type="hidden" name="decision" value="rejected">
                                     <button type="submit" class="btn btn-sm"
-                                            style="background:var(--error);color:#fff;border-color:var(--error);font-size:var(--text-xs);display:inline-flex;align-items:center;gap:4px"
+                                            style="background:var(--error);color:var(--white);border-color:var(--error);font-size:var(--text-xs);display:inline-flex;align-items:center;gap:4px"
                                             onclick="return confirm(<?= htmlspecialchars(json_encode($confirmReject), ENT_QUOTES) ?>)">
                                         <?= icon('ic_fluent_dismiss_circle_24_regular', 13) ?>
                                         Decline
@@ -813,7 +813,7 @@ $sortParams = ['q' => $search, 'result' => $filterRes, 'per_page' => $perPage, '
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-ghost" onclick="document.getElementById('close-admissions-modal').style.display='none'">Cancel</button>
-                <button type="submit" class="btn" style="background:var(--error);color:#fff;border-color:var(--error)"
+                <button type="submit" class="btn" style="background:var(--error);color:var(--white);border-color:var(--error)"
                         onclick="return confirm('Close admissions? All unreleased applicants will be rejected. Irreversible.')">
                     Close Admissions
                 </button>
@@ -839,7 +839,7 @@ $sortParams = ['q' => $search, 'result' => $filterRes, 'per_page' => $perPage, '
                 <div style="background:var(--bg-subtle);border-radius:var(--radius);padding:var(--space-3) var(--space-4);font-size:var(--text-sm)">
                     Applicant: <strong id="suggest-name"></strong><br>
                     <span style="font-size:var(--text-xs);color:var(--text-tertiary)">
-                        Exam rank: <strong id="suggest-rank"></strong>/10 — did not pass applied course threshold.
+                        Exam rank: <strong id="suggest-rank"></strong>/10 - did not pass applied course threshold.
                     </span>
                 </div>
                 <div>
@@ -931,13 +931,13 @@ document.getElementById('suggest-modal').addEventListener('click', function(e){
     <div style="width:1px;height:24px;background:var(--border)"></div>
 
     <button type="button" class="btn btn-sm" onclick="resBulkRelease('accepted')"
-            style="background:var(--success);color:#fff;border-color:var(--success);display:flex;align-items:center;gap:5px;white-space:nowrap">
+            style="background:var(--success);color:var(--white);border-color:var(--success);display:flex;align-items:center;gap:5px;white-space:nowrap">
         <?= icon('ic_fluent_checkmark_circle_24_regular', 14) ?>
         Accept Selected
     </button>
 
     <button type="button" class="btn btn-sm" onclick="resBulkRelease('rejected')"
-            style="background:var(--error);color:#fff;border-color:var(--error);display:flex;align-items:center;gap:5px;white-space:nowrap">
+            style="background:var(--error);color:var(--white);border-color:var(--error);display:flex;align-items:center;gap:5px;white-space:nowrap">
         <?= icon('ic_fluent_dismiss_circle_24_regular', 14) ?>
         Decline Selected
     </button>
@@ -994,8 +994,8 @@ function showResUndoToast(msg, onCommit) {
     bar.style.cssText = 'position:absolute;bottom:0;left:0;height:3px;background:var(--accent);border-radius:0 0 var(--radius) var(--radius);width:100%;transition:width ' + DELAY + 'ms linear';
 
     toast.innerHTML = '<span style="flex:1">' + msg + '</span>'
-        + '<button id="res-undo-btn" style="background:none;border:1px solid var(--border);border-radius:var(--radius);padding:4px 14px;cursor:pointer;font-size:var(--text-sm);color:var(--text-primary);font-weight:600;white-space:nowrap">Undo</button>'
-        + '<button onclick="dismissResUndoToast()" style="background:none;border:none;cursor:pointer;color:var(--text-tertiary);font-size:16px;padding:0 4px">&times;</button>';
+        + '<button id="res-undo-btn" class="btn btn-secondary btn-sm">Undo</button>'
+        + '<button onclick="dismissResUndoToast()" class="btn btn-icon" aria-label="Dismiss">&times;</button>';
     toast.appendChild(bar);
     document.body.appendChild(toast);
 
@@ -1034,7 +1034,7 @@ document.addEventListener('submit', function(e) {
     var btn = form.querySelector('button[type="submit"]');
     var label = btn ? btn.textContent.trim() : 'Releasing…';
 
-    showResUndoToast(label + ' — releasing…', function() { form.submit(); });
+    showResUndoToast(label + ' - releasing…', function() { form.submit(); });
 }, true);
 
 function resGetSelectedIds() {

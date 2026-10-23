@@ -583,7 +583,7 @@ function format_time(string $time): string
  * `last_name`, `suffix`, plus optional fallbacks `name` / `student_name`.
  * If the split-name fields are empty, falls back to the legacy combined name.
  */
-function format_full_name(array $row, string $fallback = '—'): string
+function format_full_name(array $row, string $fallback = '-'): string
 {
     $first  = trim((string) ($row['first_name']  ?? ''));
     $middle = trim((string) ($row['middle_name'] ?? ''));
@@ -688,9 +688,9 @@ function uploadcare_upload(string $tmpPath, string $filename, string $mimeType):
 function file_url(string $filePath): string
 {
     if (str_starts_with($filePath, 'http://') || str_starts_with($filePath, 'https://')) {
-        return $filePath; // Already a full CDN URL — return as-is.
+        return $filePath; // Already a full CDN URL - return as-is.
     }
-    return url($filePath); // Local path — prepend BASE_URL.
+    return url($filePath); // Local path - prepend BASE_URL.
 }
 
 // -- Captcha (Cloudflare Turnstile) -------------------------------
@@ -807,37 +807,8 @@ function send_email(string $to, string $subject, string $htmlBody, string $toNam
     }
 }
 
-/**
- * Build a styled HTML email body using school branding.
- */
-function email_template(string $title, string $body): string
-{
-    $schoolName  = school_setting('school_name', 'PLP Admissions');
-    $accentColor = school_setting('accent_color', '#2d6a4f');
-
-    return '<!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"></head>
-<body style="margin:0;padding:0;background:#f4f4f5;font-family:Arial,Helvetica,sans-serif">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:32px 0">
-<tr><td align="center">
-<table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1)">
-    <tr><td style="background:' . e($accentColor) . ';padding:24px 32px">
-        <h1 style="margin:0;color:#ffffff;font-size:20px">' . e($schoolName) . '</h1>
-    </td></tr>
-    <tr><td style="padding:32px">
-        <h2 style="margin:0 0 16px;color:#1a1a1a;font-size:18px">' . $title . '</h2>
-        <div style="color:#374151;font-size:14px;line-height:1.6">' . $body . '</div>
-    </td></tr>
-    <tr><td style="padding:16px 32px;background:#f9fafb;border-top:1px solid #e5e7eb;text-align:center">
-        <p style="margin:0;font-size:12px;color:#9ca3af">This is an automated email from ' . e($schoolName) . '. Please do not reply.</p>
-    </td></tr>
-</table>
-</td></tr>
-</table>
-</body>
-</html>';
-}
+// Email HTML lives in core/email_html.php (inline styles are required there).
+require_once __DIR__ . '/email_html.php';
 
 // -- Audit log --------------------------------------------------
 // IP addresses are intentionally NOT recorded — the school doesn't want
