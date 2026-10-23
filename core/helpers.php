@@ -540,8 +540,8 @@ function doc_ai_confirm(PDO $db, int $validationId, string $result, int $staffId
 }
 
 // Approve every uploaded / under review document of an applicant except the
-// flagged ones. Returns ['approved' => n, 'skipped' => n]. AI never approves:
-// this only runs from a staff action.
+// flagged ones. Returns ['approved' => n, 'skipped' => n, 'ids' => [document ids
+// approved]]. AI never approves: this only runs from a staff action.
 function doc_approve_unflagged(PDO $db, int $applicantId, int $staffId): array
 {
     $skip    = array_keys(doc_ai_flags($db, $applicantId));
@@ -560,9 +560,28 @@ function doc_approve_unflagged(PDO $db, int $applicantId, int $staffId): array
         $sql    .= " AND id NOT IN ($in)";
         $params  = array_merge($params, $skip);
     }
-    $stmt = $db->prepare($sql);
+    $stmt = $db->prepare($sql . ' RETURNING id');
     $stmt->execute($params);
-    return ['approved' => $stmt->rowCount(), 'skipped' => $skipped];
+    $ids = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+    return ['approved' => count($ids), 'skipped' => $skipped, 'ids' => $ids];
+}
+
+// Move an applicant to the exam stage once every required document is approved.
+// Only applicants still before the exam stage move; a released or withdrawn
+// applicant is never pulled back. Returns true only when the status really
+// changed, so callers notify the student once and not on every re-approval.
+function advance_to_exam_if_docs_approved(PDO $db, int $applicantId): bool
+{
+    if (!required_docs_all_approved($db, $applicantId)) return false;
+    $stmt = $db->prepare(
+        'UPDATE applicants
+            SET overall_status = \'exam\',
+                documents_approved_at = COALESCE(documents_approved_at, NOW())
+          WHERE id = ?
+            AND overall_status IN (\'pending\',\'documents\',\'submitted\')'
+    );
+    $stmt->execute([$applicantId]);
+    return $stmt->rowCount() > 0;
 }
 
 // -- Formatting -------------------------------------------------

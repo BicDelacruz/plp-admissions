@@ -73,18 +73,15 @@ switch ($action) {
         $affected = $res['approved'];
         $skipped  = $res['skipped'];
 
-        // Auto-advance to exam if all docs are now approved
-        if (required_docs_all_approved($db, (int)$id)) {
-            $db->prepare(
-                'UPDATE applicants
-                    SET overall_status = \'exam\',
-                        documents_approved_at = COALESCE(documents_approved_at, NOW())
-                  WHERE id = ?
-                    AND overall_status NOT IN (\'exam\',\'interview\',\'result\')'
-            )->execute([$id]);
-
-            // Automation: notify student & auto-assign exam slot
+        // Auto-advance to exam if all required docs are now approved. The
+        // student is only notified when the status really changed.
+        if (advance_to_exam_if_docs_approved($db, (int)$id)) {
             notify_stage_transition($id, 'exam');
+        }
+        // Self-guarded: only assigns when the applicant is in the exam stage
+        // and has no slot yet, so it also catches exam-stage applicants stuck
+        // without a slot.
+        if (required_docs_all_approved($db, (int)$id)) {
             auto_assign_exam_slot($id);
         }
 
@@ -96,7 +93,7 @@ switch ($action) {
 
         if ($isAjax) {
             header('Content-Type: application/json');
-            echo json_encode(['ok' => true, 'message' => $msg, 'affected' => $affected, 'skipped' => $skipped]);
+            echo json_encode(['ok' => true, 'message' => $msg, 'affected' => $affected, 'skipped' => $skipped, 'ids' => $res['ids']]);
             exit;
         }
         Session::flash('success', $msg);
@@ -104,30 +101,50 @@ switch ($action) {
         break;
 
     case 'undo_approve_all':
-        // Revert all docs that were just approved back to uploaded
-        $stmt = $db->prepare(
-            'UPDATE documents SET status=\'uploaded\', staff_remarks=NULL, reviewed_by=NULL
-              WHERE applicant_id=? AND status=\'approved\''
-        );
+        // Revert only the documents the matching approve_all just approved
+        // (the client sends their ids). Anything approved earlier by hand is
+        // left alone. Refused once the applicant has taken the exam.
+        $undoReply = function (bool $ok, string $msg) use ($isAjax, $id) {
+            if ($isAjax) {
+                header('Content-Type: application/json');
+                echo json_encode(['ok' => $ok, 'message' => $msg]);
+                exit;
+            }
+            Session::flash($ok ? 'success' : 'error', $msg);
+            redirect('/staff/applicants/' . $id);
+        };
+
+        $docIds = array_values(array_unique(array_filter(array_map('intval', (array)($_POST['doc_ids'] ?? [])))));
+        if (!$docIds) {
+            $undoReply(false, 'Nothing to undo.');
+        }
+
+        $stmt = $db->prepare('SELECT COUNT(*) FROM exam_results WHERE applicant_id=?');
         $stmt->execute([$id]);
+        if ((int)$stmt->fetchColumn() > 0) {
+            $undoReply(false, 'Cannot undo - applicant already took the exam.');
+        }
+
+        $in   = implode(',', array_fill(0, count($docIds), '?'));
+        $stmt = $db->prepare(
+            "UPDATE documents SET status='uploaded', staff_remarks=NULL, reviewed_by=NULL
+              WHERE applicant_id=? AND status='approved' AND id IN ($in)"
+        );
+        $stmt->execute(array_merge([$id], $docIds));
         $reverted = $stmt->rowCount();
 
-        // Roll back applicant status if it was auto-advanced
-        $db->prepare(
-            'UPDATE applicants SET overall_status=\'submitted\', documents_approved_at=NULL
-              WHERE id=? AND overall_status=\'exam\''
-        )->execute([$id]);
+        // Roll back to submitted only if the applicant is in the exam stage and
+        // is no longer fully approved. An applicant who was already fully
+        // approved before this approval keeps their stage.
+        if (!required_docs_all_approved($db, (int)$id)) {
+            $db->prepare(
+                'UPDATE applicants SET overall_status=\'submitted\', documents_approved_at=NULL
+                  WHERE id=? AND overall_status=\'exam\''
+            )->execute([$id]);
+        }
 
         audit_log('undo_approve_all', "Undid bulk approval for applicant {$id} ({$reverted} docs reverted)", 'applicant', $id);
-        $msg = "Reverted {$reverted} document" . ($reverted != 1 ? 's' : '') . ".";
-
-        if ($isAjax) {
-            header('Content-Type: application/json');
-            echo json_encode(['ok' => true, 'message' => $msg]);
-            exit;
-        }
-        Session::flash('success', $msg);
-        redirect('/staff/applicants/' . $id);
+        $undoReply(true, "Reverted {$reverted} document" . ($reverted != 1 ? 's' : '') . ".");
         break;
 
     case 'approve':

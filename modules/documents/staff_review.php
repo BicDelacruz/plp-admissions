@@ -31,15 +31,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'bulk_
         if ($res['approved'] > 0) $approved++;
         $skipped += $res['skipped'];
 
-        $rem = $db->prepare('SELECT COUNT(*) FROM documents WHERE applicant_id=? AND status != \'approved\'');
-        $rem->execute([$aid]);
-        if ((int)$rem->fetchColumn() === 0) {
-            $db->prepare(
-                'UPDATE applicants SET overall_status=\'exam\', documents_approved_at=COALESCE(documents_approved_at,NOW())
-                  WHERE id=? AND overall_status NOT IN (\'exam\',\'interview\',\'result\')'
-            )->execute([$aid]);
+        // Same rule as the single-applicant Approve All: advance only when every
+        // required document is approved, and only from a pre-exam stage.
+        if (advance_to_exam_if_docs_approved($db, (int)$aid)) {
             $advanced++;
             notify_stage_transition($aid, 'exam');
+        }
+        // Self-guarded: assigns only exam-stage applicants without a slot yet.
+        if (required_docs_all_approved($db, (int)$aid)) {
             auto_assign_exam_slot($aid);
         }
     }
@@ -721,6 +720,7 @@ function approveAllAjax() {
     .then(function(r) { return r.json(); })
     .then(function(data) {
         if (data.ok) {
+            window._lastApprovedIds = data.ids || [];
             showUndoToast(data.message || 'All documents approved.');
         } else {
             alert(data.message || 'Something went wrong.');
@@ -760,13 +760,18 @@ function undoApproveAll() {
     var fd = new FormData();
     fd.append('_csrf', '<?= e(csrf_token()) ?>');
     fd.append('action', 'undo_approve_all');
+    (window._lastApprovedIds || []).forEach(function(id) { fd.append('doc_ids[]', id); });
 
     fetch('<?= url('/staff/documents/' . $applicantId) ?>', {
         method: 'POST',
         headers: { 'X-Requested-With': 'XMLHttpRequest' },
         body: fd
     })
-    .then(function() { window.location.reload(); })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data && data.ok === false) alert(data.message || 'Could not undo.');
+        window.location.reload();
+    })
     .catch(function() { window.location.reload(); });
 }
 </script>
