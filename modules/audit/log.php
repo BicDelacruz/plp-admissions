@@ -208,12 +208,13 @@ ob_start();
         <table class="auto-table">
             <thead>
                 <tr>
-                    <th style="width:180px">Date &amp; Time</th>
+                    <th style="width:170px">Date &amp; Time</th>
                     <?php if ($isAdmin): ?>
-                    <th style="width:220px">User</th>
+                    <th style="width:20%">User</th>
                     <?php endif; ?>
-                    <th style="width:200px">Action</th>
+                    <th style="width:22%">Action</th>
                     <th>Description</th>
+                    <th style="width:96px;text-align:right">Details</th>
                 </tr>
             </thead>
             <?php if (!empty($logs)): ?>
@@ -237,10 +238,9 @@ ob_start();
                                 ? Auth::roleLabel($log['user_role'])
                                 : 'System';
                         ?>
-                        <span style="display:inline-flex;align-items:center;gap:var(--space-2);max-width:100%">
-                            <span class="auto-table-clip" style="font-size:var(--text-sm);font-weight:var(--weight-medium)"><?= e($log['user_name']) ?></span>
-                            <span class="badge badge-<?= $roleBadge ?>" style="flex-shrink:0"><?= e($roleLabel) ?></span>
-                        </span>
+                        <span class="auto-table-clip" style="font-size:var(--text-sm);font-weight:var(--weight-medium);line-height:1.3"
+                              title="<?= e($log['user_name']) ?>"><?= e($log['user_name']) ?></span>
+                        <span class="auto-table-clip" style="font-size:var(--text-xs);color:var(--text-tertiary);line-height:1.3"><?= e($roleLabel) ?></span>
                     </td>
                     <?php endif; ?>
                     <td>
@@ -251,6 +251,26 @@ ob_start();
                     <td style="font-size:var(--text-sm);color:var(--text-secondary)"
                         title="<?= e($log['description'] ?? '') ?>">
                         <span class="auto-table-clip"><?= e($log['description'] ?? '-') ?></span>
+                    </td>
+                    <td style="text-align:right">
+                        <?php
+                            $entity = $log['entity_type']
+                                ? ucwords(str_replace('_', ' ', $log['entity_type'])) . ($log['entity_id'] ? ' #' . $log['entity_id'] : '')
+                                : '';
+                            $detail = [
+                                'id'          => (int)$log['id'],
+                                'when'        => date('F j, Y g:i:s A', strtotime($log['created_at'])),
+                                'user'        => (string)$log['user_name'],
+                                'role'        => $isAdmin ? $roleLabel : '',
+                                'roleBadge'   => $isAdmin ? $roleBadge : 'neutral',
+                                'action'      => $actionLabel($log['action']),
+                                'actionBadge' => $actionBadge($log['action']),
+                                'description' => (string)($log['description'] ?? ''),
+                                'entity'      => $entity,
+                            ];
+                        ?>
+                        <button type="button" class="btn btn-ghost btn-sm audit-view"
+                                data-log="<?= e(json_encode($detail, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE)) ?>">View</button>
                     </td>
                 </tr>
                 <?php endforeach; ?>
@@ -307,6 +327,79 @@ ob_start();
 <?php endif; ?>
 
 </div><!-- /.auto-table-wrap -->
+
+<!-- Details modal: the same on every screen size, so nothing in the table has to be read from a clipped cell -->
+<div id="audit-modal" class="modal-backdrop" style="display:none" role="dialog" aria-modal="true" aria-labelledby="audit-modal-title">
+    <div class="modal" style="max-width:560px;max-height:92vh;overflow-y:auto">
+        <div class="modal-header">
+            <div class="modal-title" id="audit-modal-title">Log details</div>
+            <button type="button" class="btn-icon" data-audit-close aria-label="Close">
+                <?= icon('ic_fluent_dismiss_24_regular', 18) ?>
+            </button>
+        </div>
+        <div class="modal-body">
+            <dl class="audit-detail">
+                <dt>Date &amp; time</dt><dd id="ad-when"></dd>
+                <?php if ($isAdmin): ?>
+                <dt>User</dt><dd><span id="ad-user"></span> <span id="ad-role" class="badge"></span></dd>
+                <?php endif; ?>
+                <dt>Action</dt><dd><span id="ad-action" class="badge"></span></dd>
+                <dt>Related to</dt><dd id="ad-entity"></dd>
+                <dt>Description</dt><dd id="ad-desc" class="audit-detail-desc"></dd>
+                <dt>Log ID</dt><dd id="ad-id"></dd>
+            </dl>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-ghost" data-audit-close>Close</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.audit-detail { display: grid; grid-template-columns: 110px 1fr; gap: var(--space-3) var(--space-4); margin: 0; font-size: var(--text-sm); }
+.audit-detail dt { color: var(--text-tertiary); font-weight: var(--weight-medium); }
+.audit-detail dd { margin: 0; color: var(--text-primary); min-width: 0; overflow-wrap: anywhere; }
+.audit-detail-desc { white-space: pre-wrap; line-height: var(--leading-normal); }
+.audit-detail dd:empty::after { content: "-"; color: var(--text-tertiary); }
+@media (max-width: 480px) { .audit-detail { grid-template-columns: 1fr; gap: var(--space-1); } .audit-detail dd { margin-bottom: var(--space-3); } }
+</style>
+
+<script>
+(function () {
+    var m = document.getElementById('audit-modal');
+    if (!m) return;
+    function $(id) { return document.getElementById(id); }
+    function setBadge(el, text, cls) {
+        if (!el) return;
+        el.textContent = text;
+        el.className = 'badge ' + cls;
+    }
+    function openDetail(d) {
+        $('ad-when').textContent = d.when;
+        if ($('ad-user')) {
+            $('ad-user').textContent = d.user;
+            setBadge($('ad-role'), d.role, 'badge-' + d.roleBadge);
+        }
+        setBadge($('ad-action'), d.action, d.actionBadge);
+        $('ad-entity').textContent = d.entity;
+        $('ad-desc').textContent = d.description;
+        $('ad-id').textContent = '#' + d.id;
+        m.style.display = 'flex';
+    }
+    function closeDetail() { m.style.display = 'none'; }
+
+    document.querySelectorAll('.audit-view').forEach(function (b) {
+        b.addEventListener('click', function () {
+            try { openDetail(JSON.parse(b.getAttribute('data-log'))); } catch (e) {}
+        });
+    });
+    m.querySelectorAll('[data-audit-close]').forEach(function (b) { b.addEventListener('click', closeDetail); });
+    m.addEventListener('click', function (e) { if (e.target === m) closeDetail(); });
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && m.style.display !== 'none') closeDetail();
+    });
+})();
+</script>
 
 <?php
 $content   = ob_get_clean();
