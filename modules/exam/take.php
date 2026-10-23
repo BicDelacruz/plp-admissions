@@ -1409,7 +1409,9 @@ window.addEventListener('beforeunload', e => {
 
 // ── Save, retry and restore ─────────────────────────────────
 // Browser copy on every change, server copy 2s after a change, 10s backup.
-// A failed save means offline (navigator.onLine alone is not trusted).
+// Only a network failure (fetch throws / times out) means offline. A reply from
+// the server that is an error is a server problem: keep retrying, but do not
+// claim there is no connection or lock Submit.
 (function() {
     const examId = <?= (int)$examId ?>;
     const slotId = <?= (int)($mySlot['id'] ?? 0) ?>;
@@ -1424,6 +1426,7 @@ window.addEventListener('beforeunload', e => {
     const yesBtn    = document.getElementById('confirm-yes');
     const modal     = document.getElementById('confirm-modal');
     const OFFLINE_MSG = 'No connection. Your answers are saved on this device. Reconnect to submit.';
+    const SERVER_MSG  = 'Could not reach the save service. Your answers are still saved on this device. Retrying...';
     const CLOSED_MSG  = 'This exam has closed. Click Submit Exam to send the answers saved before it closed.';
 
     let lastSaved = null;     // answers the server last confirmed
@@ -1495,8 +1498,15 @@ window.addEventListener('beforeunload', e => {
             body.append('slot_id', slotId);
             body.append('answers', answers);
             body.append('_csrf', csrfToken);
-            const r = await fetch(saveUrl, { method: 'POST', body: body, signal: ctl.signal });
-            const d = await r.json();                            // non-JSON (e.g. expired token) counts as a failed save
+            const r = await fetch(saveUrl, { method: 'POST', body: body, signal: ctl.signal });   // throws only on network failure / timeout
+            let d = null;
+            try { d = await r.json(); } catch (e) {}
+            if (!d) {                                            // server answered, but not with JSON (error page, expired token)
+                setOffline(false);
+                showMsg(SERVER_MSG);
+                scheduleRetry();
+                return;
+            }
             if (d.closed) {
                 closed = true;
                 clearTimeout(retryTimer);
@@ -1505,11 +1515,16 @@ window.addEventListener('beforeunload', e => {
                 return;
             }
             if (d.error === 'Already submitted') { closed = true; clearTimeout(retryTimer); return; }
-            if (!d.ok) throw new Error(d.error || 'save failed');
+            if (!d.ok) {                                         // server refused the save
+                setOffline(false);
+                showMsg(SERVER_MSG);
+                scheduleRetry();
+                return;
+            }
             lastSaved = answers;
             retryDelay = 0;
             clearTimeout(retryTimer);
-            setOffline(false);
+            setOffline(false);                                   // also clears any server-problem message
             saveIndicator.textContent = 'Draft saved ' + String(d.saved_at).slice(11, 19);
             saveIndicator.style.opacity = '1';
             setTimeout(() => saveIndicator.style.opacity = '0', 3000);

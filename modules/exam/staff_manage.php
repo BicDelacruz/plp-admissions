@@ -51,9 +51,87 @@ function buildExamTitle(): string {
     return 'PLP Admissions Test (' . $autoYear . ')';
 }
 
+// An exam is "in progress" while a student is mid-exam: an unsubmitted draft
+// exists, or one of its room slots is open right now (database clock).
+function exam_in_progress(PDO $db, int $examId): bool {
+    if ($examId <= 0) return false;
+    $stmt = $db->prepare(
+        'SELECT EXISTS (SELECT 1 FROM exam_drafts d
+                         WHERE d.exam_id = ?
+                           AND NOT EXISTS (SELECT 1 FROM exam_results r
+                                            WHERE r.applicant_id = d.applicant_id AND r.exam_id = d.exam_id))
+             OR EXISTS (SELECT 1 FROM exam_slot_schedule s
+                         WHERE (s.exam_id = ? OR (s.exam_id IS NULL AND EXISTS (SELECT 1 FROM exams x WHERE x.id = ? AND x.is_active = 1)))
+                           AND now() >= s.exam_date + s.slot_time
+                           AND now() <= ' . slot_close_sql('s') . ')'
+    );
+    $stmt->execute([$examId, $examId, $examId]);
+    return (bool) $stmt->fetchColumn();
+}
+
+// Once any student has submitted, the scoring side of the exam is frozen.
+function exam_has_results(PDO $db, int $examId): bool {
+    if ($examId <= 0) return false;
+    $stmt = $db->prepare('SELECT 1 FROM exam_results WHERE exam_id = ? LIMIT 1');
+    $stmt->execute([$examId]);
+    return (bool) $stmt->fetchColumn();
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
     $action = $_POST['action'] ?? '';
+
+    // ── Exam-in-use guard ────────────────────────────────────
+    // Locked (has submitted results): no adding or deleting questions, sections
+    // or the exam; edit_question only changes wording. Scores are stored when a
+    // student submits, so this keeps the exam matching those scores.
+    // Live (a student is taking it): allowed, but staff must confirm first.
+    $examLocked = false;
+    $guardMsg   = null;
+    $needsConfirm = false;
+    if (in_array($action, ['create_exam', 'activate_exam', 'delete_exam', 'delete_section',
+                           'add_question', 'edit_question', 'delete_question'], true)) {
+        $targetExamId = (int)($_POST['exam_id'] ?? 0);
+        if ($action === 'delete_question') {
+            $st = $db->prepare('SELECT exam_id FROM questions WHERE id=?');
+            $st->execute([(int)($_POST['question_id'] ?? 0)]);
+            $targetExamId = (int)$st->fetchColumn();
+        } elseif ($action === 'delete_section') {
+            $st = $db->prepare('SELECT exam_id FROM exam_sections WHERE id=?');
+            $st->execute([(int)($_POST['section_id'] ?? 0)]);
+            $targetExamId = (int)$st->fetchColumn();
+        }
+        // Creating or activating an exam switches students off the current active exam.
+        $liveExamId = $targetExamId;
+        if ($action === 'create_exam' || $action === 'activate_exam') {
+            $liveExamId = (int)$db->query('SELECT id FROM exams WHERE is_active=1 LIMIT 1')->fetchColumn();
+            if ($action === 'activate_exam' && $liveExamId === $targetExamId) $liveExamId = 0;
+        }
+
+        $examLocked = in_array($action, ['delete_exam', 'delete_section', 'add_question', 'delete_question', 'edit_question'], true)
+                      && exam_has_results($db, $targetExamId);
+        $live = exam_in_progress($db, $liveExamId);
+
+        if ($examLocked && $action !== 'edit_question') {
+            $guardMsg = 'This exam already has submitted results, so questions, sections and the exam itself can no longer be added or deleted. Scores already recorded stay as they are. To change the content, create a new exam.';
+        } elseif ($live && $action === 'delete_exam') {
+            $guardMsg = 'Students are taking this exam right now, so it cannot be deleted.';
+        } elseif ($live && empty($_POST['confirm_live'])) {
+            $guardMsg = 'Students are taking the exam right now. This change applies to them immediately and can change their score. Confirm to continue.';
+            $needsConfirm = true;
+        }
+    }
+    if ($guardMsg !== null) {
+        $isFetch = is_ajax_request() || (($_SERVER['HTTP_SEC_FETCH_DEST'] ?? '') === 'empty');
+        if ($isFetch) {
+            http_response_code(409);
+            header('Content-Type: application/json');
+            echo json_encode(['ok' => false, 'blocked' => true, 'needs_confirm' => $needsConfirm, 'error' => $guardMsg]);
+            exit;
+        }
+        $errors[] = $guardMsg;
+        $action = '';                       // skip the switch; the page re-renders with the message
+    }
 
     switch ($action) {
 
@@ -183,6 +261,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!$qText) { $errors[] = 'Question text is required.'; break; }
             if (!$sectionId) { $errors[] = 'Every question must belong to a section.'; break; }
             if (!array_key_exists($qType, $QUESTION_TYPES)) $qType = 'multiple_choice';
+
+            if ($isEdit && $qId && $examLocked) {
+                // Results exist: only the wording may change. Type, points, choices and the answer key stay as they are.
+                $db->prepare('UPDATE questions SET question_text=?, description=? WHERE id=? AND exam_id=?')
+                   ->execute([$qText, $qDesc ?: null, $qId, $examId]);
+                $success[] = 'Wording updated. Points, choices and the answer key are locked because this exam already has submitted results.';
+                break;
+            }
 
             $choices = null; $correctIndex = null; $correctAnswer = null;
             $scaleMin = 1; $scaleMax = 5; $scaleMinLabel = null; $scaleMaxLabel = null;
@@ -321,6 +407,12 @@ if ($selectedExam) {
     $resultStats = $stmt->fetch();
     $totalPoints = array_sum(array_column($questions, 'points'));
 }
+
+// Flags for the page: confirm prompt while students are taking the exam,
+// notice once results exist.
+$examLive   = exam_in_progress($db, (int)($selectedExam['id'] ?? 0))
+           || exam_in_progress($db, (int)($activeExam['id'] ?? 0));
+$examFrozen = $selectedExam && exam_has_results($db, (int)$selectedExam['id']);
 
 // Group questions by section (every question must belong to one)
 $questionsBySection = [];
@@ -508,6 +600,9 @@ ob_start();
 <?php foreach ($errors as $e): ?>
     <div class="alert alert-error" style="margin-bottom:var(--space-3)"><?= e($e) ?></div>
 <?php endforeach; ?>
+<?php if (!empty($examFrozen)): ?>
+    <div class="alert alert-warning" style="margin-bottom:var(--space-3)">This exam already has submitted results. You can still fix wording, but questions, choices, points and answer keys are locked so recorded scores stay accurate. To change the content, create a new exam.</div>
+<?php endif; ?>
 <?php if (!empty($_GET['created'])): ?>
     <div class="alert alert-success" style="margin-bottom:var(--space-3)">Exam created and set as active.</div>
 <?php endif; ?>
@@ -1084,6 +1179,53 @@ elseif ($selectedExamId) $view = 'editor';
 
 
 <script>
+// ── Live-exam prompt ──────────────────────────────────────────
+// While students are taking the exam, changes that affect scoring ask for
+// confirmation first. The server enforces it too (confirm_live).
+(function () {
+    const LIVE = <?= !empty($examLive) ? 'true' : 'false' ?>;
+    const RISKY = ['create_exam','activate_exam','delete_exam','delete_section','add_question','edit_question','delete_question'];
+    const MSG = 'Students are taking the exam right now.\n\nThis change applies to them immediately and can change their score. Continue?';
+
+    if (LIVE) {
+        const origFetch = window.fetch.bind(window);
+        window.fetch = function (url, opts) {
+            const body = opts && opts.body;
+            if (body instanceof FormData && RISKY.includes(body.get('action')) && !body.get('confirm_live')) {
+                if (!confirm(MSG)) {
+                    return Promise.resolve(new Response(JSON.stringify({ ok: false, cancelled: true }), { status: 409 }));
+                }
+                body.append('confirm_live', '1');
+            }
+            return origFetch(url, opts);
+        };
+
+        function confirmForm(form) {
+            const act = form.querySelector('input[name="action"]');
+            if (!act || !RISKY.includes(act.value) || form.querySelector('input[name="confirm_live"]')) return true;
+            if (!confirm(MSG)) return false;
+            const h = document.createElement('input');
+            h.type = 'hidden'; h.name = 'confirm_live'; h.value = '1';
+            form.appendChild(h);
+            return true;
+        }
+        document.addEventListener('submit', e => { if (!confirmForm(e.target)) e.preventDefault(); }, true);
+        const origSubmit = HTMLFormElement.prototype.submit;
+        HTMLFormElement.prototype.submit = function () { if (confirmForm(this)) origSubmit.call(this); };
+    }
+
+    // Show the server's reason when it blocks a save (locked exam, live delete).
+    const baseFetch = window.fetch.bind(window);
+    window.fetch = function (url, opts) {
+        return baseFetch(url, opts).then(r => {
+            if (r.status === 409) {
+                r.clone().json().then(d => { if (d && d.blocked && d.error) alert(d.error); }).catch(() => {});
+            }
+            return r;
+        });
+    };
+})();
+
 // Per-room access codes are generated on the Exam Slots page — the
 // global Generate / Extend / countdown UI used to live here and has
 // been removed in Chunk 7.

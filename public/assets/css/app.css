@@ -1851,9 +1851,14 @@ tr, th, td, thead, tbody, tfoot { border-radius: 0 !important; }
 .sidebar-wrapper, .sidebar-gap, .sidebar, .sidebar-inner,
 .sidebar-header, .sidebar-footer, .sidebar-nav, .sidebar-group { border-radius: 0 !important; }
 
-/* Horizontal lines stay square. */
+/* Horizontal lines and the full-width rows/strips that carry them stay square,
+   so the global corner token never rounds the ends of a divider line. */
 hr, .divider, .dropdown-separator, .dp-divider, .step-connector, .auth-topbar,
-.auth-divider::before, .auth-divider::after { border-radius: 0 !important; }
+.auth-divider::before, .auth-divider::after,
+.mobile-bar, .student-header, .modal-header, .modal-footer,
+.ap-drawer-head, .ap-header, .ap-audit li, .auto-table-more,
+.settings-modal-nav, .select-card-footer,
+.print-page .pr-toolbar, .print-page .pr-foot { border-radius: 0 !important; }
 
 .dropdown.open .sidebar-footer .dropdown-menu { bottom: calc(100% + var(--space-2)); top: auto; }
 
