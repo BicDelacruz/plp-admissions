@@ -726,7 +726,7 @@ ob_start();
      EVALUATION MODAL - notes + Pass / Reject
 ============================================================ -->
 <div id="eval-modal" class="modal-backdrop" style="display:none" aria-hidden="true">
-    <div class="modal" style="max-width:860px;display:flex;flex-direction:column;overflow:hidden">
+    <div class="modal" style="max-width:860px;max-height:calc(100vh - 2 * var(--space-4));display:flex;flex-direction:column;overflow:hidden">
         <div class="modal-header">
             <div class="modal-title">Interview Evaluation</div>
             <button class="btn-icon" type="button" onclick="closeEvalModal()">
@@ -734,95 +734,106 @@ ob_start();
             </button>
         </div>
 
-        <div style="display:flex;flex:1;overflow:hidden;min-height:0">
-            <!-- LEFT: Applicant details panel -->
-            <div style="width:320px;flex-shrink:0;border-right:1px solid var(--border);padding:var(--space-4) var(--space-5);overflow-y:auto;background:var(--bg-subtle)">
-                <div style="font-weight:var(--weight-semibold);font-size:var(--text-sm);margin-bottom:var(--space-3)">Applicant Details</div>
-                <div style="display:flex;flex-direction:column;gap:var(--space-3);font-size:var(--text-sm)">
-                    <div>
-                        <div style="color:var(--text-tertiary);font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px">Full Name</div>
-                        <div id="eval-detail-name" style="font-weight:var(--weight-medium)"></div>
+        <form method="POST" id="eval-form" action="" style="display:flex;flex-direction:column;flex:1;min-height:0">
+            <?= csrf_field() ?>
+            <input type="hidden" name="action" value="complete_with_evaluation">
+            <input type="hidden" name="evaluation_result" id="eval-result-input" value="">
+
+            <div class="modal-body" style="display:flex;flex-direction:column;gap:var(--space-4);flex:1;min-height:0;overflow-y:auto">
+                <div>
+                    <label class="form-label" for="eval-notes">Interview notes</label>
+                    <textarea id="eval-notes" name="interview_notes" class="form-control"
+                              rows="6" placeholder="Interview notes / evaluation remarks…"></textarea>
+                    <div style="margin-top:var(--space-2);font-size:var(--text-xs);color:var(--text-tertiary)">
+                        Choose Pass or Decline to finalize this interview.
                     </div>
-                    <div id="eval-detail-email-wrap">
-                        <div style="color:var(--text-tertiary);font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px">Email</div>
-                        <div id="eval-detail-email"></div>
-                    </div>
-                    <div id="eval-detail-phone-wrap" style="display:none">
-                        <div style="color:var(--text-tertiary);font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px">Phone</div>
-                        <div id="eval-detail-phone"></div>
-                    </div>
-                    <div id="eval-detail-bday-wrap" style="display:none">
-                        <div style="color:var(--text-tertiary);font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px">Birthdate</div>
-                        <div id="eval-detail-bday"></div>
-                    </div>
-                    <div id="eval-detail-sex-wrap" style="display:none">
-                        <div style="color:var(--text-tertiary);font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px">Sex</div>
-                        <div id="eval-detail-sex"></div>
-                    </div>
-                    <div id="eval-detail-address-wrap" style="display:none">
-                        <div style="color:var(--text-tertiary);font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px">Address</div>
-                        <div id="eval-detail-address"></div>
-                    </div>
-                    <div style="border-top:1px solid var(--border);margin:var(--space-1) 0"></div>
-                    <div>
-                        <div style="color:var(--text-tertiary);font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px">Applicant Type</div>
-                        <div id="eval-detail-type"></div>
-                    </div>
-                    <div>
-                        <div style="color:var(--text-tertiary);font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px">Course Applied</div>
-                        <div id="eval-detail-course" style="font-weight:var(--weight-medium)"></div>
-                    </div>
-                    <div id="eval-detail-strand-wrap" style="display:none">
-                        <div style="color:var(--text-tertiary);font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px">SHS Strand</div>
-                        <div id="eval-detail-strand"></div>
-                    </div>
-                    <div id="eval-detail-sy-wrap" style="display:none">
-                        <div style="color:var(--text-tertiary);font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px">School Year</div>
-                        <div id="eval-detail-sy"></div>
-                    </div>
-                    <div style="border-top:1px solid var(--border);margin:var(--space-1) 0"></div>
-                    <div id="eval-detail-exam-wrap" style="display:none">
-                        <div style="color:var(--text-tertiary);font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px">Exam Score</div>
-                        <div id="eval-detail-exam" style="font-weight:var(--weight-medium)"></div>
+                </div>
+
+                <!-- Applicant details: two columns, long fields use the full row -->
+                <div style="border-top:1px solid var(--border);padding-top:var(--space-4)">
+                    <div style="font-weight:var(--weight-semibold);font-size:var(--text-sm);margin-bottom:var(--space-3)">Applicant Details</div>
+                    <div class="eval-details">
+                        <div class="eval-full">
+                            <div class="eval-k">Full Name</div>
+                            <div id="eval-detail-name" style="font-weight:var(--weight-medium)"></div>
+                        </div>
+                        <div id="eval-detail-email-wrap" class="eval-full">
+                            <div class="eval-k">Email</div>
+                            <div id="eval-detail-email"></div>
+                        </div>
+                        <div id="eval-detail-phone-wrap" style="display:none">
+                            <div class="eval-k">Phone</div>
+                            <div id="eval-detail-phone"></div>
+                        </div>
+                        <div id="eval-detail-bday-wrap" style="display:none">
+                            <div class="eval-k">Birthdate</div>
+                            <div id="eval-detail-bday"></div>
+                        </div>
+                        <div id="eval-detail-sex-wrap" style="display:none">
+                            <div class="eval-k">Sex</div>
+                            <div id="eval-detail-sex"></div>
+                        </div>
+                        <div>
+                            <div class="eval-k">Applicant Type</div>
+                            <div id="eval-detail-type"></div>
+                        </div>
+                        <div id="eval-detail-address-wrap" class="eval-full" style="display:none">
+                            <div class="eval-k">Address</div>
+                            <div id="eval-detail-address"></div>
+                        </div>
+                        <div class="eval-full">
+                            <div class="eval-k">Course Applied</div>
+                            <div id="eval-detail-course" style="font-weight:var(--weight-medium)"></div>
+                        </div>
+                        <div id="eval-detail-strand-wrap" style="display:none">
+                            <div class="eval-k">SHS Strand</div>
+                            <div id="eval-detail-strand"></div>
+                        </div>
+                        <div id="eval-detail-sy-wrap" style="display:none">
+                            <div class="eval-k">School Year</div>
+                            <div id="eval-detail-sy"></div>
+                        </div>
+                        <div id="eval-detail-exam-wrap" style="display:none">
+                            <div class="eval-k">Exam Score</div>
+                            <div id="eval-detail-exam" style="font-weight:var(--weight-medium)"></div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- RIGHT: Eval form -->
-            <div style="flex:1;min-width:0;display:flex;flex-direction:column">
-                <form method="POST" id="eval-form" action="" style="display:flex;flex-direction:column;flex:1">
-                    <?= csrf_field() ?>
-                    <input type="hidden" name="action" value="complete_with_evaluation">
-                    <input type="hidden" name="evaluation_result" id="eval-result-input" value="">
-
-                    <div class="modal-body" style="display:flex;flex-direction:column;gap:var(--space-4);flex:1">
-                        <div>
-                            <label class="form-label" for="eval-notes">Interview notes</label>
-                            <textarea id="eval-notes" name="interview_notes" class="form-control"
-                                      rows="7" placeholder="Interview notes / evaluation remarks…"></textarea>
-                        </div>
-
-                        <div style="font-size:var(--text-xs);color:var(--text-tertiary)">
-                            Choose Pass or Decline to finalize this interview.
-                        </div>
-                    </div>
-
-                    <div class="modal-footer" style="display:flex;gap:var(--space-2);justify-content:flex-end">
-                        <button type="button" class="btn btn-ghost" onclick="closeEvalModal()">Cancel</button>
-                        <button type="submit" class="btn btn-reject"
-                                onclick="document.getElementById('eval-result-input').value='reject'">
-                            <?= icon('ic_fluent_dismiss_24_regular', 13) ?> Decline
-                        </button>
-                        <button type="submit" class="btn btn-pass"
-                                onclick="document.getElementById('eval-result-input').value='pass'">
-                            <?= icon('ic_fluent_checkmark_24_regular', 13) ?> Pass
-                        </button>
-                    </div>
-                </form>
+            <div class="modal-footer" style="display:flex;gap:var(--space-2);justify-content:flex-end">
+                <button type="button" class="btn btn-ghost" onclick="closeEvalModal()">Cancel</button>
+                <button type="submit" class="btn btn-reject"
+                        onclick="document.getElementById('eval-result-input').value='reject'">
+                    <?= icon('ic_fluent_dismiss_24_regular', 13) ?> Decline
+                </button>
+                <button type="submit" class="btn btn-pass"
+                        onclick="document.getElementById('eval-result-input').value='pass'">
+                    <?= icon('ic_fluent_checkmark_24_regular', 13) ?> Pass
+                </button>
             </div>
-        </div>
+        </form>
     </div>
 </div>
+
+<style>
+.eval-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-3) var(--space-5);
+    font-size: var(--text-sm);
+}
+.eval-details > div { min-width: 0; overflow-wrap: anywhere; }
+.eval-details .eval-full { grid-column: 1 / -1; }
+.eval-k {
+    color: var(--text-tertiary);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 2px;
+}
+@media (max-width: 480px) { .eval-details { grid-template-columns: 1fr; } }
+</style>
 
 <!-- ============================================================
      SCRIPT
