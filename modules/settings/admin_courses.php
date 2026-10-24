@@ -30,6 +30,17 @@ $scopedCourses    = ($scopedDept !== '') ? courses_in_department($scopedDept) : 
 // own college (enforced in the `update_course_caps` handler below).
 $canEditMaxSlots  = $canManageCourses || $isDean;
 
+// Every course belongs to exactly one college (course_departments row).
+// Interview slots, exam slots and the Dean's view all follow that link, so a
+// course without one is skipped by all of them.
+$colleges    = [];
+$collegeIds  = [];
+foreach ($db->query('SELECT id, name FROM departments ORDER BY name')->fetchAll() as $col) {
+    $colleges[]   = ['id' => (int)$col['id'], 'name' => (string)$col['name']];
+    $collegeIds[] = (int)$col['id'];
+}
+$collegeNames = array_column($colleges, 'name', 'id');
+
 // ── POST handlers ─────────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
@@ -47,36 +58,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'add_course') {
         $name    = trim($_POST['course_name'] ?? '');
         $strands = array_values(array_filter($_POST['strands'] ?? [], fn($s) => isset(SHS_STRANDS[$s])));
+        $deptId  = (int)($_POST['department_id'] ?? 0);
 
         if (!$name) {
             $errors[] = 'Course name is required.';
         } elseif (in_array($name, PLP_COURSES, true)) {
             $errors[] = "'{$name}' is already a built-in PLP course and cannot be re-added.";
+        } elseif (!in_array($deptId, $collegeIds, true)) {
+            $errors[] = 'Choose the college this course belongs to.';
         } else {
             $dup = $db->prepare('SELECT id FROM custom_courses WHERE course_name=?');
             $dup->execute([$name]);
             if ($dup->fetch()) {
                 $errors[] = "A custom course named '{$name}' already exists.";
             } else {
-                $insCourse = $db->prepare(
-                    'INSERT INTO custom_courses (course_name, strands, is_active, created_by)
-                     VALUES (?,?,1,?)
-                     RETURNING id'
-                );
-                $insCourse->execute([$name, json_encode($strands), $adminId]);
-                $newId = (int)$insCourse->fetchColumn();
+                try {
+                    // Course, college link and default tiers are saved together
+                    // so a course can never exist without its college.
+                    $db->beginTransaction();
 
-                // Auto-create a tier-thresholds row with sensible defaults so
-                // the new course shows up immediately in the tier table.
-                $db->prepare(
-                    'INSERT INTO course_passing_scores
-                        (course_name, pass_from, high_from, avg_from, confirmed)
-                     VALUES (?, 4, 7, 4, 0)
-                     ON CONFLICT DO NOTHING'
-                )->execute([$name]);
+                    $insCourse = $db->prepare(
+                        'INSERT INTO custom_courses (course_name, strands, is_active, created_by)
+                         VALUES (?,?,1,?)
+                         RETURNING id'
+                    );
+                    $insCourse->execute([$name, json_encode($strands), $adminId]);
+                    $newId = (int)$insCourse->fetchColumn();
 
-                audit_log('course_added', "Added custom course: {$name}", 'custom_courses', $newId);
-                $success[] = "Course \"{$name}\" added. Set its tier thresholds in the table above.";
+                    $db->prepare(
+                        'INSERT INTO course_departments (course_name, department_id)
+                         VALUES (?, ?)
+                         ON CONFLICT (course_name) DO UPDATE SET department_id = EXCLUDED.department_id'
+                    )->execute([$name, $deptId]);
+
+                    // Auto-create a tier-thresholds row with sensible defaults so
+                    // the new course shows up immediately in the tier table.
+                    $db->prepare(
+                        'INSERT INTO course_passing_scores
+                            (course_name, pass_from, high_from, avg_from, confirmed)
+                         VALUES (?, 4, 7, 4, 0)
+                         ON CONFLICT DO NOTHING'
+                    )->execute([$name]);
+
+                    $db->commit();
+
+                    audit_log('course_added', "Added custom course: {$name} ({$collegeNames[$deptId]})", 'custom_courses', $newId);
+                    $success[] = "Course \"{$name}\" added to {$collegeNames[$deptId]}. Set its tier thresholds in the table above.";
+                } catch (\Throwable $ex) {
+                    if ($db->inTransaction()) $db->rollBack();
+                    error_log('admin_courses add_course failed: ' . $ex->getMessage());
+                    $errors[] = 'Could not add the course. Please try again.';
+                }
             }
         }
     }
@@ -87,6 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $name     = trim($_POST['course_name'] ?? '');
         $strands  = array_values(array_filter($_POST['strands'] ?? [], fn($s) => isset(SHS_STRANDS[$s])));
         $isActive = isset($_POST['is_active']) ? 1 : 0;
+        $deptId   = (int)($_POST['department_id'] ?? 0);
 
         if (!$courseId) {
             $errors[] = 'Invalid course.';
@@ -94,25 +127,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = 'Course name is required.';
         } elseif (in_array($name, PLP_COURSES, true)) {
             $errors[] = 'Cannot rename to a built-in PLP course name.';
+        } elseif (!in_array($deptId, $collegeIds, true)) {
+            $errors[] = 'Choose the college this course belongs to.';
         } else {
             // Capture old name so we can rename the tier row alongside it.
             $oldStmt = $db->prepare('SELECT course_name FROM custom_courses WHERE id=?');
             $oldStmt->execute([$courseId]);
             $oldName = $oldStmt->fetchColumn() ?: '';
 
-            $db->prepare(
-                'UPDATE custom_courses
-                    SET course_name=?, strands=?, is_active=?
-                  WHERE id=?'
-            )->execute([$name, json_encode($strands), $isActive, $courseId]);
+            $dupStmt = $db->prepare('SELECT 1 FROM custom_courses WHERE course_name=? AND id<>?');
+            $dupStmt->execute([$name, $courseId]);
 
-            if ($oldName && $oldName !== $name) {
-                $db->prepare('UPDATE course_passing_scores SET course_name=? WHERE course_name=?')
-                   ->execute([$name, $oldName]);
+            if (!$oldName) {
+                $errors[] = 'Invalid course.';
+            } elseif ($dupStmt->fetchColumn()) {
+                $errors[] = "A custom course named '{$name}' already exists.";
+            } else {
+                try {
+                    $db->beginTransaction();
+
+                    $db->prepare(
+                        'UPDATE custom_courses
+                            SET course_name=?, strands=?, is_active=?
+                          WHERE id=?'
+                    )->execute([$name, json_encode($strands), $isActive, $courseId]);
+
+                    if ($oldName !== $name) {
+                        $db->prepare('UPDATE course_passing_scores SET course_name=? WHERE course_name=?')
+                           ->execute([$name, $oldName]);
+                        $db->prepare('DELETE FROM course_departments WHERE course_name=?')
+                           ->execute([$oldName]);
+                    }
+
+                    // Also gives a college to older custom courses that never had one.
+                    $db->prepare(
+                        'INSERT INTO course_departments (course_name, department_id)
+                         VALUES (?, ?)
+                         ON CONFLICT (course_name) DO UPDATE SET department_id = EXCLUDED.department_id'
+                    )->execute([$name, $deptId]);
+
+                    $db->commit();
+
+                    audit_log('course_updated', "Updated custom course ID {$courseId}: {$name} ({$collegeNames[$deptId]})", 'custom_courses', $courseId);
+                    $success[] = 'Course updated.';
+                } catch (\Throwable $ex) {
+                    if ($db->inTransaction()) $db->rollBack();
+                    error_log('admin_courses edit_course failed: ' . $ex->getMessage());
+                    $errors[] = 'Could not update the course. Please try again.';
+                }
             }
-
-            audit_log('course_updated', "Updated custom course ID {$courseId}: {$name}", 'custom_courses', $courseId);
-            $success[] = 'Course updated.';
         }
     }
 
@@ -128,6 +191,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db->prepare('DELETE FROM custom_courses WHERE id=?')->execute([$courseId]);
             if ($cn) {
                 $db->prepare('DELETE FROM course_passing_scores WHERE course_name=?')->execute([$cn]);
+                $db->prepare('DELETE FROM course_departments WHERE course_name=?')->execute([$cn]);
             }
             audit_log('course_deleted', "Deleted custom course ID {$courseId}: {$cn}", 'custom_courses', $courseId);
             $success[] = 'Course deleted.';
@@ -192,7 +256,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // ── Load data ─────────────────────────────────────────────────────────────
 $customCourses = $db->query(
-    'SELECT * FROM custom_courses ORDER BY is_active DESC, course_name ASC'
+    'SELECT cc.*, cd.department_id, d.name AS college_name
+       FROM custom_courses cc
+       LEFT JOIN course_departments cd ON cd.course_name = cc.course_name
+       LEFT JOIN departments d ON d.id = cd.department_id
+      ORDER BY cc.is_active DESC, cc.course_name ASC'
 )->fetchAll();
 
 $tierMap = [];
@@ -454,11 +522,12 @@ $customByName = array_column($customCourses, null, 'course_name');
         </div>
 
         <div class="auto-table-body">
-            <table class="auto-table" style="min-width:720px">
+            <table class="auto-table" style="min-width:960px">
                 <thead>
                     <tr>
                         <th>Course</th>
-                        <th style="width:300px">Strands</th>
+                        <th style="width:240px">College</th>
+                        <th style="width:260px">Strands</th>
                         <th style="width:110px">Status</th>
                         <th class="col-center" style="width:110px"></th>
                     </tr>
@@ -468,11 +537,18 @@ $customByName = array_column($customCourses, null, 'course_name');
                     $ccStrands = json_decode($cc['strands'] ?? '[]', true) ?: [];
                 ?>
                     <tr data-st-row
-                        data-search="<?= e(mb_strtolower($cc['course_name'] . ' ' . implode(' ', $ccStrands))) ?>"
+                        data-search="<?= e(mb_strtolower($cc['course_name'] . ' ' . ($cc['college_name'] ?? '') . ' ' . implode(' ', $ccStrands))) ?>"
                         data-strand="<?= e(implode('|', $ccStrands)) ?>"
                         data-status="<?= $cc['is_active'] ? 'active' : 'inactive' ?>">
                         <td style="font-weight:var(--weight-medium)">
                             <span class="auto-table-clip" title="<?= e($cc['course_name']) ?>"><?= e($cc['course_name']) ?></span>
+                        </td>
+                        <td>
+                            <?php if (!empty($cc['college_name'])): ?>
+                                <span class="auto-table-clip" title="<?= e($cc['college_name']) ?>"><?= e($cc['college_name']) ?></span>
+                            <?php else: ?>
+                                <span class="badge badge-error" title="Edit this course and choose a college">No college</span>
+                            <?php endif; ?>
                         </td>
                         <td class="cell-wrap">
                             <?php if ($ccStrands): ?>
@@ -491,7 +567,7 @@ $customByName = array_column($customCourses, null, 'course_name');
                         <td class="col-center">
                             <div style="display:flex;gap:var(--space-2);align-items:center;justify-content:center">
                                 <button type="button" class="btn-icon" title="Edit"
-                                        onclick="openEditModal(<?= (int)$cc['id'] ?>, <?= e(json_encode($cc['course_name'])) ?>, <?= e(json_encode($ccStrands)) ?>, <?= (int)$cc['is_active'] ?>)"
+                                        onclick="openEditModal(<?= (int)$cc['id'] ?>, <?= e(json_encode($cc['course_name'])) ?>, <?= e(json_encode($ccStrands)) ?>, <?= (int)$cc['is_active'] ?>, <?= (int)($cc['department_id'] ?? 0) ?>)"
                                         style="color:var(--text-tertiary)">
                                     <?= icon('ic_fluent_edit_24_regular', 14) ?>
                                 </button>
@@ -600,6 +676,18 @@ $customByName = array_column($customCourses, null, 'course_name');
                     </p>
                 </div>
                 <div>
+                    <label class="form-label">College <span style="color:var(--error)">*</span></label>
+                    <select name="department_id" class="form-control" required>
+                        <option value="">Select a college</option>
+                        <?php foreach ($colleges as $col): ?>
+                            <option value="<?= (int)$col['id'] ?>"><?= e($col['name']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <p style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:var(--space-1)">
+                        Exam and interview slots and the Dean's view follow the college.
+                    </p>
+                </div>
+                <div>
                     <label class="form-label">Accepted SHS Strands</label>
                     <p style="font-size:var(--text-xs);color:var(--text-tertiary);margin-bottom:var(--space-2)">
                         Check all strands whose graduates may apply for this course.
@@ -654,6 +742,15 @@ $customByName = array_column($customCourses, null, 'course_name');
                     <input type="text" name="course_name" id="edit-course-name" class="form-control" required>
                 </div>
                 <div>
+                    <label class="form-label">College <span style="color:var(--error)">*</span></label>
+                    <select name="department_id" id="edit-course-college" class="form-control" required>
+                        <option value="">Select a college</option>
+                        <?php foreach ($colleges as $col): ?>
+                            <option value="<?= (int)$col['id'] ?>"><?= e($col['name']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div>
                     <label class="form-label">Accepted SHS Strands</label>
                     <div class="row row-cols-1 row-cols-md-2" style="--bs-gutter-x:var(--space-2);--bs-gutter-y:var(--space-2)" id="edit-strand-grid">
                     <?php foreach (SHS_STRANDS as $sKey => $sLabel): ?>
@@ -691,9 +788,10 @@ $customByName = array_column($customCourses, null, 'course_name');
 </div>
 
 <script>
-function openEditModal(id, name, strands, isActive) {
+function openEditModal(id, name, strands, isActive, deptId) {
     document.getElementById('edit-course-id').value   = id;
     document.getElementById('edit-course-name').value = name;
+    document.getElementById('edit-course-college').value = deptId ? String(deptId) : '';
     document.getElementById('edit-is-active').checked = !!isActive;
     document.querySelectorAll('.edit-strand-cb').forEach(cb => {
         cb.checked = Array.isArray(strands) && strands.includes(cb.value);
