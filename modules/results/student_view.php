@@ -222,6 +222,28 @@ ob_start();
             <?php endif; ?>
         </div>
 
+        <!-- Confirm enrollment. Confirming also sends the applicant to the enrollment system. -->
+        <div style="text-align:center;margin-bottom:var(--space-5)">
+            <?php if (($result['enrollment_intent'] ?? '') !== 'confirmed'): ?>
+                <form method="POST" action="<?= url('/student/result') ?>" style="margin:0">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="action" value="confirm_enrollment">
+                    <button type="submit" class="btn btn-primary"
+                            data-confirm="Confirm that you will enroll at PLP? Your details will be sent to the Registrar." data-confirm-ok="Confirm">
+                        Confirm enrollment
+                    </button>
+                </form>
+            <?php else: ?>
+                <p style="font-size:var(--text-sm);color:var(--success);font-weight:var(--weight-medium);margin:0 0 var(--space-3)">
+                    Enrollment confirmed. Your details were sent to the Registrar.
+                </p>
+                <?php $enrollmentSiteUrl = trim((string) getenv('ENROLLMENT_SITE_URL')); ?>
+                <?php if ($enrollmentSiteUrl !== ''): ?>
+                    <a href="<?= e($enrollmentSiteUrl) ?>" class="btn btn-primary" target="_blank" rel="noopener noreferrer">Go to Enrollment</a>
+                <?php endif; ?>
+            <?php endif; ?>
+        </div>
+
         <p style="font-size:var(--text-xs);color:var(--text-tertiary);text-align:center;margin:0">
             Photocopies and screenshots aren't accepted. Can't make it? Email
             <a href="mailto:sso@plp.edu.ph" style="color:var(--text-secondary);text-decoration:underline">sso@plp.edu.ph</a>
