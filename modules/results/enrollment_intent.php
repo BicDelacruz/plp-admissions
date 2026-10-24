@@ -5,8 +5,6 @@
 //
 // action=withdraw  → marks applicant as withdrawn (any stage before
 //                    enrollment is confirmed).
-// action=confirm_enrollment → confirms, then sends the applicant to the
-//                    enrollment system (core/enrollment_handoff.php).
 // ============================================================
 
 require_once CORE_PATH . '/bootstrap.php';
@@ -39,9 +37,6 @@ if ($action === 'confirm_enrollment') {
             ->execute([$row['result_id']]);
         audit_log('enrollment_confirmed', "Applicant {$row['id']} confirmed enrollment", 'applicant', $row['id']);
         notify_stage_transition($row['id'], 'enrollment_confirmed');
-        // Pass the applicant to the enrollment system. A failed send stays pending
-        // for staff to retry and never blocks the confirmation.
-        enrollment_handoff_send($db, (int) $row['id']);
         Session::flash('success', 'Your enrollment has been confirmed! Welcome to PLP!');
     }
     redirect('/student/result');

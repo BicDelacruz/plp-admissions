@@ -224,8 +224,6 @@ $result = paginate(
     "SELECT a.*, u.name AS student_name, u.email,
             u.first_name, u.middle_name, u.last_name, u.suffix,
             ar.result AS admission_result, ar.remarks AS admission_remarks, ar.released_at,
-            ar.enrollment_intent,
-            eo.status AS handoff_status, eo.last_error AS handoff_error,
             er.score  AS exam_score, er.total_items AS exam_total,
             er.rank_score AS exam_rank, er.passed AS exam_passed, er.submit_note AS exam_note,
             iq.status AS interview_status, iq.interview_notes,
@@ -236,7 +234,6 @@ $result = paginate(
      LEFT JOIN admission_results ar ON ar.applicant_id = a.id
      LEFT JOIN exam_results       er ON er.applicant_id = a.id
      LEFT JOIN interview_queue    iq ON iq.applicant_id = a.id
-     LEFT JOIN enrollment_handoff_outbox eo ON eo.applicant_id = a.id
      WHERE $whereStr
      ORDER BY $orderCol $orderDir",
     $params, $page, $perPage
@@ -581,21 +578,6 @@ $sortParams = ['q' => $search, 'result' => $filterRes, 'per_page' => $perPage, '
                                   // so no extra label is needed here. ?>
 
                         <?php elseif ($bucket === 'released'): ?>
-                            <?php if ($row['admission_result'] === 'accepted' && $row['enrollment_intent'] === 'confirmed'): ?>
-                                <?php if ($row['handoff_status'] === 'sent'): ?>
-                                    <span class="badge badge-approved" title="This applicant is in the Enrollment registrar inbox">Sent to Enrollment</span>
-                                <?php else: ?>
-                                    <form method="POST" action="<?= url('/staff/results/send-enrollment/' . $row['id']) ?>" style="margin:0">
-                                        <?= csrf_field() ?>
-                                        <button type="submit" class="btn btn-sm"
-                                                style="font-size:var(--text-xs);display:inline-flex;align-items:center;gap:4px"
-                                                <?= !empty($row['handoff_error']) ? 'title="' . e($row['handoff_error']) . '"' : '' ?>
-                                                data-confirm="Send <?= e($fullName) ?> to Enrollment?" data-confirm-ok="Send">
-                                            Send to Enrollment
-                                        </button>
-                                    </form>
-                                <?php endif; ?>
-                            <?php endif; ?>
                             <?php if ($canOverride): ?>
                                 <button type="button" class="btn btn-ghost btn-sm"
                                         style="font-size:var(--text-xs);display:inline-flex;align-items:center;gap:4px"
