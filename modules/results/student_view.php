@@ -44,15 +44,11 @@ $stmt->execute([$applicantId]);
 $_interviewSlot = $stmt->fetch() ?: null;
 
 // ----------------------------------------------------------------
-// Admitted-applicant context: pull the enrollment schedule SSO set
-// in /admin/school-year, and the actual approved documents the
+// Admitted-applicant context: the actual approved documents the
 // applicant uploaded so the "bring originals of" list matches what
-// they submitted (no hardcoded labels).
+// they submitted (no hardcoded labels). The visit date is not set here:
+// the Registrar assigns it in the Enrollment system.
 // ----------------------------------------------------------------
-$enrollmentDate  = school_setting('enrollment_date',  '');
-$enrollmentTime  = school_setting('enrollment_time',  '');
-$enrollmentVenue = school_setting('enrollment_venue', '');
-
 $myDocs = [];
 try {
     $stmt = $db->prepare(
@@ -152,8 +148,10 @@ ob_start();
   Replaces the old generic "Accepted" pill. The applicant has been
   ADMITTED, not yet officially enrolled. They finalize enrollment by
   bringing originals of every document they uploaded so SSO can
-  verify them against the scans. The schedule below is set by SSO
-  on /admin/school-year (enrollment_date / time / venue).
+  verify them against the scans. There is no date on this page: after
+  the student confirms, the Registrar assigns a visit in the Enrollment
+  system and the student sees it there. Once confirmed, this page shows
+  the Endorsement Slip (no date) that sends the student to Enrollment.
 -->
     <div class="card" style="padding:var(--space-6)">
         <div style="text-align:center;margin-bottom:var(--space-6)">
@@ -171,33 +169,8 @@ ob_start();
         </div>
 
         <p style="font-size:var(--text-sm);color:var(--text-secondary);text-align:center;margin-bottom:var(--space-6);max-width:520px;margin-left:auto;margin-right:auto">
-            One step left - bring the <strong>original copies</strong> of your documents on the date below so we can verify them. After that, you're officially enrolled.
+            One step left - confirm your enrollment to receive your visit date from the Registrar, then bring the <strong>original copies</strong> of your documents so we can verify them. After that, you're officially enrolled.
         </p>
-
-        <!-- Enrollment schedule -->
-        <div style="background:var(--bg-subtle);border-radius:var(--radius);padding:var(--space-5);margin-bottom:var(--space-5)">
-            <div style="font-size:var(--text-xs);text-transform:uppercase;letter-spacing:.06em;color:var(--text-tertiary);font-weight:var(--weight-semibold);margin-bottom:var(--space-3)">Enrollment Schedule</div>
-            <?php if ($enrollmentDate && $enrollmentTime && $enrollmentVenue): ?>
-                <div class="row row-cols-1 row-cols-md-2" style="--bs-gutter-x:var(--space-4);--bs-gutter-y:var(--space-4);margin-bottom:var(--space-3)">
-                    <div>
-                        <div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-bottom:var(--space-1)">Date</div>
-                        <div style="font-weight:var(--weight-medium);font-size:var(--text-sm)"><?= e(format_date($enrollmentDate, 'l, F j, Y')) ?></div>
-                    </div>
-                    <div>
-                        <div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-bottom:var(--space-1)">Time</div>
-                        <div style="font-weight:var(--weight-medium);font-size:var(--text-sm)"><?= e(date('g:i A', strtotime($enrollmentTime))) ?></div>
-                    </div>
-                </div>
-                <div>
-                    <div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-bottom:var(--space-1)">Venue</div>
-                    <div style="font-weight:var(--weight-medium);font-size:var(--text-sm)"><?= e($enrollmentVenue) ?></div>
-                </div>
-            <?php else: ?>
-                <p style="font-size:var(--text-sm);color:var(--text-tertiary);margin:0">
-                    The admissions office hasn't posted the enrollment schedule yet - check back soon, or watch your email for the announcement.
-                </p>
-            <?php endif; ?>
-        </div>
 
         <!-- Documents to bring -->
         <div style="background:var(--bg-subtle);border-radius:var(--radius);padding:var(--space-5);margin-bottom:var(--space-5)">
@@ -257,10 +230,42 @@ ob_start();
             <?php endif; ?>
         </div>
 
+        <?php if ($isConfirmed):
+            // Endorsement Slip: proof that Admissions cleared the student. It carries
+            // no date. The Enrollment system already has this record, so the Registrar
+            // does not need the paper slip; this is the student's copy.
+            $endorsementRef = enrollment_applicant_reference((string) $applicant['school_year'], (int) $applicantId);
+        ?>
+        <div style="background:var(--bg-subtle);border-radius:var(--radius);padding:var(--space-5);margin-bottom:var(--space-5)">
+            <div style="font-size:var(--text-xs);text-transform:uppercase;letter-spacing:.06em;color:var(--text-tertiary);font-weight:var(--weight-semibold);margin-bottom:var(--space-3)">Endorsement Slip</div>
+            <div class="row row-cols-1 row-cols-md-2" style="--bs-gutter-x:var(--space-4);--bs-gutter-y:var(--space-4);margin-bottom:var(--space-3)">
+                <div>
+                    <div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-bottom:var(--space-1)">Name</div>
+                    <div style="font-weight:var(--weight-medium);font-size:var(--text-sm)"><?= e(Auth::user()['name']) ?></div>
+                </div>
+                <div>
+                    <div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-bottom:var(--space-1)">Application number</div>
+                    <div style="font-weight:var(--weight-medium);font-size:var(--text-sm)"><?= e($endorsementRef ?? '-') ?></div>
+                </div>
+                <div>
+                    <div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-bottom:var(--space-1)">Course</div>
+                    <div style="font-weight:var(--weight-medium);font-size:var(--text-sm)"><?= e($applicant['course_applied']) ?></div>
+                </div>
+                <div>
+                    <div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-bottom:var(--space-1)">School Year</div>
+                    <div style="font-weight:var(--weight-medium);font-size:var(--text-sm)"><?= e($applicant['school_year']) ?></div>
+                </div>
+            </div>
+            <p style="font-size:var(--text-sm);color:var(--text-secondary);margin:0">
+                Admitted by the Admissions office. Proceed to the Enrollment portal for your visit date.
+            </p>
+        </div>
+        <?php endif; ?>
+
         <p style="font-size:var(--text-xs);color:var(--text-tertiary);text-align:center;margin:0">
             Photocopies and screenshots aren't accepted. Can't make it? Email
             <a href="mailto:sso@plp.edu.ph" style="color:var(--text-secondary);text-decoration:underline">sso@plp.edu.ph</a>
-            before the date.
+            before your visit date.
         </p>
     </div>
 

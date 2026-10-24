@@ -47,26 +47,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    if ($action === 'set_enrollment_schedule') {
-        $eDate  = trim($_POST['enrollment_date']  ?? '');
-        $eTime  = trim($_POST['enrollment_time']  ?? '');
-        $eVenue = trim($_POST['enrollment_venue'] ?? '');
-
-        if (!$eDate || !$eTime || !$eVenue) {
-            $errors[] = 'Enrollment date, time, and venue are all required.';
-        } else {
-            $upsert = 'INSERT INTO school_settings (setting_key, setting_value) VALUES (?,?)
-                       ON CONFLICT (setting_key) DO UPDATE SET setting_value=EXCLUDED.setting_value';
-            $db->prepare($upsert)->execute(['enrollment_date',  $eDate]);
-            $db->prepare($upsert)->execute(['enrollment_time',  $eTime]);
-            $db->prepare($upsert)->execute(['enrollment_venue', $eVenue]);
-
-            audit_log('enrollment_schedule_set',
-                "Enrollment schedule set: {$eDate} {$eTime} @ {$eVenue}");
-            $success[] = 'Enrollment schedule saved. Admitted students will see this on their result page.';
-        }
-    }
-
     if ($action === 'new_cycle') {
         $confirm = trim($_POST['confirm_text'] ?? '');
         if (strcasecmp($confirm, 'Start new cycle') !== 0) {
@@ -292,10 +272,7 @@ $admissionsOpen    = school_setting('admissions_open',  '');
 $admissionsClose   = school_setting('admissions_close', '');
 $docDeadline       = school_setting('document_deadline', '');
 $currentYear       = school_setting('current_school_year', '-');
-$enrollmentDate    = school_setting('enrollment_date',  '');
-$enrollmentTime    = school_setting('enrollment_time',  '');
-$enrollmentVenue   = school_setting('enrollment_venue', '');
-$isOpen            = admissions_is_open();
+$isOpen           = admissions_is_open();
 
 // Stats by school year
 $stmt = $db->query(
@@ -406,49 +383,6 @@ ob_start();
         })();
         </script>
     </div>
-
-    <!-- Enrollment schedule -->
-    <div class="sy-sec">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-5)">
-            <div class="card-title" style="margin:0">Enrollment Schedule</div>
-            <?php if ($enrollmentDate && $enrollmentTime && $enrollmentVenue): ?>
-                <span class="badge badge-approved">Set</span>
-            <?php else: ?>
-                <span class="badge">Not set</span>
-            <?php endif; ?>
-        </div>
-
-        <p style="font-size:var(--text-sm);color:var(--text-secondary);margin-top:0;margin-bottom:var(--space-4)">
-            Shown to admitted applicants on their result page. They
-            bring the original copies of their uploaded documents on
-            this date for verification before official enrollment.
-        </p>
-
-        <form method="POST">
-            <?= csrf_field() ?>
-            <input type="hidden" name="action" value="set_enrollment_schedule">
-            <div class="sy-date-grid" style="margin-bottom:var(--space-3)">
-                <div>
-                    <label class="form-label" for="enr-date">Date</label>
-                    <input type="date" id="enr-date" name="enrollment_date" class="form-input"
-                           value="<?= e($enrollmentDate) ?>" required>
-                </div>
-                <div>
-                    <label class="form-label" for="enr-time">Time</label>
-                    <input type="time" id="enr-time" name="enrollment_time" class="form-input"
-                           value="<?= e($enrollmentTime) ?>" required>
-                </div>
-            </div>
-            <div style="margin-bottom:var(--space-3)">
-                <label class="form-label" for="enr-venue">Venue</label>
-                <input type="text" id="enr-venue" name="enrollment_venue" class="form-input"
-                       value="<?= e($enrollmentVenue) ?>"
-                       placeholder="e.g. PLP Main Building, Registrar's Office" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Save Schedule</button>
-        </form>
-    </div>
-
 
     <!-- ── Import Historical Records ──────────────────────────────── -->
     <div class="sy-sec">
