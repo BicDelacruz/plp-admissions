@@ -222,6 +222,41 @@ ob_start();
             <?php endif; ?>
         </div>
 
+        <!-- Confirm enrollment. Confirming also sends the applicant to Enrollment. -->
+        <?php
+            $isConfirmed = ($result['enrollment_intent'] ?? '') === 'confirmed';
+            $handoff     = $isConfirmed ? enrollment_handoff_state($db, (int) $applicantId) : null;
+            $handoffSent = $handoff && $handoff['status'] === 'sent';
+            $enrollmentSiteUrl = trim((string) getenv('ENROLLMENT_SITE_URL'));
+        ?>
+        <div style="text-align:center;margin-bottom:var(--space-5)">
+            <?php if (!$isConfirmed): ?>
+                <form method="POST" action="<?= url('/student/result') ?>" style="margin:0">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="action" value="confirm_enrollment">
+                    <button type="submit" class="btn btn-primary"
+                            data-confirm="Confirm that you will enroll at PLP? Your details will be sent to the Registrar." data-confirm-ok="Confirm">
+                        Confirm enrollment
+                    </button>
+                </form>
+            <?php elseif ($handoffSent): ?>
+                <p style="font-size:var(--text-sm);color:var(--success);font-weight:var(--weight-medium);margin:0 0 var(--space-3)">
+                    Enrollment confirmed. Check your email for a link to set your Enrollment password.
+                </p>
+                <?php if ($enrollmentSiteUrl !== ''): ?>
+                    <a href="<?= e($enrollmentSiteUrl) ?>" class="btn btn-primary" target="_blank" rel="noopener noreferrer">Go to Enrollment</a>
+                <?php endif; ?>
+            <?php elseif ($handoff && $handoff['status'] === 'rejected'): ?>
+                <p style="font-size:var(--text-sm);color:var(--text-secondary);margin:0">
+                    Enrollment confirmed. The Registrar will contact you about your next step.
+                </p>
+            <?php else: ?>
+                <p style="font-size:var(--text-sm);color:var(--text-secondary);margin:0">
+                    Enrollment confirmed. We are sending your details to the Registrar. You will get an email when it is done.
+                </p>
+            <?php endif; ?>
+        </div>
+
         <p style="font-size:var(--text-xs);color:var(--text-tertiary);text-align:center;margin:0">
             Photocopies and screenshots aren't accepted. Can't make it? Email
             <a href="mailto:sso@plp.edu.ph" style="color:var(--text-secondary);text-decoration:underline">sso@plp.edu.ph</a>

@@ -64,6 +64,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = 'Course name is required.';
         } elseif (in_array($name, PLP_COURSES, true)) {
             $errors[] = "'{$name}' is already a built-in PLP course and cannot be re-added.";
+        } elseif (!preg_match('/\([^()\s][^()]*\)\s*$/', $name)) {
+            $errors[] = 'Write the course code in brackets at the end of the name, for example "BS Data Science (BSDS)". '
+                      . 'Enrollment uses the same code, so add the program there first.';
         } elseif (!in_array($deptId, $collegeIds, true)) {
             $errors[] = 'Choose the college this course belongs to.';
         } else {
@@ -672,7 +675,7 @@ $customByName = array_column($customCourses, null, 'course_name');
                     <input type="text" name="course_name" class="form-control"
                            placeholder="e.g. BS Data Science (BSDS)" required>
                     <p style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:var(--space-1)">
-                        Use the full official name including abbreviation.
+                        Use the full official name with the course code in brackets at the end. The same code must exist in Enrollment.
                     </p>
                 </div>
                 <div>

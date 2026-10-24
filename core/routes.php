@@ -79,6 +79,7 @@ $router->post('/staff/results/auto-waitlist',    'results/staff_auto_waitlist');
 $router->post('/staff/results/auto-release',    'results/staff_auto_release');
 $router->post('/staff/results/{id}',             'results/staff_action');
 $router->post('/staff/results/suggest/{id}',     'results/staff_suggest');
+$router->post('/staff/results/send-enrollment/{id}', 'results/staff_send_enrollment');
 $router->get( '/staff/exam',                'exam/staff_manage');
 $router->post('/staff/exam',                'exam/staff_manage');
 $router->get( '/staff/exam/slots',          'exam/staff_slots');
