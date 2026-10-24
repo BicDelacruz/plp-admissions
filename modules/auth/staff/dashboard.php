@@ -27,23 +27,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'approve_all_pending_docs') {
         $db = db();
-        $stmt = $db->prepare(
-            "UPDATE documents SET status='approved', reviewed_by=?
-             WHERE status IN ('uploaded','under_review')"
-        );
-        $stmt->execute([$staffId]);
-        $count = $stmt->rowCount();
-        // Advance applicants whose docs are all approved
-        $db->query(
-            "UPDATE applicants a SET overall_status = 'exam', documents_approved_at = NOW()
-             WHERE a.overall_status IN ('submitted','documents','pending')
-               AND NOT EXISTS (
-                   SELECT 1 FROM documents d WHERE d.applicant_id = a.id AND d.status NOT IN ('approved','pending')
-               )
-               AND EXISTS (
-                   SELECT 1 FROM documents d WHERE d.applicant_id = a.id AND d.status = 'approved'
-               )"
-        );
+        // Same rules as the Approve Docs button on the applicants list, run
+        // per applicant: AI-flagged documents are skipped until staff confirm
+        // the category, and an applicant only advances to exam when every
+        // required document is approved (not just the ones uploaded so far).
+        $count    = 0;
+        $skipped  = 0;
+        $advanced = 0;
+        $aids = $db->query(
+            "SELECT DISTINCT applicant_id FROM documents
+              WHERE status IN ('uploaded','under_review')"
+        )->fetchAll(PDO::FETCH_COLUMN);
+        foreach ($aids as $aid) {
+            $aid = (int)$aid;
+            $res = doc_approve_unflagged($db, $aid, $staffId);
+            $count   += $res['approved'];
+            $skipped += $res['skipped'];
+            if (advance_to_exam_if_docs_approved($db, $aid)) {
+                $advanced++;
+                notify_stage_transition($aid, 'exam');
+            }
+        }
 
         // Backfill exam-slot assignments for everyone who just got
         // advanced (and anyone who'd been stuck at exam-with-no-slot
@@ -52,11 +56,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Assignment" page.
         $assigned = backfill_exam_slot_assignments();
 
-        audit_log('bulk_approve_docs', "Approved all pending documents ({$count} docs); assigned exam slot to {$assigned} applicant(s)");
+        audit_log('bulk_approve_docs', "Approved all pending documents ({$count} docs); {$advanced} advanced to exam, {$skipped} AI-flagged skipped; assigned exam slot to {$assigned} applicant(s)");
         Session::flash(
             'success',
-            "Approved {$count} pending document(s)."
+            "Approved {$count} pending document(s). {$advanced} applicant(s) advanced to exam."
             . ($assigned > 0 ? " Auto-assigned exam slots to {$assigned} applicant(s)." : '')
+            . ($skipped > 0 ? " {$skipped} AI-flagged document" . ($skipped != 1 ? 's were' : ' was') . ' skipped. Open the applicant to confirm the category.' : '')
         );
         redirect('/staff/dashboard');
     }
