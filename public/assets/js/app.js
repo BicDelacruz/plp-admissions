@@ -328,15 +328,131 @@ function initForms() {
 }
 
 // ============================================================
+// Dialogs: ui.alert / ui.confirm / ui.prompt (replace native popups)
+// Same markup and classes as #logout-modal in views/layouts/app.php.
+//   await ui.alert('Saved');
+//   if (await ui.confirm('Delete?', { danger: true, ok: 'Delete' })) ...
+//   const text = await ui.prompt('Reason?');   // string, or null if cancelled
+// Esc / backdrop / Cancel => false (confirm), null (prompt), resolves (alert).
+// ponytail: one dialog at a time (queued); the dialog sits last in <body>, so it
+// paints over any open modal (all share z-index 200). Esc is stopped here, so the
+// global Esc handler in app.php never sees it and the modal behind stays open.
+// ============================================================
+const ui = (() => {
+    let queue = Promise.resolve();
+
+    function show(kind, message, o) {
+        return new Promise((resolve) => {
+            const prev = document.activeElement;
+            const title = o.title || (kind === 'alert' ? 'Notice' : kind === 'prompt' ? 'Input' : 'Confirm');
+            const wrap = document.createElement('div');
+            wrap.className = 'modal-backdrop';
+            wrap.dataset.uiDialog = '';
+            wrap.setAttribute('role', 'dialog');
+            wrap.setAttribute('aria-modal', 'true');
+            wrap.setAttribute('aria-labelledby', 'ui-dialog-title');
+            wrap.innerHTML =
+                '<div class="modal" style="max-width:400px">' +
+                '<div class="modal-header"><div class="modal-title" id="ui-dialog-title"></div></div>' +
+                '<div class="modal-body"><p style="font-size:var(--text-sm);color:var(--text-secondary);white-space:pre-line;margin:0"></p></div>' +
+                '<div class="modal-footer"><button type="button" class="btn btn-ghost" data-ui-cancel></button>' +
+                '<button type="button" class="btn" data-ui-ok></button></div></div>';
+            const q = (s) => wrap.querySelector(s);
+            q('.modal-title').textContent = title;
+            q('p').textContent = message;
+            const okBtn = q('[data-ui-ok]'), cancelBtn = q('[data-ui-cancel]');
+            okBtn.textContent = o.ok || 'OK';
+            okBtn.classList.add(o.danger ? 'btn-danger' : 'btn-primary');
+            cancelBtn.textContent = o.cancel || 'Cancel';
+            if (kind === 'alert') cancelBtn.remove();
+            let input = null;
+            if (kind === 'prompt') {
+                input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'form-input';
+                input.style.marginTop = 'var(--space-3)';
+                input.value = o.value || '';
+                q('.modal-body').appendChild(input);
+            }
+
+            function done(ok) {
+                document.removeEventListener('keydown', onKey, true);
+                wrap.remove();
+                if (prev && prev.focus && document.contains(prev)) prev.focus();
+                resolve(kind === 'confirm' ? ok : kind === 'prompt' ? (ok ? input.value : null) : undefined);
+            }
+            function onKey(e) {
+                if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); done(false); return; }
+                if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') { e.preventDefault(); e.stopPropagation(); done(true); return; }
+                if (e.key === 'Tab') {   // keep focus inside the dialog
+                    const f = [...wrap.querySelectorAll('input,button')];
+                    const first = f[0], last = f[f.length - 1];
+                    if (!wrap.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+                    else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+                    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+                }
+            }
+            okBtn.addEventListener('click', () => done(true));
+            cancelBtn.addEventListener('click', () => done(false));
+            wrap.addEventListener('click', (e) => { if (e.target === wrap) done(false); });
+            document.addEventListener('keydown', onKey, true);
+            wrap.style.display = 'flex';
+            document.body.appendChild(wrap);
+            (input || okBtn).focus();
+            if (input) input.select();
+        });
+    }
+
+    // Queue: a second call waits for the first.
+    const run = (kind, message, o) => {
+        const p = queue.then(() => show(kind, String(message == null ? '' : message), o || {}));
+        queue = p.catch(() => {});
+        return p;
+    };
+    return {
+        alert:   (m, o) => run('alert', m, o),
+        confirm: (m, o) => run('confirm', m, o),
+        prompt:  (m, o) => run('prompt', m, o),
+    };
+})();
+window.ui = ui;
+
+// ============================================================
 // Confirm dialogs (data-confirm attribute)
+//   <button data-confirm="Delete this?" data-confirm-danger data-confirm-ok="Delete">
+//   <form data-confirm="Submit?">
+// Capture phase: stops the click or submit, asks, then replays it so every
+// handler (inline onclick, submit listeners, form validation) runs once, after OK.
 // ============================================================
 function initConfirm() {
-    document.addEventListener('click', (e) => {
-        const btn = e.target.closest('[data-confirm]');
-        if (!btn) return;
-        const message = btn.dataset.confirm || 'Are you sure?';
-        if (!confirm(message)) e.preventDefault();
+    let replaying = null, busy = false;
+    const ask = (el) => ui.confirm(el.dataset.confirm || 'Are you sure?', {
+        danger: 'confirmDanger' in el.dataset,
+        ok: el.dataset.confirmOk,
+        title: el.dataset.confirmTitle,
     });
+    document.addEventListener('click', async (e) => {
+        const el = e.target.closest('[data-confirm]');
+        if (!el || el.tagName === 'FORM' || el === replaying) return;
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        if (busy) return;   // ignore double clicks while the dialog is open
+        busy = true;
+        const ok = await ask(el);
+        busy = false;
+        if (ok) { replaying = el; el.click(); replaying = null; }
+    }, true);
+    document.addEventListener('submit', async (e) => {
+        const f = e.target;
+        if (!f.matches || !f.matches('[data-confirm]') || f === replaying) return;
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        if (busy) return;
+        busy = true;
+        const ok = await ask(f);
+        busy = false;
+        if (ok) { replaying = f; f.requestSubmit(e.submitter); replaying = null; }
+    }, true);
 }
 
 // ============================================================
@@ -1150,14 +1266,21 @@ function createCardBulkSelector(cfg) {
         updateCount();
     }
 
-    function confirmBulkDelete() {
+    // Called as onclick="return ...confirmBulkDelete(this)". The dialog is async, so the
+    // first call returns false, asks, then clicks the button again with a flag set.
+    function confirmBulkDelete(btn) {
+        if (btn && btn.dataset.bulkOk) { delete btn.dataset.bulkOk; return true; }
         var g = grid(); if (!g) return false;
         var ids = Array.from(g.querySelectorAll(cfg.checkboxSel + ':checked'))
             .map(function (cb) { return cb.value; });
         if (ids.length === 0) return false;
-        if (!confirm(cfg.confirmMsg(ids.length))) return false;
-        document.getElementById(cfg.idsInputId).value = ids.join(',');
-        return true;
+        ui.confirm(cfg.confirmMsg(ids.length), { danger: true, ok: 'Remove' }).then(function (ok) {
+            if (!ok) return;
+            document.getElementById(cfg.idsInputId).value = ids.join(',');
+            btn.dataset.bulkOk = '1';
+            btn.click();
+        });
+        return false;
     }
 
     return {

@@ -1066,7 +1066,7 @@ ob_start();
                     onclick="cancelEsSelectMode()">Cancel</button>
             <button type="submit" class="btn btn-sm" id="es-bulk-delete-btn"
                     style="background:var(--error);color:var(--white);border-color:var(--error)"
-                    onclick="return confirmEsBulkDelete()">
+                    onclick="return confirmEsBulkDelete(this)">
                 Delete Selected
             </button>
         </form>
@@ -1307,7 +1307,7 @@ ob_start();
                         <?php if ($canManage && !$isPast): ?>
                             <td>
                                 <form method="POST" style="margin:0"
-                                      onsubmit="return confirm('Remove this applicant from the slot?')">
+                                      data-confirm="Remove this applicant from the slot?" data-confirm-danger data-confirm-ok="Remove">
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="action"       value="unassign">
                                     <input type="hidden" name="ctx_slot"     value="<?= $sid ?>">
@@ -1563,7 +1563,7 @@ ob_start();
                     <button type="submit" form="delete-slot-form" class="btn btn-ghost"
                             id="edit-slot-delete-btn"
                             style="color:var(--error)"
-                            onclick="return confirm('Delete this slot? Only allowed if it has no applicants.')">
+                            data-confirm="Delete this slot? Only allowed if it has no applicants." data-confirm-danger data-confirm-ok="Delete">
                         Delete
                     </button>
                     <div style="display:flex;gap:var(--space-2)">
@@ -1694,7 +1694,7 @@ function toggleEsSelectMode()   { _esSelector().toggleSelectMode(); }
 function cancelEsSelectMode()   { _esSelector().cancelSelectMode(); }
 function onEsCheckboxChange(cb) { _esSelector().onCheckboxChange(cb); }
 function updateEsBulkCount()    { _esSelector().updateCount(); }
-function confirmEsBulkDelete()  { return _esSelector().confirmBulkDelete(); }
+function confirmEsBulkDelete(b) { return _esSelector().confirmBulkDelete(b); }
 function onEsCardClick(event, link) {
     var grid = _esGrid();
     if (grid && grid.classList.contains('is-selecting')) {
@@ -1894,7 +1894,7 @@ async function _postSlotCodeAction(action) {
     if (!panel) return;
     var slotId = panel.getAttribute('data-slot-id');
     var csrf   = _csrfPair();
-    if (!csrf) return alert('Missing CSRF token. Please reload the page.');
+    if (!csrf) return ui.alert('Missing CSRF token. Please reload the page.');
 
     var fd = new FormData();
     fd.append('action', action);
@@ -1907,7 +1907,7 @@ async function _postSlotCodeAction(action) {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         });
         var d = await resp.json();
-        if (!d.ok) { alert(d.error || 'Could not update code.'); return; }
+        if (!d.ok) { ui.alert(d.error || 'Could not update code.'); return; }
 
         var displayEl = document.getElementById('slot-code-display');
         if (displayEl) {
@@ -1916,14 +1916,14 @@ async function _postSlotCodeAction(action) {
         }
         startSlotCodeCountdown(d.expires_in);
     } catch (e) {
-        alert('Network error. Try again.');
+        ui.alert('Network error. Try again.');
     }
 }
 
-function generateSlotCode() {
+async function generateSlotCode() {
     if (document.getElementById('slot-code-display') &&
         !document.getElementById('slot-code-display').classList.contains('is-empty')) {
-        if (!confirm('Issue a new code? The current code will be replaced immediately and applicants who have not yet entered the old code will be locked out.')) return;
+        if (!await ui.confirm('Issue a new code? The current code will be replaced immediately and applicants who have not yet entered the old code will be locked out.', { ok: 'Issue code' })) return;
     }
     _postSlotCodeAction('generate_slot_code');
 }
@@ -1950,10 +1950,10 @@ async function saveRoomLabel(slotId) {
     var inp = document.getElementById('room-label-input');
     if (!inp) return;
     var newLabel = inp.value.trim();
-    if (!newLabel) { alert('Room label cannot be empty.'); return; }
+    if (!newLabel) { ui.alert('Room label cannot be empty.'); return; }
 
     var csrf = _csrfPair();
-    if (!csrf) return alert('Missing CSRF token. Please reload the page.');
+    if (!csrf) return ui.alert('Missing CSRF token. Please reload the page.');
 
     var fd = new FormData();
     fd.append('action', 'update_room_label');
@@ -1967,12 +1967,12 @@ async function saveRoomLabel(slotId) {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         });
         var d = await resp.json();
-        if (!d.ok) { alert(d.error || 'Could not rename room.'); return; }
+        if (!d.ok) { ui.alert(d.error || 'Could not rename room.'); return; }
         var t = document.getElementById('room-label-text');
         if (t) t.textContent = d.room_label;
         cancelRoomLabelEdit();
     } catch (e) {
-        alert('Network error. Try again.');
+        ui.alert('Network error. Try again.');
     }
 }
 

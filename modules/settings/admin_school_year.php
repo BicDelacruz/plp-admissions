@@ -1394,7 +1394,7 @@ async function saveLegacyRows() {
     const checkedIndices = Array.from(document.querySelectorAll('.legacy-row-check:checked'))
                                 .map(cb => parseInt(cb.dataset.idx));
     if (checkedIndices.length === 0) {
-        alert('No rows selected. Check at least one record to save.');
+        await ui.alert('No rows selected. Check at least one record to save.');
         return;
     }
 
@@ -1418,29 +1418,21 @@ async function saveLegacyRows() {
 
         if (!json.ok) throw new Error(json.error || 'Server returned an error.');
 
-        const skippedHtml = json.skipped?.length
-            ? '<br><small style="color:var(--text-tertiary)">' +
-              json.skipped.length + ' row(s) skipped: ' +
-              json.skipped.map(s => escHtml(s)).join('; ') + '</small>'
+        const skippedTxt = json.skipped?.length
+            ? '\n\n' + json.skipped.length + ' row(s) skipped: ' + json.skipped.join('; ')
             : '';
 
         closeLegacyImportModal();
 
-        // Show success alert on the page
-        const alertDiv = document.createElement('div');
-        alertDiv.className = 'alert alert-success';
-        alertDiv.style.marginBottom = 'var(--space-3)';
-        alertDiv.innerHTML =
-            `<strong>${json.inserted} record(s) imported</strong> into AY ${escHtml(syVal)}.` +
-            ` They now appear in Results under ${escHtml(syVal)}.` +
-            skippedHtml;
-        document.querySelector('.admin-form-stack').prepend(alertDiv);
-
-        // Reload after 1.5s so the Applicant History card refreshes
-        setTimeout(() => window.location.reload(), 1500);
+        await ui.alert(
+            json.inserted + ' record(s) imported into AY ' + syVal + '. ' +
+            'They now appear in Results under ' + syVal + '.' + skippedTxt,
+            { title: 'Import complete' }
+        );
+        window.location.reload();
 
     } catch (err) {
-        alert('Save failed: ' + (err?.message || err));
+        await ui.alert('Save failed: ' + (err?.message || err), { title: 'Save failed' });
         saveBtn.disabled = false;
         saveBtn.textContent = 'Save Selected Records';
     }

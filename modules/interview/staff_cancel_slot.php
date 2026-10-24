@@ -400,7 +400,7 @@ ob_start();
                     </td>
                     <td>
                         <form id="<?= $formId ?>" method="POST" style="margin:0"
-                              onsubmit="return confirm('Cancel this slot and move all <?= (int)$s['booked'] ?> applicant(s)?')">
+                              data-confirm="Cancel this slot and move all <?= (int)$s['booked'] ?> applicant(s)?" data-confirm-danger data-confirm-ok="Cancel slot">
                             <?= csrf_field() ?>
                             <input type="hidden" name="action" value="cancel_slot">
                             <input type="hidden" name="source_slot_id" value="<?= (int)$s['id'] ?>">

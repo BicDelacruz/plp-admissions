@@ -280,7 +280,7 @@ ob_start();
         <form method="POST" action="<?= url('/staff/results/auto-release') ?>" style="margin:0">
             <?= csrf_field() ?>
             <button type="submit" class="btn btn-sm"
-                    onclick="return confirm('Auto-release results for all eligible applicants?')">
+                    data-confirm="Auto-release results for all eligible applicants?" data-confirm-ok="Release">
                 <?= icon('ic_fluent_ribbon_star_24_regular', 14) ?>
                 Auto-Release Results
             </button>
@@ -294,7 +294,7 @@ ob_start();
             <?= csrf_field() ?>
             <input type="hidden" name="action" value="approve_all_pending_docs">
             <button type="submit" class="btn btn-sm"
-                    onclick="return confirm('Approve all pending documents?')">
+                    data-confirm="Approve all pending documents?" data-confirm-ok="Approve">
                 <?= icon('ic_fluent_document_checkmark_24_regular', 14) ?>
                 Approve All Pending Docs
             </button>
@@ -303,7 +303,7 @@ ob_start();
             <?= csrf_field() ?>
             <input type="hidden" name="action" value="reschedule_absent">
             <button type="submit" class="btn btn-sm"
-                    onclick="return confirm('Reschedule all no-show students?')">
+                    data-confirm="Reschedule all no-show students?" data-confirm-ok="Reschedule">
                 <?= icon('ic_fluent_calendar_sync_24_regular', 14) ?>
                 Reschedule Absent Students
             </button>
@@ -316,7 +316,7 @@ ob_start();
             <?= csrf_field() ?>
             <input type="hidden" name="action" value="send_doc_reminders">
             <button type="submit" class="btn btn-sm"
-                    onclick="return confirm('Send reminders to students with incomplete documents?')">
+                    data-confirm="Send reminders to students with incomplete documents?" data-confirm-ok="Send">
                 <?= icon('ic_fluent_mail_24_regular', 14) ?>
                 Send Doc Reminders
             </button>
@@ -325,7 +325,7 @@ ob_start();
             <?= csrf_field() ?>
             <input type="hidden" name="action" value="close_expired_sessions">
             <button type="submit" class="btn btn-sm"
-                    onclick="return confirm('Close expired sessions and mark no-shows?')">
+                    data-confirm="Close expired sessions and mark no-shows?" data-confirm-ok="Close sessions">
                 <?= icon('ic_fluent_calendar_cancel_24_regular', 14) ?>
                 Close Expired Sessions
             </button>

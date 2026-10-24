@@ -605,7 +605,7 @@ $sortParams = ['q' => $search, 'result' => $filterRes, 'per_page' => $perPage, '
                                     <input type="hidden" name="decision" value="accepted">
                                     <button type="submit" class="btn btn-sm"
                                             style="background:var(--success);color:var(--white);border-color:var(--success);font-size:var(--text-xs);display:inline-flex;align-items:center;gap:4px"
-                                            onclick="return confirm(<?= htmlspecialchars(json_encode($confirmAccept), ENT_QUOTES) ?>)">
+                                            data-confirm="<?= e($confirmAccept) ?>" data-confirm-ok="Accept">
                                         <?= icon('ic_fluent_checkmark_circle_24_regular', 13) ?>
                                         Accept
                                     </button>
@@ -630,7 +630,7 @@ $sortParams = ['q' => $search, 'result' => $filterRes, 'per_page' => $perPage, '
                                     <input type="hidden" name="decision" value="rejected">
                                     <button type="submit" class="btn btn-sm"
                                             style="background:var(--error);color:var(--white);border-color:var(--error);font-size:var(--text-xs);display:inline-flex;align-items:center;gap:4px"
-                                            onclick="return confirm(<?= htmlspecialchars(json_encode($confirmReject), ENT_QUOTES) ?>)">
+                                            data-confirm="<?= e($confirmReject) ?>" data-confirm-danger data-confirm-ok="Decline">
                                         <?= icon('ic_fluent_dismiss_circle_24_regular', 13) ?>
                                         Decline
                                     </button>
@@ -814,7 +814,7 @@ $sortParams = ['q' => $search, 'result' => $filterRes, 'per_page' => $perPage, '
             <div class="modal-footer">
                 <button type="button" class="btn btn-ghost" onclick="document.getElementById('close-admissions-modal').style.display='none'">Cancel</button>
                 <button type="submit" class="btn" style="background:var(--error);color:var(--white);border-color:var(--error)"
-                        onclick="return confirm('Close admissions? All unreleased applicants will be rejected. Irreversible.')">
+                        data-confirm="Close admissions? All unreleased applicants will be rejected. Irreversible." data-confirm-danger data-confirm-ok="Close admissions">
                     Close Admissions
                 </button>
             </div>
@@ -1077,7 +1077,7 @@ function resClearSelection() {
     resUpdateSelection();
 }
 
-function resBulkRelease(decision) {
+async function resBulkRelease(decision) {
     var ids = resGetSelectedIds();
     if (ids.length === 0) return;
     if (decision !== 'accepted' && decision !== 'rejected') return;
@@ -1099,16 +1099,16 @@ function resBulkRelease(decision) {
             + '\u2022 ' + overrides + ' will override the Professor\u2019s recommendation\n\n'
             + 'The applicants will be notified by email.';
 
-    if (!confirm(msg)) return;
+    if (!await ui.confirm(msg, { danger: decision !== 'accepted', ok: 'Release' })) return;
 
     // If any rows override the recommendation, ask for a single shared
     // reason that gets recorded against every override in the audit log.
     var reason = '';
     if (overrides > 0) {
-        reason = prompt(
+        reason = await ui.prompt(
             overrides + ' of these applicants will be released against the Professor\u2019s '
             + 'recommendation. Enter a reason for the override (recorded in the audit log):',
-            ''
+            { title: 'Override reason', ok: 'Continue' }
         );
         if (reason === null) return; // cancelled
         reason = reason.trim();

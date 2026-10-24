@@ -234,7 +234,7 @@ if ($applicantId) {
             <?php endif; ?>
             <?php if ($canUndo && $doc && $status === 'approved'): ?>
                 <form method="POST" action="<?= url('/staff/documents/' . $doc['id']) ?>"
-                      onsubmit="return confirm('Undo approval for this document?')">
+                      data-confirm="Undo approval for this document?" data-confirm-ok="Undo">
                     <?= csrf_field() ?>
                     <input type="hidden" name="action" value="unapprove">
                     <button class="btn btn-ghost btn-sm" style="color:var(--text-tertiary);font-size:var(--text-xs)">Undo</button>
@@ -723,8 +723,7 @@ function approveAllAjax() {
             window._lastApprovedIds = data.ids || [];
             showUndoToast(data.message || 'All documents approved.');
         } else {
-            alert(data.message || 'Something went wrong.');
-            window.location.reload();
+            ui.alert(data.message || 'Something went wrong.').then(function() { window.location.reload(); });
         }
     })
     .catch(function() { window.location.reload(); });
@@ -769,7 +768,7 @@ function undoApproveAll() {
     })
     .then(function(r) { return r.json(); })
     .then(function(data) {
-        if (data && data.ok === false) alert(data.message || 'Could not undo.');
+        if (data && data.ok === false) return ui.alert(data.message || 'Could not undo.').then(function() { window.location.reload(); });
         window.location.reload();
     })
     .catch(function() { window.location.reload(); });
@@ -1109,10 +1108,10 @@ function bulkClearSelection() {
     bulkUpdateSelection();
 }
 
-function bulkApproveSelected() {
+async function bulkApproveSelected() {
     var ids = getSelectedIds();
     if (ids.length === 0) return;
-    if (!confirm('Approve all pending documents for ' + ids.length + ' selected applicant(s)?\n\nApplicants with all docs approved will advance to the exam stage.')) return;
+    if (!await ui.confirm('Approve all pending documents for ' + ids.length + ' selected applicant(s)?\n\nApplicants with all docs approved will advance to the exam stage.', { ok: 'Approve' })) return;
 
     var form = document.getElementById('bulk-approve-form');
     // Remove old hidden inputs
