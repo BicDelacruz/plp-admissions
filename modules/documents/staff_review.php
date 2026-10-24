@@ -22,14 +22,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'bulk_
         redirect('/staff/applicants');
     }
 
-    $approved = 0;
-    $advanced = 0;
-    $skipped  = 0;
+    $approved  = 0;
+    $advanced  = 0;
+    $confirmed = 0;
     foreach ($ids as $aid) {
-        // AI-flagged documents are skipped until staff confirm the category.
+        // Staff picked these applicants on purpose, so AI-flagged documents are
+        // approved too. Approving a flagged document confirms its category,
+        // the same as the single Approve button does.
+        $flags = doc_ai_flags($db, (int)$aid);
+        if ($flags) {
+            $stmt = $db->prepare(
+                "SELECT id FROM documents
+                  WHERE applicant_id = ? AND status IN ('uploaded','under_review')"
+            );
+            $stmt->execute([(int)$aid]);
+            foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $docId) {
+                $docId = (int)$docId;
+                if (!isset($flags[$docId])) continue;
+                doc_ai_confirm($db, $flags[$docId]['validation_id'], 'approved', $staffId);
+                $confirmed++;
+            }
+        }
         $res = doc_approve_unflagged($db, (int)$aid, $staffId);
         if ($res['approved'] > 0) $approved++;
-        $skipped += $res['skipped'];
 
         // Same rule as the single-applicant Approve All: advance only when every
         // required document is approved, and only from a pre-exam stage.
@@ -42,10 +57,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'bulk_
             auto_assign_exam_slot($aid);
         }
     }
-    audit_log('bulk_approve_selected', "Bulk-approved docs for {$approved} applicant(s), {$advanced} advanced to exam, {$skipped} AI-flagged skipped");
+    audit_log('bulk_approve_selected', "Bulk-approved docs for {$approved} applicant(s), {$advanced} advanced to exam, {$confirmed} AI-flagged categories confirmed");
     $flashMsg = "Approved documents for {$approved} applicant(s). {$advanced} advanced to exam.";
-    if ($skipped > 0) {
-        $flashMsg .= " {$skipped} AI-flagged document" . ($skipped != 1 ? 's were' : ' was') . ' skipped. Open the applicant to confirm the category.';
+    if ($confirmed > 0) {
+        $flashMsg .= " {$confirmed} AI-flagged document" . ($confirmed != 1 ? 's' : '') . ' approved with the category confirmed.';
     }
     Session::flash('success', $flashMsg);
     redirect('/staff/applicants');
@@ -1111,7 +1126,7 @@ function bulkClearSelection() {
 async function bulkApproveSelected() {
     var ids = getSelectedIds();
     if (ids.length === 0) return;
-    if (!await ui.confirm('Approve all pending documents for ' + ids.length + ' selected applicant(s)?\n\nApplicants with all docs approved will advance to the exam stage.', { ok: 'Approve' })) return;
+    if (!await ui.confirm('Approve all pending documents for ' + ids.length + ' selected applicant(s)?\n\nAI-flagged documents are approved too and their category is confirmed. Applicants with all docs approved will advance to the exam stage.', { ok: 'Approve' })) return;
 
     var form = document.getElementById('bulk-approve-form');
     // Remove old hidden inputs

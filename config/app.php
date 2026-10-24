@@ -166,6 +166,7 @@ define('DEPT_CBA', 'College of Business and Accountancy');
 define('DEPT_COE', 'College of Education');
 define('DEPT_CAS', 'College of Arts and Sciences');
 define('DEPT_CEN', 'College of Engineering');
+define('DEPT_HM',  'College of Hospitality Management');
 
 define('PLP_DEPARTMENTS', [
     DEPT_CCS,
@@ -174,6 +175,7 @@ define('PLP_DEPARTMENTS', [
     DEPT_COE,
     DEPT_CAS,
     DEPT_CEN,
+    DEPT_HM,
 ]);
 
 // Course → department mapping.  This is the config-level fallback;
@@ -185,7 +187,7 @@ define('COURSE_DEPARTMENT_MAP', [
     'BS Accountancy (BSA)'                                              => DEPT_CBA,
     'BS Business Administration major in Marketing Management (BSBA)'   => DEPT_CBA,
     'BS Entrepreneurship (BSENT)'                                       => DEPT_CBA,
-    'BS Hospitality Management (BSHM)'                                  => DEPT_CBA,
+    'BS Hospitality Management (BSHM)'                                  => DEPT_HM,
     'Bachelor of Elementary Education (BEED)'                           => DEPT_COE,
     'Bachelor of Secondary Education Major in English (BSED-ENG)'       => DEPT_COE,
     'Bachelor of Secondary Education Major in Filipino (BSED-FIL)'      => DEPT_COE,

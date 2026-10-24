@@ -370,6 +370,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Load data
 // ----------------------------------------------------------------
 $exams        = $db->query('SELECT * FROM exams ORDER BY id DESC')->fetchAll();
+// Question count per exam, for the cards in the exam directory.
+$examMeta = [];
+foreach ($db->query('SELECT exam_id, COUNT(*) AS n FROM questions GROUP BY exam_id')->fetchAll() as $r) {
+    $examMeta[(int)$r['exam_id']] = ['question_count' => (int)$r['n']];
+}
 $activeExam   = $db->query('SELECT * FROM exams WHERE is_active=1 LIMIT 1')->fetch() ?: null;
 $schoolYear    = school_setting('current_school_year', date('Y') . '-' . (date('Y') + 1));
 $slotCountStmt = $db->prepare('SELECT COUNT(*) FROM exam_slot_schedule WHERE school_year = ?');

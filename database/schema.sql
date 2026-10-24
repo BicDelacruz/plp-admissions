@@ -837,7 +837,8 @@ INSERT INTO departments (code, name) VALUES
     ('CBA', 'College of Business and Accountancy'),
     ('COE', 'College of Education'),
     ('CAS', 'College of Arts and Sciences'),
-    ('CEN', 'College of Engineering');
+    ('CEN', 'College of Engineering'),
+    ('HM',  'College of Hospitality Management');
 
 -- 9d. Course to department mapping (covers all courses in PLP_COURSES)
 INSERT INTO course_departments (course_name, department_id) VALUES
@@ -847,7 +848,7 @@ INSERT INTO course_departments (course_name, department_id) VALUES
     ('BS Accountancy (BSA)',                                                   (SELECT id FROM departments WHERE code = 'CBA')),
     ('BS Business Administration major in Marketing Management (BSBA)',        (SELECT id FROM departments WHERE code = 'CBA')),
     ('BS Entrepreneurship (BSENT)',                                            (SELECT id FROM departments WHERE code = 'CBA')),
-    ('BS Hospitality Management (BSHM)',                                       (SELECT id FROM departments WHERE code = 'CBA')),
+    ('BS Hospitality Management (BSHM)',                                       (SELECT id FROM departments WHERE code = 'HM')),
     ('Bachelor of Elementary Education (BEED)',                                (SELECT id FROM departments WHERE code = 'COE')),
     ('Bachelor of Secondary Education Major in English (BSED-ENG)',            (SELECT id FROM departments WHERE code = 'COE')),
     ('Bachelor of Secondary Education Major in Filipino (BSED-FIL)',           (SELECT id FROM departments WHERE code = 'COE')),
