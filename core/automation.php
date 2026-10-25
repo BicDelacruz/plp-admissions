@@ -83,7 +83,7 @@ function notify_stage_transition(int $applicantId, string $newStatus, string $ex
         'interview'            => ['Exam Passed', 'Congratulations! You passed the entrance exam. Your interview will be scheduled soon.', '/student/interview'],
         'released'             => ['Result Released', 'Your admission result has been released. Check your result now.' . ($extra ? ' ' . $extra : ''), '/student/result'],
         'withdrawn'            => ['Application Withdrawn', 'Your application has been withdrawn.', '/student/documents'],
-        'enrollment_confirmed' => ['Enrollment Confirmed', 'You have confirmed your enrollment. Welcome to PLP!', '/student/result'],
+        'enrollment_confirmed' => ['Enrollment Confirmed', 'You have confirmed your enrollment. Welcome to PLP!' . ($extra ? ' ' . $extra : ''), '/student/result'],
     ];
 
     if (!isset($messages[$newStatus])) return;

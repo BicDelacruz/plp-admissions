@@ -14,6 +14,9 @@
 // Nothing here throws. A failed send must never block the student's
 // confirmation.
 //
+// Enrollment books the visit slot during the call and answers with the date,
+// time and office; they are kept on the outbox row for the confirmation message.
+//
 // Settings (environment): ENROLLMENT_INTAKE_URL, ENROLLMENT_INTAKE_SECRET
 // The secret must equal ADMISSIONS_INTAKE_SECRET in the Enrollment project.
 // ============================================================
@@ -187,6 +190,171 @@ function enrollment_classify_answer(?int $httpStatus, mixed $json, string $trans
 }
 
 /**
+ * The visit Enrollment booked for the applicant, read from its answer.
+ * Returns ['date' => 'YYYY-MM-DD', 'start' => 'HH:MM', 'end' => 'HH:MM', 'office' => string],
+ * or null when there is no visit or it is not valid. No database, no network.
+ */
+function enrollment_visit_from_answer(mixed $json): ?array
+{
+    $visit = is_array($json) && isset($json['visit']) && is_array($json['visit']) ? $json['visit'] : null;
+    if ($visit === null) {
+        return null;
+    }
+    $date   = (string) ($visit['date'] ?? '');
+    $start  = (string) ($visit['start_time'] ?? '');
+    $end    = (string) ($visit['end_time'] ?? '');
+    $office = trim((string) ($visit['office_name'] ?? ''));
+
+    $day = DateTime::createFromFormat('Y-m-d', $date);
+    $from = DateTime::createFromFormat('H:i', $start);
+    $to   = DateTime::createFromFormat('H:i', $end);
+    if (!$day || $day->format('Y-m-d') !== $date
+        || !$from || $from->format('H:i') !== $start
+        || !$to || $to->format('H:i') !== $end
+        || $office === '') {
+        return null;
+    }
+    return ['date' => $date, 'start' => $start, 'end' => $end, 'office' => mb_substr($office, 0, 100)];
+}
+
+/**
+ * The next-step sentence added to the "Enrollment Confirmed" message, so the
+ * applicant gets one message with the visit date instead of two.
+ * $state is the outbox row (enrollment_handoff_state). Pure, so it can be tested alone.
+ */
+function enrollment_confirmation_note(?array $state): string
+{
+    if ($state === null || ($state['status'] ?? '') !== 'sent') {
+        return 'PLP Enrollment will email you a link to set your password.';
+    }
+
+    // A new account gets a set-password email; someone who already has one just signs in.
+    $created = ($state['enrollment_result'] ?? '') === 'created';
+    $access  = $created
+        ? 'Open the email from PLP Enrollment to set your password and see what to bring.'
+        : 'Sign in to PLP Enrollment to see what to bring.';
+
+    $day    = DateTime::createFromFormat('Y-m-d', substr((string) ($state['visit_date'] ?? ''), 0, 10));
+    $from   = DateTime::createFromFormat('H:i', substr((string) ($state['visit_start_time'] ?? ''), 0, 5));
+    $to     = DateTime::createFromFormat('H:i', substr((string) ($state['visit_end_time'] ?? ''), 0, 5));
+    $office = trim((string) ($state['visit_office'] ?? ''));
+
+    if ($day && $from && $to && $office !== '') {
+        return 'Your next step: go to ' . $office . ' on ' . $day->format('l, F j, Y') . ', '
+            . $from->format('g:i A') . ' to ' . $to->format('g:i A') . '. ' . $access;
+    }
+    return $created
+        ? 'Open the email from PLP Enrollment to set your password. Your visit date will be there once it is set.'
+        : 'Sign in to PLP Enrollment. Your visit date will be there once it is set.';
+}
+
+// ----------------------------------------------------------------
+// PROGRAM LIST CHECK
+// Both systems keep their own copy of the program codes. A course that
+// Enrollment does not know is rejected at the handoff, so the Admin is
+// warned on the staff results page before an applicant is affected.
+// ----------------------------------------------------------------
+
+/** Enrollment's program list URL, built from the intake URL. Empty when it cannot be built. */
+function enrollment_programs_url(): string
+{
+    $url = trim((string) getenv('ENROLLMENT_INTAKE_URL'));
+    return preg_match('#/intake/?$#', $url) === 1 ? (string) preg_replace('#/intake/?$#', '/programs', $url) : '';
+}
+
+/** Program codes Enrollment knows, or null when it could not be asked. Never throws. */
+function enrollment_fetch_program_codes(): ?array
+{
+    $url    = enrollment_programs_url();
+    $secret = trim((string) getenv('ENROLLMENT_INTAKE_SECRET'));
+    if ($url === '' || $secret === '') {
+        return null;
+    }
+    if (!str_starts_with($url, 'https://') && APP_ENV === 'production') {
+        return null;
+    }
+
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_HTTPGET        => true,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_CONNECTTIMEOUT => 3,
+        CURLOPT_TIMEOUT        => 5,
+        CURLOPT_FOLLOWLOCATION => false,
+        CURLOPT_HTTPHEADER     => [
+            'Authorization: Bearer ' . $secret,
+            'Accept: application/json',
+        ],
+    ]);
+    $body   = curl_exec($ch);
+    $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($body === false || $status !== 200) {
+        return null;
+    }
+    $json = json_decode((string) $body, true);
+    if (!is_array($json) || !isset($json['programs']) || !is_array($json['programs'])) {
+        return null;
+    }
+    $codes = [];
+    foreach ($json['programs'] as $program) {
+        if (is_array($program) && isset($program['code']) && is_string($program['code'])) {
+            $codes[] = $program['code'];
+        }
+    }
+    return $codes;
+}
+
+/**
+ * The courses Enrollment would not match: no code in brackets, or a code it
+ * does not have. Enrollment compares codes without regard to letter case.
+ * Pure, so it can be tested alone.
+ */
+function enrollment_unmatched_courses(array $courses, array $enrollmentCodes): array
+{
+    $known = array_map('strtolower', array_map('strval', $enrollmentCodes));
+    $bad   = [];
+    foreach ($courses as $course) {
+        $code = enrollment_course_code((string) $course);
+        if ($code === null || !in_array(strtolower($code), $known, true)) {
+            $bad[] = (string) $course;
+        }
+    }
+    return $bad;
+}
+
+/**
+ * A warning for the Admin when active courses would be rejected by Enrollment,
+ * or '' when all match or Enrollment could not be asked (no false alarm).
+ * Checked at most once an hour per session (5 minutes after a failed check).
+ */
+function enrollment_program_warning(): string
+{
+    try {
+        $cached = Session::get('enrollment_program_check');
+        if (is_array($cached) && isset($cached['until'], $cached['message']) && (int) $cached['until'] > time()) {
+            return (string) $cached['message'];
+        }
+
+        $codes = enrollment_fetch_program_codes();
+        if ($codes === null) {
+            Session::set('enrollment_program_check', ['until' => time() + 300, 'message' => '']);
+            return '';
+        }
+
+        $bad     = enrollment_unmatched_courses(get_all_courses(), $codes);
+        $message = $bad === [] ? '' :
+            'Enrollment has no program for: ' . implode('; ', $bad) . '. Applicants for these courses are rejected at the handoff until the program is added in Enrollment or the course name carries the right code.';
+        Session::set('enrollment_program_check', ['until' => time() + 3600, 'message' => $message]);
+        return $message;
+    } catch (\Throwable $e) {
+        error_log('enrollment program check error: ' . $e->getMessage());
+        return '';
+    }
+}
+
+/**
  * POST the payload. Returns [httpStatus|null, decodedJson|null, transportError].
  * The secret is only ever read here and never written anywhere.
  */
@@ -251,7 +419,9 @@ function enrollment_status_parse(array $body): array|string
 function enrollment_handoff_state(PDO $db, int $applicantId): ?array
 {
     try {
-        $stmt = $db->prepare('SELECT status, enrollment_result, last_error, attempts, sent_at FROM enrollment_handoff_outbox WHERE applicant_id = ?');
+        $stmt = $db->prepare('SELECT status, enrollment_result, last_error, attempts, sent_at,
+                    visit_date, visit_start_time, visit_end_time, visit_office
+             FROM enrollment_handoff_outbox WHERE applicant_id = ?');
         $stmt->execute([$applicantId]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row ?: null;
@@ -286,11 +456,15 @@ function enrollment_handoff_send(PDO $db, int $applicantId): array
         }
 
         $httpStatus = null;
+        $visit      = null;
         if ($payload === null) {
             [$status, $result, $message] = ['rejected', null, (string) $buildError];
         } else {
             [$httpStatus, $json, $transportError] = enrollment_handoff_post($payload);
             [$status, $result, $message] = enrollment_classify_answer($httpStatus, $json, $transportError);
+            if ($status === 'sent') {
+                $visit = enrollment_visit_from_answer($json);
+            }
         }
 
         $sentAt = $status === 'sent' ? 'NOW()' : 'sent_at';
@@ -303,7 +477,11 @@ function enrollment_handoff_send(PDO $db, int $applicantId): array
                  enrollment_result = ?,
                  sent_at = $sentAt,
                  last_error = ?,
-                 applicant_ref = COALESCE(?, applicant_ref)
+                 applicant_ref = COALESCE(?, applicant_ref),
+                 visit_date = COALESCE(?, visit_date),
+                 visit_start_time = COALESCE(?, visit_start_time),
+                 visit_end_time = COALESCE(?, visit_end_time),
+                 visit_office = COALESCE(?, visit_office)
              WHERE applicant_id = ?"
         )->execute([
             $status,
@@ -311,6 +489,10 @@ function enrollment_handoff_send(PDO $db, int $applicantId): array
             $result,
             $status === 'sent' ? null : mb_substr($message, 0, 500),
             $payload['applicant_ref'] ?? null,
+            $visit['date'] ?? null,
+            $visit['start'] ?? null,
+            $visit['end'] ?? null,
+            $visit['office'] ?? null,
             $applicantId,
         ]);
 

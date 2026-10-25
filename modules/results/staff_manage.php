@@ -269,6 +269,9 @@ ob_start();
 <?php if ($msg = Session::getFlash('info')): ?>
     <div class="alert alert-info" style="margin-bottom:var(--space-4);flex-shrink:0"><?= e($msg) ?></div>
 <?php endif; ?>
+<?php if ($role === ROLE_ADMIN && ($programWarning = enrollment_program_warning()) !== ''): ?>
+    <div class="alert alert-error" style="margin-bottom:var(--space-4);flex-shrink:0"><?= e($programWarning) ?></div>
+<?php endif; ?>
 
 <!-- ============================================================
      Search + Close Admissions (LEFT) · Tabs (RIGHT) now live in the

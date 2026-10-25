@@ -38,10 +38,15 @@ if ($action === 'confirm_enrollment') {
         $db->prepare("UPDATE admission_results SET enrollment_intent = 'confirmed' WHERE id = ?")
             ->execute([$row['result_id']]);
         audit_log('enrollment_confirmed', "Applicant {$row['id']} confirmed enrollment", 'applicant', $row['id']);
-        notify_stage_transition($row['id'], 'enrollment_confirmed');
-        // Pass the applicant to Enrollment. A failed send stays pending for
+        // Pass the applicant to Enrollment first, so the one confirmation message can
+        // carry the visit date Enrollment booked. A failed send stays pending for
         // staff to retry and never blocks the confirmation.
         enrollment_handoff_send($db, (int) $row['id']);
+        notify_stage_transition(
+            $row['id'],
+            'enrollment_confirmed',
+            enrollment_confirmation_note(enrollment_handoff_state($db, (int) $row['id']))
+        );
         Session::flash('success', 'Your enrollment has been confirmed! Welcome to PLP!');
     }
     redirect('/student/result');

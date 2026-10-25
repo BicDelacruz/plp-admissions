@@ -80,4 +80,31 @@ check(enrollment_retry_due(2, 1000, 1500) === false, 'not due inside the wait');
 check(enrollment_retry_due(2, 1000, 1600) === true, 'due once the wait has passed');
 check(enrollment_retry_due(20, null, 1000) === false, 'gives up after 20 attempts');
 
+// The visit Enrollment booked.
+$visitAnswer = ['status' => 'created', 'visit' => ['date' => '2026-11-02', 'start_time' => '09:00', 'end_time' => '11:00', 'office_name' => 'Registrar Office']];
+check(enrollment_visit_from_answer($visitAnswer) === ['date' => '2026-11-02', 'start' => '09:00', 'end' => '11:00', 'office' => 'Registrar Office'], 'visit is read');
+check(enrollment_visit_from_answer(['status' => 'created']) === null, 'no visit in the answer');
+check(enrollment_visit_from_answer(null) === null, 'no answer, no visit');
+check(enrollment_visit_from_answer(['visit' => ['date' => '2026-02-31', 'start_time' => '09:00', 'end_time' => '11:00', 'office_name' => 'X']]) === null, 'impossible date is refused');
+check(enrollment_visit_from_answer(['visit' => ['date' => '2026-11-02', 'start_time' => '25:00', 'end_time' => '11:00', 'office_name' => 'X']]) === null, 'impossible time is refused');
+check(enrollment_visit_from_answer(['visit' => ['date' => '2026-11-02', 'start_time' => '09:00', 'end_time' => '11:00', 'office_name' => '  ']]) === null, 'blank office is refused');
+
+// One confirmation message.
+$sentWithVisit = ['status' => 'sent', 'enrollment_result' => 'created', 'visit_date' => '2026-11-02', 'visit_start_time' => '09:00:00', 'visit_end_time' => '11:00:00', 'visit_office' => 'Registrar Office'];
+check(enrollment_confirmation_note($sentWithVisit) === 'Your next step: go to Registrar Office on Monday, November 2, 2026, 9:00 AM to 11:00 AM. Open the email from PLP Enrollment to set your password and see what to bring.', 'note carries the visit');
+check(str_contains(enrollment_confirmation_note(array_merge($sentWithVisit, ['enrollment_result' => 'unchanged'])), 'Sign in to PLP Enrollment'), 'an existing account signs in');
+check(str_contains(enrollment_confirmation_note(['status' => 'sent', 'enrollment_result' => 'created']), 'once it is set'), 'sent without a visit says it will come');
+check(str_contains(enrollment_confirmation_note(['status' => 'pending']), 'will email you'), 'a pending send promises the email');
+check(str_contains(enrollment_confirmation_note(null), 'will email you'), 'no outbox row promises the email');
+
+// Program list check.
+putenv('ENROLLMENT_INTAKE_URL=https://example.test/api/admissions/intake');
+check(enrollment_programs_url() === 'https://example.test/api/admissions/programs', 'programs URL comes from the intake URL');
+putenv('ENROLLMENT_INTAKE_URL=https://example.test/other');
+check(enrollment_programs_url() === '', 'an unexpected intake URL gives no programs URL');
+putenv('ENROLLMENT_INTAKE_URL');
+$codes = ['BSA', 'BSIT', 'ab psych'];
+check(enrollment_unmatched_courses(['BS Accountancy (BSA)', 'AB Psychology (AB Psych)'], $codes) === [], 'known codes match, whatever the letter case');
+check(enrollment_unmatched_courses(['BS Accountancy (BSA)', 'BS Biology (BSBIO)', 'Custom Course'], $codes) === ['BS Biology (BSBIO)', 'Custom Course'], 'unknown code and missing code are reported');
+
 echo "enrollment handoff checks passed\n";
