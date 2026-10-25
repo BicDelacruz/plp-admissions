@@ -47,6 +47,7 @@ $router->post('/api/exam-autosave',      'api/exam_autosave');
 $router->post('/api/reschedule-request', 'api/reschedule_request');
 $router->post('/api/exam-reschedule-request', 'api/exam_reschedule_request');
 $router->get( '/api/applicant-panel',    'api/applicant_panel');
+$router->post('/api/enrollment-status',  'api/enrollment_status');
 
 // -- Staff -------------------------------------------------------
 $router->get( '/staff/dashboard',           'auth/staff/dashboard');

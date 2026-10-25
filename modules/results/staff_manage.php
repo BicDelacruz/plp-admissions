@@ -226,6 +226,7 @@ $result = paginate(
             ar.result AS admission_result, ar.remarks AS admission_remarks, ar.released_at,
             ar.enrollment_intent,
             eo.status AS handoff_status, eo.last_error AS handoff_error,
+            eo.enrollment_stage, eo.enrollment_student_number,
             er.score  AS exam_score, er.total_items AS exam_total,
             er.rank_score AS exam_rank, er.passed AS exam_passed, er.submit_note AS exam_note,
             iq.status AS interview_status, iq.interview_notes,
@@ -565,7 +566,13 @@ $sortParams = ['q' => $search, 'result' => $filterRes, 'per_page' => $perPage, '
                         <?php elseif ($bucket === 'released'): ?>
                             <?php if ($row['admission_result'] === 'accepted' && $row['enrollment_intent'] === 'confirmed'): ?>
                                 <?php if ($row['handoff_status'] === 'sent'): ?>
-                                    <span class="badge badge-approved" title="This applicant has an Enrollment account">Sent to Enrollment</span>
+                                    <?php if ($row['enrollment_stage'] === 'enrolled'): ?>
+                                        <span class="badge badge-approved" title="The COR was issued. Student number <?= e((string) $row['enrollment_student_number']) ?>">Enrolled</span>
+                                    <?php elseif ($row['enrollment_stage'] === 'student'): ?>
+                                        <span class="badge badge-approved" title="Documents received at the Registrar">Student <?= e((string) $row['enrollment_student_number']) ?></span>
+                                    <?php else: ?>
+                                        <span class="badge badge-approved" title="This applicant has an Enrollment account">Sent to Enrollment</span>
+                                    <?php endif; ?>
                                 <?php else: ?>
                                     <form method="POST" action="<?= url('/staff/results/send-enrollment/' . $row['id']) ?>" style="margin:0">
                                         <?= csrf_field() ?>

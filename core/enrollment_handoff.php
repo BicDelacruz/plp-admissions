@@ -21,6 +21,36 @@
 const ENROLLMENT_HANDOFF_CONNECT_TIMEOUT = 5;    // seconds
 const ENROLLMENT_HANDOFF_TIMEOUT         = 15;   // seconds; Enrollment sends an email during the call
 
+/**
+ * Admissions document slot -> the Enrollment document type it is the same paper as.
+ * Only papers that are the same thing on both sides are listed. A valid ID,
+ * the barangay certificate and the photo are left out on purpose: Enrollment
+ * asks for different items (two IDs, a 2x2 photo), so "verified" would mislead.
+ */
+const ENROLLMENT_DOC_TYPE_MAP = [
+    'psa_birth_cert' => 'psa_birth_cert',
+    'form_138'       => 'form_138',
+    'form_137'       => 'form_137',
+    'tor'            => 'tor',
+    'passport'       => 'passport',
+    'visa_permit'    => 'visa_permit',
+    'alien_cert'     => 'acr',
+];
+
+/** Approved Admissions document slots -> sorted, unique Enrollment document types. */
+function enrollment_verified_documents(array $approvedSlots): array
+{
+    $types = [];
+    foreach ($approvedSlots as $slot) {
+        if (isset(ENROLLMENT_DOC_TYPE_MAP[$slot])) {
+            $types[ENROLLMENT_DOC_TYPE_MAP[$slot]] = true;
+        }
+    }
+    $types = array_keys($types);
+    sort($types);
+    return $types;
+}
+
 /** The code in the last brackets of a course name, or null. */
 function enrollment_course_code(string $course): ?string
 {
@@ -105,6 +135,16 @@ function enrollment_handoff_payload(PDO $db, int $applicantId): array
         return [null, 'The applicant has no name on file.', 'invalid'];
     }
 
+    // Information for the Registrar only; a failed read must not block the send.
+    $verified = [];
+    try {
+        $docs = $db->prepare("SELECT DISTINCT doc_type FROM documents WHERE applicant_id = ? AND status = 'approved'");
+        $docs->execute([$applicantId]);
+        $verified = enrollment_verified_documents($docs->fetchAll(PDO::FETCH_COLUMN));
+    } catch (\Throwable) {
+        $verified = [];
+    }
+
     return [[
         'applicant_ref'  => $reference,
         'full_name'      => $fullName,
@@ -113,6 +153,7 @@ function enrollment_handoff_payload(PDO $db, int $applicantId): array
         'admission_date' => substr((string) $row['released_at'], 0, 10),
         'admission_type' => enrollment_admission_type((string) $row['applicant_type']),
         'source_name'    => 'PLP Admissions',
+        'verified_documents' => $verified,
     ], null, null];
 }
 
@@ -183,6 +224,27 @@ function enrollment_handoff_post(array $payload): array
         return [null, null, $err !== '' ? $err : 'no response'];
     }
     return [$status, json_decode((string) $body, true), ''];
+}
+
+/**
+ * Check a status call from Enrollment. No database, no network.
+ * Returns [applicantId, stage, studentNumber] or an error message string.
+ */
+function enrollment_status_parse(array $body): array|string
+{
+    $ref = trim((string) ($body['applicant_ref'] ?? ''));
+    if (!preg_match('/^ADM-\d{4}-(\d{1,9})$/', $ref, $m) || (int) $m[1] < 1) {
+        return 'applicant_ref is missing or not valid.';
+    }
+    $stage = (string) ($body['stage'] ?? '');
+    if ($stage !== 'student' && $stage !== 'enrolled') {
+        return 'stage must be "student" or "enrolled".';
+    }
+    $number = trim((string) ($body['student_number'] ?? ''));
+    if ($number === '' || strlen($number) > 20) {
+        return 'student_number is missing or longer than 20 characters.';
+    }
+    return [(int) $m[1], $stage, $number];
 }
 
 /** The outbox row for an applicant, or null. */

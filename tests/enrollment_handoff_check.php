@@ -63,4 +63,13 @@ check(enrollment_classify_answer(503, ['error' => 'off'])[0] === 'pending', '503
 check(enrollment_classify_answer(500, null)[0] === 'pending', '500 stays pending');
 check(enrollment_classify_answer(null, null, 'timed out')[0] === 'pending', 'no answer stays pending');
 
+check(enrollment_verified_documents([]) === [], 'no approved documents, none verified');
+check(enrollment_verified_documents(['psa_birth_cert', 'alien_cert', 'psa_birth_cert']) === ['acr', 'psa_birth_cert'], 'mapped, unique and sorted');
+check(enrollment_verified_documents(['valid_id_1', 'photo_1', 'barangay_cert']) === [], 'papers Enrollment asks for differently are not mapped');
+
+check(enrollment_status_parse(['applicant_ref' => 'ADM-2026-000042', 'stage' => 'enrolled', 'student_number' => '2026-00012']) === [42, 'enrolled', '2026-00012'], 'status call is read');
+check(is_string(enrollment_status_parse(['applicant_ref' => 'nope', 'stage' => 'enrolled', 'student_number' => '1'])), 'bad ref is refused');
+check(is_string(enrollment_status_parse(['applicant_ref' => 'ADM-2026-000042', 'stage' => 'graduated', 'student_number' => '1'])), 'unknown stage is refused');
+check(is_string(enrollment_status_parse(['applicant_ref' => 'ADM-2026-000042', 'stage' => 'student', 'student_number' => ''])), 'missing student number is refused');
+
 echo "enrollment handoff checks passed\n";

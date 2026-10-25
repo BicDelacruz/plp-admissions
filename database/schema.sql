@@ -770,8 +770,12 @@ CREATE TABLE enrollment_handoff_outbox (
                         CHECK (enrollment_result IN ('created','updated','unchanged')),
     last_attempt_at     timestamp(0) DEFAULT NULL,
     sent_at             timestamp(0) DEFAULT NULL,
+    enrollment_stage          text         DEFAULT NULL,
+    enrollment_student_number varchar(20)  DEFAULT NULL,
+    enrollment_stage_at       timestamp(0) DEFAULT NULL,
     created_at          timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_handoff_outbox_stage CHECK (enrollment_stage IN ('student','enrolled')),
     CONSTRAINT uq_handoff_outbox_applicant UNIQUE (applicant_id),
     CONSTRAINT fk_handoff_outbox_applicant
         FOREIGN KEY (applicant_id) REFERENCES applicants (id) ON DELETE CASCADE
