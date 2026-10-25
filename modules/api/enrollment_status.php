@@ -30,7 +30,15 @@ if ($secret === '') {
     status_reply(503, ['error' => 'The status endpoint is not configured.']);
 }
 
-$header = (string) ($_SERVER['HTTP_AUTHORIZATION'] ?? '');
+// Apache can hide the Authorization header from PHP; Vercel passes it through.
+$header = (string) ($_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '');
+if ($header === '' && function_exists('getallheaders')) {
+    foreach (getallheaders() as $name => $value) {
+        if (strcasecmp((string) $name, 'Authorization') === 0) {
+            $header = (string) $value;
+        }
+    }
+}
 if (!str_starts_with($header, 'Bearer ') || !hash_equals($secret, trim(substr($header, 7)))) {
     status_reply(401, ['error' => 'Not authorized.']);
 }

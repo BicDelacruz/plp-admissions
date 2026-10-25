@@ -42,6 +42,9 @@ Auth::requireRole(ROLE_DEAN, ROLE_ADMIN);
 // Finalize closed exams nobody submitted (one cheap EXISTS when there is no work).
 finalize_closed_exam_drafts();
 
+// Retry sends to Enrollment that are still waiting (throttled; does nothing when there are none).
+enrollment_handoff_retry_pending(db());
+
 $db      = db();
 $staffId = Auth::id();
 $role    = Auth::role();

@@ -72,4 +72,12 @@ check(is_string(enrollment_status_parse(['applicant_ref' => 'nope', 'stage' => '
 check(is_string(enrollment_status_parse(['applicant_ref' => 'ADM-2026-000042', 'stage' => 'graduated', 'student_number' => '1'])), 'unknown stage is refused');
 check(is_string(enrollment_status_parse(['applicant_ref' => 'ADM-2026-000042', 'stage' => 'student', 'student_number' => ''])), 'missing student number is refused');
 
+check(enrollment_retry_delay(0) === 0, 'first retry has no wait');
+check(enrollment_retry_delay(3) === 900, 'wait grows by 5 minutes per attempt');
+check(enrollment_retry_delay(99) === 3600, 'wait stops growing at 1 hour');
+check(enrollment_retry_due(0, null, 1000) === true, 'never tried is due');
+check(enrollment_retry_due(2, 1000, 1500) === false, 'not due inside the wait');
+check(enrollment_retry_due(2, 1000, 1600) === true, 'due once the wait has passed');
+check(enrollment_retry_due(20, null, 1000) === false, 'gives up after 20 attempts');
+
 echo "enrollment handoff checks passed\n";

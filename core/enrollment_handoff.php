@@ -326,3 +326,74 @@ function enrollment_handoff_send(PDO $db, int $applicantId): array
         return [false, 'The handoff could not be recorded.'];
     }
 }
+
+// ----------------------------------------------------------------
+// AUTOMATIC RETRY
+// There is no scheduler on this host, so (like the exam sweep) the staff
+// results page calls this when it opens. It retries sends still waiting
+// and applicants who confirmed but never got a send recorded. A rejected
+// send is never retried here: it needs a person to fix the details first.
+// ----------------------------------------------------------------
+
+const ENROLLMENT_RETRY_STEP_SECONDS = 300;  // wait 5 minutes longer after each failed attempt
+const ENROLLMENT_RETRY_MAX_STEPS    = 12;   // the wait stops growing at 1 hour
+const ENROLLMENT_RETRY_MAX_ATTEMPTS = 20;   // after this, leave it to a person
+const ENROLLMENT_RETRY_PER_REQUEST  = 2;    // keeps the page fast when Enrollment is slow
+
+/** Seconds to wait before the next automatic try, given the attempts so far. */
+function enrollment_retry_delay(int $attempts): int
+{
+    return min(max($attempts, 0), ENROLLMENT_RETRY_MAX_STEPS) * ENROLLMENT_RETRY_STEP_SECONDS;
+}
+
+/** True when a pending send is due for another automatic try. Pure, so it can be tested alone. */
+function enrollment_retry_due(int $attempts, ?int $lastAttemptAt, int $now): bool
+{
+    if ($attempts >= ENROLLMENT_RETRY_MAX_ATTEMPTS) {
+        return false;
+    }
+    return $lastAttemptAt === null || $now - $lastAttemptAt >= enrollment_retry_delay($attempts);
+}
+
+/**
+ * Retry what is due. Stops at the first failure, because a failure usually
+ * means Enrollment is down and the next try would only make the page wait.
+ * Never throws. Returns how many were sent.
+ */
+function enrollment_handoff_retry_pending(PDO $db): int
+{
+    try {
+        $rows = $db->query(
+            "SELECT a.id AS applicant_id, eo.attempts, eo.last_attempt_at
+               FROM applicants a
+               JOIN admission_results ar ON ar.applicant_id = a.id
+          LEFT JOIN enrollment_handoff_outbox eo ON eo.applicant_id = a.id
+              WHERE ar.result = 'accepted' AND ar.enrollment_intent = 'confirmed'
+                AND (eo.id IS NULL OR eo.status = 'pending')
+              ORDER BY eo.last_attempt_at NULLS FIRST, a.id
+              LIMIT 50"
+        )->fetchAll(PDO::FETCH_ASSOC);
+
+        $now  = time();
+        $sent = 0;
+        $tried = 0;
+        foreach ($rows as $row) {
+            $last = $row['last_attempt_at'] !== null ? strtotime((string) $row['last_attempt_at']) : null;
+            if (!enrollment_retry_due((int) ($row['attempts'] ?? 0), $last === false ? null : $last, $now)) {
+                continue;
+            }
+            [$ok] = enrollment_handoff_send($db, (int) $row['applicant_id']);
+            if (!$ok) {
+                break;
+            }
+            $sent++;
+            if (++$tried >= ENROLLMENT_RETRY_PER_REQUEST) {
+                break;
+            }
+        }
+        return $sent;
+    } catch (\Throwable $e) {
+        error_log('enrollment retry error: ' . $e->getMessage());
+        return 0;
+    }
+}
