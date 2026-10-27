@@ -22,7 +22,8 @@ function email_template(string $title, string $body): string
 <body style="margin:0;padding:0;background:#f4f4f5;font-family:Arial,Helvetica,sans-serif">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:32px 0">
 <tr><td align="center">
-<table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1)">
+<table width="560" cellpadding="0" cellspacing="0" '
+        . 'style="background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1)">
     <tr><td style="background:' . e($accentColor) . ';padding:24px 32px">
         <h1 style="margin:0;color:#ffffff;font-size:20px">' . e($schoolName) . '</h1>
     </td></tr>
@@ -31,7 +32,8 @@ function email_template(string $title, string $body): string
         <div style="color:#374151;font-size:14px;line-height:1.6">' . $body . '</div>
     </td></tr>
     <tr><td style="padding:16px 32px;background:#f9fafb;border-top:1px solid #e5e7eb;text-align:center">
-        <p style="margin:0;font-size:12px;color:#9ca3af">This is an automated email from ' . e($schoolName) . '. Please do not reply.</p>
+        <p style="margin:0;font-size:12px;color:#9ca3af">'
+        . 'This is an automated email from ' . e($schoolName) . '. Please do not reply.</p>
     </td></tr>
 </table>
 </td></tr>

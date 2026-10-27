@@ -137,7 +137,9 @@ class Session
     // -- Remaining session seconds (for JS warning timer) -----------
     public static function secondsRemaining(): int
     {
-        if (!isset($_SESSION['_last_activity'])) return 0;
+        if (!isset($_SESSION['_last_activity'])) {
+            return 0;
+        }
         return max(0, self::sessionTimeLimit() - (time() - $_SESSION['_last_activity']));
     }
 

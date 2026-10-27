@@ -125,7 +125,12 @@ function enrollment_handoff_payload(PDO $db, int $applicantId): array
 
     $code = enrollment_course_code((string) $row['course_applied']);
     if ($code === null) {
-        return [null, 'The course "' . $row['course_applied'] . '" has no code in brackets, so Enrollment cannot match it. Rename the course with its code first.', 'invalid'];
+        return [
+            null,
+            'The course "' . $row['course_applied'] . '" has no code in brackets, so Enrollment cannot match it. '
+            . 'Rename the course with its code first.',
+            'invalid',
+        ];
     }
 
     $reference = enrollment_applicant_reference((string) $row['school_year'], (int) $row['id']);
@@ -168,7 +173,11 @@ function enrollment_handoff_payload(PDO $db, int $applicantId): array
 function enrollment_classify_answer(?int $httpStatus, mixed $json, string $transportError = ''): array
 {
     if ($httpStatus === null) {
-        return ['pending', null, 'Could not reach Enrollment' . ($transportError !== '' ? ': ' . $transportError : '') . '.'];
+        return [
+            'pending',
+            null,
+            'Could not reach Enrollment' . ($transportError !== '' ? ': ' . $transportError : '') . '.',
+        ];
     }
 
     $error  = is_array($json) && isset($json['error']) && is_string($json['error']) ? trim($json['error']) : '';
@@ -181,7 +190,11 @@ function enrollment_classify_answer(?int $httpStatus, mixed $json, string $trans
         return ['pending', null, 'Enrollment gave an answer that was not understood.'];
     }
     if (in_array($httpStatus, [400, 409, 422], true)) {
-        return ['rejected', null, $error !== '' ? $error : 'Enrollment rejected the details (HTTP ' . $httpStatus . ').'];
+        return [
+            'rejected',
+            null,
+            $error !== '' ? $error : 'Enrollment rejected the details (HTTP ' . $httpStatus . ').',
+        ];
     }
     if ($httpStatus === 401) {
         return ['pending', null, 'Enrollment did not accept the shared secret. Check ENROLLMENT_INTAKE_SECRET.'];
@@ -345,7 +358,9 @@ function enrollment_program_warning(): string
 
         $bad     = enrollment_unmatched_courses(get_all_courses(), $codes);
         $message = $bad === [] ? '' :
-            'Enrollment has no program for: ' . implode('; ', $bad) . '. Applicants for these courses are rejected at the handoff until the program is added in Enrollment or the course name carries the right code.';
+            'Enrollment has no program for: ' . implode('; ', $bad) . '. '
+            . 'Applicants for these courses are rejected at the handoff until the program is added in Enrollment '
+            . 'or the course name carries the right code.';
         Session::set('enrollment_program_check', ['until' => time() + 3600, 'message' => $message]);
         return $message;
     } catch (\Throwable $e) {

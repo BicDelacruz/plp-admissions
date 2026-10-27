@@ -39,7 +39,9 @@ function is_embed(): bool
 // posts (which stay on the embed URL) pass straight through.
 function settings_modal_gate(): void
 {
-    if (is_embed() || ($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') return;
+    if (is_embed() || ($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
+        return;
+    }
     require_once VIEWS_PATH . '/partials/page_header.php';
     redirect(page_home_crumb()['to'] . '?settings=1');
 }
@@ -95,7 +97,9 @@ function admissions_is_open(): bool
 {
     $open  = admissions_open_date();
     $close = admissions_close_date();
-    if (!$open || !$close) return false;
+    if (!$open || !$close) {
+        return false;
+    }
     $now = new DateTime();
     return $now >= $open && $now <= $close;
 }
@@ -137,7 +141,9 @@ function school_setting(string $key, string $default = ''): string
  */
 function score_to_rank(int $score, int $total): int
 {
-    if ($total <= 0) return 1;
+    if ($total <= 0) {
+        return 1;
+    }
     $pct = ($score / $total) * 100;         // 0–100
     $rank = (int) ceil($pct / 10);          // 0–10
     return max(1, min(10, $rank ?: 1));     // clamp 1–10
@@ -149,9 +155,31 @@ function score_to_rank(int $score, int $total): int
  */
 function rank_tier_info(int $rank): array
 {
-    if ($rank >= 7) return ['tier' => 'high',    'label' => 'High',    'color' => '#22c55e', 'bg' => '#dcfce7', 'verdict' => 'passed'];
-    if ($rank >= 4) return ['tier' => 'average', 'label' => 'Average', 'color' => '#f59e0b', 'bg' => '#fef3c7', 'verdict' => 'passed'];
-    return              ['tier' => 'low',     'label' => 'Low',     'color' => '#ef4444', 'bg' => '#fee2e2', 'verdict' => 'rejected'];
+    if ($rank >= 7) {
+        return [
+            'tier'    => 'high',
+            'label'   => 'High',
+            'color'   => '#22c55e',
+            'bg'      => '#dcfce7',
+            'verdict' => 'passed',
+        ];
+    }
+    if ($rank >= 4) {
+        return [
+            'tier'    => 'average',
+            'label'   => 'Average',
+            'color'   => '#f59e0b',
+            'bg'      => '#fef3c7',
+            'verdict' => 'passed',
+        ];
+    }
+    return [
+        'tier'    => 'low',
+        'label'   => 'Low',
+        'color'   => '#ef4444',
+        'bg'      => '#fee2e2',
+        'verdict' => 'rejected',
+    ];
 }
 
 /**
@@ -161,12 +189,16 @@ function rank_tier_info(int $rank): array
 function get_pass_threshold(string $course): int
 {
     static $cache = [];
-    if (isset($cache[$course])) return $cache[$course];
+    if (isset($cache[$course])) {
+        return $cache[$course];
+    }
     try {
         $stmt = db()->prepare('SELECT pass_from FROM course_passing_scores WHERE course_name=? LIMIT 1');
         $stmt->execute([$course]);
         $row = $stmt->fetch();
-        if ($row) return $cache[$course] = (int) $row['pass_from'];
+        if ($row) {
+            return $cache[$course] = (int) $row['pass_from'];
+        }
     } catch (\Throwable $e) {}
     $config = COURSE_PASSING_SCORES[$course] ?? null;
     return $cache[$course] = $config ? (int)$config['pass_from'] : 4;
@@ -188,18 +220,24 @@ function exam_passed(int $score, int $total, string $course): bool
  */
 function suggest_alt_courses(int $score, int $total, string $appliedCourse): array
 {
-    if ($total <= 0) return [];
+    if ($total <= 0) {
+        return [];
+    }
     $rank = score_to_rank($score, $total);
 
     // Get all per-course thresholds from DB
     $thresholds = [];
     try {
         $rows = db()->query('SELECT course_name, pass_from FROM course_passing_scores')->fetchAll();
-        foreach ($rows as $r) $thresholds[$r['course_name']] = (int)$r['pass_from'];
+        foreach ($rows as $r) {
+            $thresholds[$r['course_name']] = (int)$r['pass_from'];
+        }
     } catch (\Throwable $e) {}
     // Fall back to config for any missing
     foreach (COURSE_PASSING_SCORES as $cn => $cfg) {
-        if (!isset($thresholds[$cn])) $thresholds[$cn] = (int)$cfg['pass_from'];
+        if (!isset($thresholds[$cn])) {
+            $thresholds[$cn] = (int)$cfg['pass_from'];
+        }
     }
 
     // Find full courses
@@ -221,10 +259,16 @@ function suggest_alt_courses(int $score, int $total, string $appliedCourse): arr
 
     $suggestions = [];
     foreach (PLP_COURSES as $course) {
-        if ($course === $appliedCourse) continue;
-        if (in_array($course, $fullCourses, true)) continue;
+        if ($course === $appliedCourse) {
+            continue;
+        }
+        if (in_array($course, $fullCourses, true)) {
+            continue;
+        }
         $pf = $thresholds[$course] ?? 4;
-        if ($rank >= $pf) $suggestions[] = $course;
+        if ($rank >= $pf) {
+            $suggestions[] = $course;
+        }
     }
     return $suggestions;
 }
@@ -237,7 +281,9 @@ function doc_flags_decode(array|string|null $flags): array
     if (is_string($flags)) {
         $flags = json_decode($flags, true);
     }
-    if (!is_array($flags)) $flags = [];
+    if (!is_array($flags)) {
+        $flags = [];
+    }
     $out = [];
     foreach (array_unique(array_values(DOCS_CONDITIONAL)) as $key) {
         $out[$key] = !empty($flags[$key]);
@@ -259,7 +305,9 @@ function docs_for_type(string $applicantType, array|string|null $flags = null): 
     }
     $on = doc_flags_decode($flags);
     foreach (DOCS_CONDITIONAL as $slug => $flag) {
-        if (empty($on[$flag])) unset($docs[$slug]);
+        if (empty($on[$flag])) {
+            unset($docs[$slug]);
+        }
     }
     return $docs;
 }
@@ -321,9 +369,13 @@ function required_docs_all_approved(PDO $db, int $applicantId): bool
     $stmt = $db->prepare('SELECT applicant_type, doc_flags FROM applicants WHERE id = ?');
     $stmt->execute([$applicantId]);
     $a = $stmt->fetch();
-    if (!$a) return false;
+    if (!$a) {
+        return false;
+    }
     $slugs = array_keys(docs_for_type($a['applicant_type'], $a['doc_flags'] ?? null));
-    if (!$slugs) return false;
+    if (!$slugs) {
+        return false;
+    }
     $in = implode(',', array_fill(0, count($slugs), '?'));
     $stmt = $db->prepare(
         "SELECT COUNT(DISTINCT doc_type) FROM documents
@@ -340,12 +392,16 @@ function doc_flags_blocked_slots(PDO $db, int $applicantId, array $newFlags): ar
     $stmt = $db->prepare('SELECT applicant_type, doc_flags FROM applicants WHERE id = ?');
     $stmt->execute([$applicantId]);
     $a = $stmt->fetch();
-    if (!$a) return [];
+    if (!$a) {
+        return [];
+    }
     $dropped = array_diff_key(
         docs_for_type($a['applicant_type'], $a['doc_flags'] ?? null),
         docs_for_type($a['applicant_type'], $newFlags)
     );
-    if (!$dropped) return [];
+    if (!$dropped) {
+        return [];
+    }
     $in = implode(',', array_fill(0, count($dropped), '?'));
     $stmt = $db->prepare(
         "SELECT doc_type FROM documents
@@ -353,7 +409,9 @@ function doc_flags_blocked_slots(PDO $db, int $applicantId, array $newFlags): ar
     );
     $stmt->execute(array_merge([$applicantId], array_keys($dropped)));
     $blocked = [];
-    foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $slug) $blocked[] = $dropped[$slug];
+    foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $slug) {
+        $blocked[] = $dropped[$slug];
+    }
     return $blocked;
 }
 
@@ -397,14 +455,28 @@ function doc_pick_slot(array $slots, array $rows, bool $isSubmitted): array
     $approved = 0;
     foreach ($slots as $slot) {
         $status = $rows[$slot]['status'] ?? 'pending';
-        if ($status === 'approved') { $approved++; continue; }
-        if (in_array($status, $declined, true)) { $redo[] = $slot; continue; }
-        if ($isSubmitted) continue;
-        if ($status === 'pending')  $pending[]  = $slot;
-        if ($status === 'uploaded') $uploaded[] = $slot;
+        if ($status === 'approved') {
+            $approved++;
+            continue;
+        }
+        if (in_array($status, $declined, true)) {
+            $redo[] = $slot;
+            continue;
+        }
+        if ($isSubmitted) {
+            continue;
+        }
+        if ($status === 'pending') {
+            $pending[]  = $slot;
+        }
+        if ($status === 'uploaded') {
+            $uploaded[] = $slot;
+        }
     }
     $slot = $pending[0] ?? $redo[0] ?? null;
-    if ($slot !== null) return ['slot' => $slot, 'reason' => null, 'replaced' => false];
+    if ($slot !== null) {
+        return ['slot' => $slot, 'reason' => null, 'replaced' => false];
+    }
     if (count($slots) === 1 && $uploaded) {
         return ['slot' => $uploaded[0], 'reason' => null, 'replaced' => true];
     }
@@ -424,9 +496,13 @@ function doc_pick_slot(array $slots, array $rows, bool $isSubmitted): array
 // Returns ['slot' => string|null, 'reason' => string|null].
 function doc_resolve_pick(string $pick, array $required, array $rows, bool $isSubmitted): array
 {
-    if (isset($required[$pick])) return ['slot' => $pick, 'reason' => null];
+    if (isset($required[$pick])) {
+        return ['slot' => $pick, 'reason' => null];
+    }
     $cats = doc_categories($required);
-    if (!isset($cats[$pick])) return ['slot' => null, 'reason' => 'Invalid document type.'];
+    if (!isset($cats[$pick])) {
+        return ['slot' => null, 'reason' => 'Invalid document type.'];
+    }
     $p = doc_pick_slot($cats[$pick]['slots'], $rows, $isSubmitted);
     return ['slot' => $p['slot'], 'reason' => $p['reason']];
 }
@@ -441,7 +517,10 @@ function doc_pick_slots(array $slots, array $rows, bool $isSubmitted, int $want 
     $reason   = null;
     for ($i = 0, $n = max(1, min($want, count($slots))); $i < $n; $i++) {
         $p = doc_pick_slot($slots, $rows, $isSubmitted);
-        if ($p['slot'] === null) { $reason = $p['reason']; break; }
+        if ($p['slot'] === null) {
+            $reason = $p['reason'];
+            break;
+        }
         $picked[]  = $p['slot'];
         $replaced  = $replaced || $p['replaced'];
         $rows[$p['slot']] = ['status' => 'uploaded'];
@@ -457,15 +536,21 @@ function classify_upload(string $path, string $mime, array $applicant): array
     $none = ['status' => 'uncertain', 'guess' => null, 'confidence' => null,
              'reason' => 'AI unavailable. Please pick the document type.', 'fields' => [], 'slots' => []];
     $lib = CORE_PATH . '/ai_classify.php';
-    if (is_file($lib)) require_once $lib;
-    if (!function_exists('ai_classify_image')) return $none;
+    if (is_file($lib)) {
+        require_once $lib;
+    }
+    if (!function_exists('ai_classify_image')) {
+        return $none;
+    }
     try {
         $r = ai_classify_image($path, $mime, $applicant);
     } catch (Throwable $e) {
         error_log('AI classify failed: ' . $e->getMessage());
         return $none;
     }
-    if (!in_array($r['status'] ?? '', ['passed', 'uncertain', 'failed'], true)) return $none;
+    if (!in_array($r['status'] ?? '', ['passed', 'uncertain', 'failed'], true)) {
+        return $none;
+    }
     return [
         'status'     => $r['status'],
         'guess'      => isset($r['guess']) && $r['guess'] !== '' ? (string)$r['guess'] : null,
@@ -483,10 +568,16 @@ function classify_upload(string $path, string $mime, array $applicant): array
 // source is applicant_pick (dropdown pick) or low_confidence (anything else).
 function doc_ai_flag_from_row(array $row): ?array
 {
-    if (($row['validation_type'] ?? '') !== 'ai' || ($row['status'] ?? '') !== 'uncertain') return null;
-    if (!empty($row['review_result'])) return null;
+    if (($row['validation_type'] ?? '') !== 'ai' || ($row['status'] ?? '') !== 'uncertain') {
+        return null;
+    }
+    if (!empty($row['review_result'])) {
+        return null;
+    }
     $d = json_decode((string)($row['details'] ?? ''), true);
-    if (!is_array($d)) $d = [];
+    if (!is_array($d)) {
+        $d = [];
+    }
     $pick  = isset($d['applicant_pick']) && $d['applicant_pick'] !== '' ? (string)$d['applicant_pick'] : null;
     $guess = $d['ai_guess'] ?? $d['category'] ?? null;
     return [
@@ -513,7 +604,9 @@ function doc_ai_flags(PDO $db, int $applicantId): array
     $out = [];
     foreach ($stmt->fetchAll() as $row) {
         $flag = doc_ai_flag_from_row($row);
-        if ($flag) $out[(int)$row['document_id']] = $flag;
+        if ($flag) {
+            $out[(int)$row['document_id']] = $flag;
+        }
     }
     return $out;
 }
@@ -562,7 +655,9 @@ function doc_approve_unflagged(PDO $db, int $applicantId, int $staffId): array
 // changed, so callers notify the student once and not on every re-approval.
 function advance_to_exam_if_docs_approved(PDO $db, int $applicantId): bool
 {
-    if (!required_docs_all_approved($db, $applicantId)) return false;
+    if (!required_docs_all_approved($db, $applicantId)) {
+        return false;
+    }
     $stmt = $db->prepare(
         'UPDATE applicants
             SET overall_status = \'exam\',
@@ -608,8 +703,12 @@ function format_full_name(array $row, string $fallback = '-'): string
     $left  = trim($last  . ($suffix !== '' ? ' ' . $suffix : ''));
     $right = trim($first . ($middle !== '' ? ' ' . $middle : ''));
 
-    if ($left === '')  return $right !== '' ? $right : $fallback;
-    if ($right === '') return $left;
+    if ($left === '') {
+        return $right !== '' ? $right : $fallback;
+    }
+    if ($right === '') {
+        return $left;
+    }
 
     return $left . ', ' . $right;
 }
@@ -621,26 +720,44 @@ function current_step(array $applicant, ?array $examResult, ?array $interviewSlo
     $status = $applicant['overall_status'] ?? '';
 
     // Released with a decision recorded → show result step
-    if ($admissionResult)                          return 'result';
+    if ($admissionResult) {
+        return 'result';
+    }
 
     // Post-interview, awaiting staff decision
-    if ($status === 'result')                      return 'result';
+    if ($status === 'result') {
+        return 'result';
+    }
 
     // Released without a decision yet (edge case) → result step
-    if ($status === 'released')                    return 'result';
+    if ($status === 'released') {
+        return 'result';
+    }
 
     // Actively in interview stage
-    if ($status === 'interview')                   return 'interview';
-    if ($interviewSlot && $interviewSlot['status'] !== 'open') return 'interview';
+    if ($status === 'interview') {
+        return 'interview';
+    }
+    if ($interviewSlot && $interviewSlot['status'] !== 'open') {
+        return 'interview';
+    }
 
     // Passed exam — waiting for interview assignment
-    if ($examResult && !empty($examResult['passed'])) return 'interview';
+    if ($examResult && !empty($examResult['passed'])) {
+        return 'interview';
+    }
 
     // Has exam result but failed — stays on exam step
-    if ($examResult)                               return 'exam';
+    if ($examResult) {
+        return 'exam';
+    }
 
-    if ($status === 'exam')                        return 'exam';
-    if ($status === 'documents')                   return 'documents';
+    if ($status === 'exam') {
+        return 'exam';
+    }
+    if ($status === 'documents') {
+        return 'documents';
+    }
     return 'documents';
 }
 
@@ -682,7 +799,10 @@ function uploadcare_upload(string $tmpPath, string $filename, string $mimeType):
     $curlErr  = curl_error($ch);
 
     if ($response === false || $status < 200 || $status >= 300) {
-        error_log('Supabase upload failed: HTTP ' . $status . ' ' . $curlErr . ' ' . (is_string($response) ? $response : ''));
+        error_log(
+            'Supabase upload failed: HTTP ' . $status . ' ' . $curlErr . ' '
+            . (is_string($response) ? $response : '')
+        );
         return null;
     }
 
@@ -743,7 +863,8 @@ function captcha_verify(?string $token = null): bool
         return false;
     }
 
-    $response = @file_get_contents('https://challenges.cloudflare.com/turnstile/v0/siteverify', false, stream_context_create([
+    $verifyUrl = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
+    $response = @file_get_contents($verifyUrl, false, stream_context_create([
         'http' => [
             'method'  => 'POST',
             'header'  => 'Content-Type: application/x-www-form-urlencoded',
@@ -780,13 +901,23 @@ function auth_csp(): string
 function google_claims_ok(array $c, string $clientId, ?int $now = null): bool
 {
     $now ??= time();
-    if (!in_array($c['iss'] ?? '', ['https://accounts.google.com', 'accounts.google.com'], true)) return false;
+    if (!in_array($c['iss'] ?? '', ['https://accounts.google.com', 'accounts.google.com'], true)) {
+        return false;
+    }
     $aud = $c['aud'] ?? '';
-    if (!(is_array($aud) ? in_array($clientId, $aud, true) : ($clientId !== '' && $aud === $clientId))) return false;
-    if ((int) ($c['exp'] ?? 0) <= $now) return false;
-    if (!in_array($c['email_verified'] ?? false, [true, 'true'], true)) return false;
+    if (!(is_array($aud) ? in_array($clientId, $aud, true) : ($clientId !== '' && $aud === $clientId))) {
+        return false;
+    }
+    if ((int) ($c['exp'] ?? 0) <= $now) {
+        return false;
+    }
+    if (!in_array($c['email_verified'] ?? false, [true, 'true'], true)) {
+        return false;
+    }
     foreach (['sub', 'email'] as $k) {
-        if (!is_string($c[$k] ?? null) || $c[$k] === '') return false;
+        if (!is_string($c[$k] ?? null) || $c[$k] === '') {
+            return false;
+        }
     }
     return true;
 }
@@ -794,10 +925,14 @@ function google_claims_ok(array $c, string $clientId, ?int $now = null): bool
 function google_logo_svg(): string
 {
     return '<svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">'
-        . '<path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/>'
-        . '<path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/>'
-        . '<path fill="#FBBC05" d="M10.5 28.7c-.5-1.4-.8-3-.8-4.7s.3-3.2.8-4.7l-7.9-6.1C.9 16.4 0 20.100 0 24s.9 7.600 2.600 10.800l7.900-6.100z"/>'
-        . '<path fill="#34A853" d="M24 48c6.500 0 11.900-2.100 15.900-5.800l-7.500-5.800c-2.100 1.400-4.800 2.300-8.400 2.300-6.300 0-11.600-4.100-13.500-9.800l-7.900 6.100C6.500 42.600 14.600 48 24 48z"/>'
+        . '<path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 '
+        . '14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/>'
+        . '<path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8'
+        . 'c4.4-4.1 7.1-10.1 7.1-17.5z"/>'
+        . '<path fill="#FBBC05" d="M10.5 28.7c-.5-1.4-.8-3-.8-4.7s.3-3.2.8-4.7l-7.9-6.1C.9 16.4 0 20.100 0 24'
+        . 's.9 7.600 2.600 10.800l7.900-6.100z"/>'
+        . '<path fill="#34A853" d="M24 48c6.500 0 11.900-2.100 15.900-5.800l-7.500-5.800'
+        . 'c-2.100 1.400-4.800 2.300-8.400 2.300-6.300 0-11.600-4.100-13.500-9.800l-7.900 6.100C6.500 42.600 14.600 48 24 48z"/>'
         . '</svg>';
 }
 
@@ -885,8 +1020,10 @@ function phosphor_head(): string
     // font arrives. Preloading them starts that download with the page, not
     // after the CSS is parsed, so icons are there on first paint.
     return '<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>' . "\n"
-         . '    <link rel="preload" as="font" type="font/woff2" href="' . $b . '/bold/Phosphor-Bold.woff2" crossorigin>' . "\n"
-         . '    <link rel="preload" as="font" type="font/woff2" href="' . $b . '/fill/Phosphor-Fill.woff2" crossorigin>' . "\n"
+         . '    <link rel="preload" as="font" type="font/woff2" '
+         . 'href="' . $b . '/bold/Phosphor-Bold.woff2" crossorigin>' . "\n"
+         . '    <link rel="preload" as="font" type="font/woff2" '
+         . 'href="' . $b . '/fill/Phosphor-Fill.woff2" crossorigin>' . "\n"
          . '    <link rel="stylesheet" href="' . $b . '/bold/style.css">' . "\n"
          . '    <link rel="stylesheet" href="' . $b . '/fill/style.css">';
 }
@@ -931,12 +1068,16 @@ function icon(string $name, int $size = 16, string $style = '', string $extra = 
     ];
 
     if (preg_match('/^ic_fluent_(.+)_24_(?:regular|filled)$/', $name, $m)) {
-        if (!isset($map[$m[1]])) return '';
+        if (!isset($map[$m[1]])) {
+            return '';
+        }
         $ph     = $map[$m[1]];
         $weight = in_array($m[1], $fill, true) ? 'fill' : 'bold';
     } else {
         [$ph, $weight] = array_pad(explode(':', $name, 2), 2, 'bold');
-        if ($weight !== 'fill') $weight = 'bold';
+        if ($weight !== 'fill') {
+            $weight = 'bold';
+        }
     }
 
     $cls = 'ph-' . $weight . ' ph-' . $ph;
@@ -946,7 +1087,9 @@ function icon(string $name, int $size = 16, string $style = '', string $extra = 
     }
     $out = '<i class="' . $cls . '" aria-hidden="true" style="font-size:' . $size . 'px'
          . ($style ? ';' . $style : '') . '"';
-    if (trim($extra) !== '') $out .= ' ' . trim($extra);
+    if (trim($extra) !== '') {
+        $out .= ' ' . trim($extra);
+    }
     return $out . '></i>';
 }
 
@@ -988,14 +1131,18 @@ function paginate(PDO $pdo, string $countSql, string $dataSql, array $params, in
 function get_all_courses(): array
 {
     static $cache = null;
-    if ($cache !== null) return $cache;
+    if ($cache !== null) {
+        return $cache;
+    }
     $courses = PLP_COURSES;
     try {
         $rows = db()->query(
             "SELECT course_name FROM custom_courses WHERE is_active=1 ORDER BY course_name"
         )->fetchAll(\PDO::FETCH_COLUMN);
         foreach ($rows as $cn) {
-            if (!in_array($cn, $courses, true)) $courses[] = $cn;
+            if (!in_array($cn, $courses, true)) {
+                $courses[] = $cn;
+            }
         }
     } catch (\Throwable $e) {}
     return $cache = $courses;
@@ -1009,7 +1156,9 @@ function get_all_courses(): array
 function get_all_strand_map(): array
 {
     static $cache = null;
-    if ($cache !== null) return $cache;
+    if ($cache !== null) {
+        return $cache;
+    }
     $map = COURSE_STRAND_MAP;
     try {
         $rows = db()->query(
@@ -1041,10 +1190,16 @@ function strand_qualified_courses(int $rankScore, string $appliedCourse, string 
     $result    = [];
 
     foreach ($strandMap as $course => $strands) {
-        if ($course === $appliedCourse)               continue; // skip applied course
-        if (!in_array($strand, $strands, true))       continue; // strand not accepted
+        if ($course === $appliedCourse) {
+            continue;  // skip applied course
+        }
+        if (!in_array($strand, $strands, true)) {
+            continue;  // strand not accepted
+        }
         $threshold = get_pass_threshold($course);
-        if ($rankScore >= $threshold) $result[] = $course;      // rank qualifies
+        if ($rankScore >= $threshold) {
+            $result[] = $course;  // rank qualifies
+        }
     }
     return $result;
 }
@@ -1098,8 +1253,12 @@ function generate_exam_password(): string
  */
 function exam_password_is_valid(array $row): bool
 {
-    if (empty($row['access_password']))    return false;
-    if (empty($row['password_issued_at'])) return false;
+    if (empty($row['access_password'])) {
+        return false;
+    }
+    if (empty($row['password_issued_at'])) {
+        return false;
+    }
     // Compute age in the database so PHP/DB timezone differences don't skew the result.
     $stmt = db()->prepare(
         'SELECT TRUNC(EXTRACT(EPOCH FROM (NOW() - CAST(? AS timestamp))))'
@@ -1117,7 +1276,9 @@ function exam_password_is_valid(array $row): bool
  */
 function exam_password_seconds_remaining(array $row): int
 {
-    if (empty($row['password_issued_at'])) return 0;
+    if (empty($row['password_issued_at'])) {
+        return 0;
+    }
     // Compute in the database so PHP/DB timezone differences don't skew the result.
     $stmt = db()->prepare(
         'SELECT GREATEST(0, ' . (int) EXAM_PASSWORD_EXPIRY_SECONDS
@@ -1146,7 +1307,9 @@ function slot_window(array $slot): array
     if (!empty($slot['end_time'])) {
         $closes = new DateTime($slot['exam_date'] . ' ' . $slot['end_time']);
         // If end_time wraps past midnight (e.g. 11pm → 1am), bump a day.
-        if ($closes <= $opens) $closes->modify('+1 day');
+        if ($closes <= $opens) {
+            $closes->modify('+1 day');
+        }
     } else {
         $closes = (clone $opens)->modify('+90 minutes');
     }
@@ -1179,7 +1342,8 @@ function segmented_tabs(array $tabs, string $active, string $ariaLabel = 'Views'
     foreach ($tabs as $key => $t) {
         $isActive = ((string)$key === $active);
         $count = $t['count'] ?? null;
-        $html .= '<a href="' . htmlspecialchars($t['href']) . '" role="tab" aria-selected="' . ($isActive ? 'true' : 'false') . '"'
+        $html .= '<a href="' . htmlspecialchars($t['href']) . '" role="tab" '
+               . 'aria-selected="' . ($isActive ? 'true' : 'false') . '"'
                . ' class="seg-control-item' . ($isActive ? ' active' : '') . '">'
                . htmlspecialchars($t['label']);
         if ($count !== null && (int)$count > 0) {
@@ -1197,7 +1361,14 @@ function segmented_tabs(array $tabs, string $active, string $ariaLabel = 'Views'
  * whatever filters that page needs to preserve in the URL (search term,
  * status filter, page number, ...) alongside the sort change itself.
  */
-function sortable_th(string $col, string $label, string $currentCol, string $currentDir, array $extraParams = [], string $thStyle = ''): string
+function sortable_th(
+    string $col,
+    string $label,
+    string $currentCol,
+    string $currentDir,
+    array $extraParams = [],
+    string $thStyle = ''
+): string
 {
     $isActive = ($currentCol === $col);
     $nextDir  = ($isActive && $currentDir === 'asc') ? 'desc' : 'asc';
@@ -1207,9 +1378,13 @@ function sortable_th(string $col, string $label, string $currentCol, string $cur
     $sortIcon  = icon('ic_fluent_chevron_up_down_24_filled', 13);
     $sortColor = $isActive ? 'var(--accent)' : 'var(--text-tertiary)';
 
-    return '<th' . ($thStyle !== '' ? ' style="' . htmlspecialchars($thStyle) . '"' : '') . '><a href="' . $url . '" style="display:inline-flex;align-items:center;gap:4px;text-decoration:none;color:inherit;white-space:nowrap;">'
+    return '<th' . ($thStyle !== '' ? ' style="' . htmlspecialchars($thStyle) . '"' : '') . '>'
+         . '<a href="' . $url . '" '
+         . 'style="display:inline-flex;align-items:center;gap:4px;text-decoration:none;'
+         . 'color:inherit;white-space:nowrap;">'
          . htmlspecialchars($label)
-         . '<span style="color:' . $sortColor . ';display:flex;align-items:center;margin-left:2px;">' . $sortIcon . '</span>'
+         . '<span style="color:' . $sortColor . ';display:flex;align-items:center;margin-left:2px;">'
+         . $sortIcon . '</span>'
          . '</a></th>';
 }
 
@@ -1264,17 +1439,22 @@ function auto_table_footer(array $result, callable $urlFor, string $noun = 'reco
     $btn = function (bool $enabled, int $target, string $iconName, string $label) use ($urlFor): string {
         $ic = icon($iconName, 16);
         return $enabled
-            ? '<a href="' . htmlspecialchars($urlFor($target)) . '" class="auto-table-page-btn" aria-label="' . $label . '">' . $ic . '</a>'
+            ? '<a href="' . htmlspecialchars($urlFor($target)) . '" class="auto-table-page-btn" '
+              . 'aria-label="' . $label . '">' . $ic . '</a>'
             : '<span class="auto-table-page-btn" aria-disabled="true" aria-label="' . $label . '">' . $ic . '</span>';
     };
 
     $strong = 'style="color:var(--text-primary);font-weight:var(--weight-semibold)"';
     return '<div class="auto-table-pagination">'
-         . '<p class="auto-table-pagination-info" style="margin:0">Showing <strong>' . number_format($from) . '–' . number_format($to)
+         . '<p class="auto-table-pagination-info" style="margin:0">Showing <strong>'
+         . number_format($from) . '–' . number_format($to)
          . '</strong> of <strong>' . number_format($total) . '</strong> ' . htmlspecialchars($noun) . '</p>'
          . '<div class="auto-table-pagination-controls">'
          . $btn($page > 1, $page - 1, 'ic_fluent_chevron_left_24_regular', 'Previous page')
-         . '<span style="padding:0 var(--space-1);font-size:var(--text-sm);color:var(--text-tertiary);white-space:nowrap">Page <strong ' . $strong . '>' . $page . '</strong> of <strong ' . $strong . '>' . $pages . '</strong></span>'
+         . '<span style="padding:0 var(--space-1);font-size:var(--text-sm);'
+         . 'color:var(--text-tertiary);white-space:nowrap">'
+         . 'Page <strong ' . $strong . '>' . $page . '</strong> of '
+         . '<strong ' . $strong . '>' . $pages . '</strong></span>'
          . $btn($page < $pages, $page + 1, 'ic_fluent_chevron_right_24_regular', 'Next page')
          . '</div></div>';
 }
