@@ -247,10 +247,10 @@ ob_start();
             <div class="auto-table-toolbar" id="sv-toolbar">
                 <div class="auto-table-search">
                     <?= icon('ic_fluent_search_24_filled', 14) ?>
-                    <input type="text" id="sv-search" class="form-input" placeholder="Search by name, course or department…" autocomplete="off">
+                    <input type="text" id="sv-search" class="form-input" aria-label="Search applicants" placeholder="Search by name, course or department…" autocomplete="off">
                 </div>
 
-                <select id="sv-status" class="form-input" style="width:170px" title="Filter by status">
+                <select id="sv-status" class="form-input" aria-label="Filter by status" style="width:170px" title="Filter by status">
                     <option value="">All statuses</option>
                     <option value="pending">Pending</option>
                     <option value="completed">Completed</option>
@@ -318,7 +318,7 @@ ob_start();
                                     <input type="checkbox"
                                            name="rows[<?= (int)$row['queue_id'] ?>][absent]"
                                            value="1"
-                                           class="js-absent-toggle"
+                                           class="js-absent-toggle" aria-label="Mark absent"
                                            <?= $absentChecked ? 'checked' : '' ?>
                                            <?= $isLocked ? 'disabled' : '' ?>>
                                 </label>

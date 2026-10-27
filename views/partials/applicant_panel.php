@@ -310,8 +310,8 @@ $_panelStatusColor = function (string $s): string {
                 <input type="hidden" name="evaluation_result" class="ap-eval-input"
                        value="<?= e($_evalRes ?: '') ?>">
 
-                <label class="ap-eval-label">Interview notes</label>
-                <textarea name="interview_notes"
+                <label class="ap-eval-label" for="ap-eval-notes-<?= (int)$_int['id'] ?>">Interview notes</label>
+                <textarea name="interview_notes" id="ap-eval-notes-<?= (int)$_int['id'] ?>"
                           class="form-control ap-eval-notes"
                           rows="4"
                           placeholder="Interview notes / evaluation remarks…"><?= e($_int['interview_notes'] ?? '') ?></textarea>

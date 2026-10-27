@@ -1535,7 +1535,6 @@ tbody tr:hover { background: var(--bg-overlay); }
     color: var(--auth-ink);
 }
 .auth-aside {
-    position: relative;
     isolation: isolate;
     display: flex;
     flex-direction: column;

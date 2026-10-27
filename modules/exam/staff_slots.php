@@ -911,7 +911,7 @@ ob_start();
     ?>
     <div class="select-toolbar">
         <?php if (count($slotDateMap) > 1): ?>
-            <select id="es-date-filter" class="form-control" title="Filter by exam date">
+            <select id="es-date-filter" class="form-control" title="Filter by exam date" aria-label="Filter by exam date">
                 <option value="" data-count="<?= count($slotsForCollege) ?>">
                     All dates · <?= count($slotsForCollege) ?> slot<?= count($slotsForCollege) === 1 ? '' : 's' ?>
                 </option>
@@ -966,7 +966,7 @@ ob_start();
                data-capacity="<?= $cap ?>"
                onclick="return onEsCardClick(event, this)">
                 <?php if ($canManage): ?>
-                    <input type="checkbox" class="select-card-check es-select-checkbox"
+                    <input type="checkbox" class="select-card-check es-select-checkbox" aria-label="Select slot"
                            value="<?= $sid ?>"
                            <?= $esUndeletable ? 'disabled title="Has applicants - cannot remove"' : '' ?>
                            onclick="event.stopPropagation();onEsCheckboxChange(this)">
@@ -1115,7 +1115,7 @@ ob_start();
                 </button>
             </span>
             <span id="room-label-edit" style="display:none;align-items:center;gap:4px">
-                <input type="text" id="room-label-input" class="form-control"
+                <input type="text" id="room-label-input" aria-label="Room label" class="form-control"
                        value="<?= e($slotDetail['room_label']) ?>"
                        maxlength="80"
                        style="font-size:var(--text-sm);padding:2px 8px;height:auto;min-height:0;width:240px">
@@ -1248,7 +1248,7 @@ ob_start();
 
             <div class="auto-table-search">
                 <?= icon('ic_fluent_search_24_filled', 14) ?>
-                <input type="text" name="q" class="form-input" placeholder="Search name, email, course…" value="<?= e($rosterSearch) ?>">
+                <input type="text" id="roster_q" name="q" aria-label="Search" class="form-input" placeholder="Search name, email, course…" value="<?= e($rosterSearch) ?>">
             </div>
 
             <select name="type" class="form-input" style="width:160px" onchange="this.form.submit()" aria-label="Applicant type">
@@ -1395,31 +1395,31 @@ ob_start();
                     <!-- ── Single slot fields ─────────────────── -->
                     <div id="add-slot-single-fields" style="display:flex;flex-direction:column;gap:var(--space-4)">
                         <div>
-                            <label class="form-label">Exam Date <span style="color:var(--error)">*</span></label>
-                            <input type="date" name="exam_date" class="form-control" required
+                            <label class="form-label" for="add-slot-date">Exam Date <span style="color:var(--error)">*</span></label>
+                            <input type="date" id="add-slot-date" name="exam_date" class="form-control" required
                                    value="<?= e($defaultDate) ?>" min="<?= date('Y-m-d') ?>">
                         </div>
                         <div class="row row-cols-1 row-cols-md-2" style="--bs-gutter-x:var(--space-3);--bs-gutter-y:var(--space-3)">
                             <div>
-                                <label class="form-label">Opens <span style="color:var(--error)">*</span></label>
+                                <label class="form-label" for="add-slot-time">Opens <span style="color:var(--error)">*</span></label>
                                 <input type="time" name="slot_time" id="add-slot-time"
                                        class="form-control" value="08:00" required>
                             </div>
                             <div>
-                                <label class="form-label">Closes <span style="color:var(--error)">*</span></label>
+                                <label class="form-label" for="add-slot-end">Closes <span style="color:var(--error)">*</span></label>
                                 <input type="time" name="end_time" id="add-slot-end"
                                        class="form-control" value="09:30" required>
                             </div>
                         </div>
                         <div class="row row-cols-1 row-cols-md-2" style="--bs-gutter-x:var(--space-3);--bs-gutter-y:var(--space-3)">
                             <div>
-                                <label class="form-label">Capacity <span style="color:var(--error)">*</span></label>
-                                <input type="number" name="capacity" class="form-control"
+                                <label class="form-label" for="add-slot-cap">Capacity <span style="color:var(--error)">*</span></label>
+                                <input type="number" id="add-slot-cap" name="capacity" class="form-control"
                                        value="<?= $examRoomCap ?>" min="1" max="500" required>
                             </div>
                             <div>
-                                <label class="form-label">Room Label <span style="color:var(--error)">*</span></label>
-                                <input type="text" name="room_label" class="form-control" required
+                                <label class="form-label" for="add-slot-room">Room Label <span style="color:var(--error)">*</span></label>
+                                <input type="text" id="add-slot-room" name="room_label" class="form-control" required
                                        placeholder="e.g. Room 101" maxlength="80">
                             </div>
                         </div>
@@ -1432,37 +1432,37 @@ ob_start();
                         </p>
                         <div class="row row-cols-1 row-cols-md-2" style="--bs-gutter-x:var(--space-3);--bs-gutter-y:var(--space-3)">
                             <div>
-                                <label class="form-label">Start Date <span style="color:var(--error)">*</span></label>
-                                <input type="date" name="batch_start_date" class="form-control"
+                                <label class="form-label" for="add-batch-start">Start Date <span style="color:var(--error)">*</span></label>
+                                <input type="date" id="add-batch-start" name="batch_start_date" class="form-control"
                                        value="<?= e($defaultDate) ?>" required>
                             </div>
                             <div>
-                                <label class="form-label">End Date <span style="color:var(--error)">*</span></label>
-                                <input type="date" name="batch_end_date" class="form-control"
+                                <label class="form-label" for="add-batch-end">End Date <span style="color:var(--error)">*</span></label>
+                                <input type="date" id="add-batch-end" name="batch_end_date" class="form-control"
                                        value="<?= e(date('Y-m-d', strtotime($defaultDate . ' +6 days'))) ?>" required>
                             </div>
                         </div>
                         <div class="row row-cols-1 row-cols-md-2" style="--bs-gutter-x:var(--space-3);--bs-gutter-y:var(--space-3)">
                             <div>
-                                <label class="form-label">Opens <span style="color:var(--error)">*</span></label>
+                                <label class="form-label" for="batch-time">Opens <span style="color:var(--error)">*</span></label>
                                 <input type="time" name="batch_time" id="batch-time"
                                        class="form-control" value="08:00" required>
                             </div>
                             <div>
-                                <label class="form-label">Closes <span style="color:var(--error)">*</span></label>
+                                <label class="form-label" for="batch-end-time">Closes <span style="color:var(--error)">*</span></label>
                                 <input type="time" name="batch_end_time" id="batch-end-time"
                                        class="form-control" value="09:30" required>
                             </div>
                         </div>
                         <div>
-                            <label class="form-label">Seats per Slot</label>
-                            <input type="number" name="batch_capacity" class="form-control"
+                            <label class="form-label" for="add-batch-cap">Seats per Slot</label>
+                            <input type="number" id="add-batch-cap" name="batch_capacity" class="form-control"
                                    value="<?= $examRoomCap ?>" min="1" max="500">
                         </div>
                         <div>
-                            <label class="form-label">Rooms</label>
+                            <span class="form-label">Rooms</span>
                             <div id="batch-rooms-list" style="display:flex;flex-direction:column;gap:var(--space-2)">
-                                <input type="text" name="batch_rooms[]" class="form-control"
+                                <input type="text" name="batch_rooms[]" aria-label="Room" class="form-control"
                                        placeholder="e.g. Room 101" required>
                             </div>
                             <button type="button" class="btn btn-ghost btn-sm"
@@ -1470,7 +1470,7 @@ ob_start();
                                     onclick="addBatchRoom()">+ Add another room</button>
                         </div>
                         <div>
-                            <label class="form-label">Days of Week</label>
+                            <span class="form-label">Days of Week</span>
                             <div style="display:flex;flex-wrap:wrap;gap:var(--space-2)">
                                 <?php foreach ([1=>'Mon',2=>'Tue',3=>'Wed',4=>'Thu',5=>'Fri',6=>'Sat',0=>'Sun'] as $dv => $dl): ?>
                                     <label style="display:flex;align-items:center;gap:4px;font-size:var(--text-sm)">
@@ -1514,7 +1514,7 @@ ob_start();
                 <input type="hidden" name="slot_id"     id="edit-slot-id">
                 <div class="modal-body" style="display:flex;flex-direction:column;gap:var(--space-4)">
                     <div>
-                        <label class="form-label">College / Department <span style="color:var(--error)">*</span></label>
+                        <label class="form-label" for="edit-slot-dept">College / Department <span style="color:var(--error)">*</span></label>
                         <?php if ($canManage): ?>
                             <select name="department" id="edit-slot-dept" class="form-control" required>
                                 <option value="">- Select college -</option>
@@ -1523,22 +1523,22 @@ ob_start();
                                 <?php endforeach; ?>
                             </select>
                         <?php else: ?>
-                            <input type="text" class="form-control" value="<?= e($staffDept ?: 'Not assigned') ?>" disabled>
+                            <input type="text" class="form-control" aria-label="College / Department" value="<?= e($staffDept ?: 'Not assigned') ?>" disabled>
                             <input type="hidden" name="department" value="<?= e($staffDept) ?>">
                         <?php endif; ?>
                     </div>
                     <div>
-                        <label class="form-label">Exam Date <span style="color:var(--error)">*</span></label>
+                        <label class="form-label" for="edit-slot-date">Exam Date <span style="color:var(--error)">*</span></label>
                         <input type="date" name="exam_date" id="edit-slot-date"
                                class="form-control" required min="<?= date('Y-m-d') ?>">
                     </div>
                     <div class="row row-cols-1 row-cols-md-2" style="--bs-gutter-x:var(--space-3);--bs-gutter-y:var(--space-3)">
                         <div>
-                            <label class="form-label">Opens <span style="color:var(--error)">*</span></label>
+                            <label class="form-label" for="edit-slot-time">Opens <span style="color:var(--error)">*</span></label>
                             <input type="time" name="slot_time" id="edit-slot-time" class="form-control" required>
                         </div>
                         <div>
-                            <label class="form-label">Closes <span style="color:var(--error)">*</span></label>
+                            <label class="form-label" for="edit-slot-end">Closes <span style="color:var(--error)">*</span></label>
                             <input type="time" name="end_time" id="edit-slot-end" class="form-control" required>
                         </div>
                     </div>
@@ -1547,12 +1547,12 @@ ob_start();
                     </div>
                     <div class="row row-cols-1 row-cols-md-2" style="--bs-gutter-x:var(--space-3);--bs-gutter-y:var(--space-3)">
                         <div>
-                            <label class="form-label">Capacity <span style="color:var(--error)">*</span></label>
+                            <label class="form-label" for="edit-slot-cap">Capacity <span style="color:var(--error)">*</span></label>
                             <input type="number" name="capacity" id="edit-slot-cap"
                                    class="form-control" min="1" max="500" required>
                         </div>
                         <div>
-                            <label class="form-label">Room Label <span style="color:var(--error)">*</span></label>
+                            <label class="form-label" for="edit-slot-room">Room Label <span style="color:var(--error)">*</span></label>
                             <input type="text" name="room_label" id="edit-slot-room"
                                    class="form-control" required maxlength="80">
                         </div>
@@ -1599,13 +1599,13 @@ ob_start();
                 <input type="hidden" name="ctx_college" value="<?= e($collegeParam) ?>">
                 <div class="modal-body" style="display:flex;flex-direction:column;gap:var(--space-4)">
                     <div>
-                        <label class="form-label">Default Seats per Room</label>
-                        <input type="number" name="exam_room_capacity" class="form-control"
+                        <label class="form-label" for="cfg-room-cap">Default Seats per Room</label>
+                        <input type="number" id="cfg-room-cap" name="exam_room_capacity" class="form-control"
                                value="<?= $examRoomCap ?>" min="1" max="200">
                     </div>
                     <div>
-                        <label class="form-label">Max Applicants per Exam Day</label>
-                        <input type="number" name="exam_daily_cap" class="form-control"
+                        <label class="form-label" for="cfg-daily-cap">Max Applicants per Exam Day</label>
+                        <input type="number" id="cfg-daily-cap" name="exam_daily_cap" class="form-control"
                                value="<?= $examDailyCap ?>" min="1" max="10000">
                     </div>
                     <?php $roomsNeeded = $examRoomCap > 0 ? ceil($examDailyCap / $examRoomCap) : '-'; ?>

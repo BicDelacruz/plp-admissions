@@ -106,27 +106,27 @@ ob_start();
             <div style="display:flex;flex-direction:column;gap:var(--space-4)">
                 <?php if ($schoolLogo): ?>
                     <div>
-                        <label class="form-label">Current Logo</label>
+                        <span class="form-label">Current Logo</span>
                         <img src="<?= str_starts_with($schoolLogo, 'http') ? e($schoolLogo) : e(url('/'. $schoolLogo)) ?>" alt="Logo"
                              style="height:48px;border-radius:var(--radius);display:block">
                     </div>
                 <?php endif; ?>
                 <div>
-                    <label class="form-label">School Logo</label>
-                    <input type="file" name="school_logo" class="form-control" accept=".jpg,.jpeg,.png,.webp,.svg">
+                    <label class="form-label" for="school_logo">School Logo</label>
+                    <input type="file" id="school_logo" name="school_logo" class="form-control" accept=".jpg,.jpeg,.png,.webp,.svg">
                     <p style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:4px">JPG, PNG, WEBP, or SVG · max 2 MB</p>
                 </div>
                 <div>
-                    <label class="form-label">School Name</label>
-                    <input type="text" name="school_name" class="form-control" value="<?= e($schoolName) ?>" required>
+                    <label class="form-label" for="school_name">School Name</label>
+                    <input type="text" id="school_name" name="school_name" class="form-control" value="<?= e($schoolName) ?>" required>
                 </div>
                 <div>
-                    <label class="form-label">Accent Color</label>
+                    <label class="form-label" for="color-picker">Accent Color</label>
                     <div style="display:flex;align-items:center;gap:var(--space-3)">
                         <input type="color" name="accent_color" value="<?= e($accentColor) ?>"
                                style="width:44px;height:36px;padding:2px;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;background:none"
                                id="color-picker">
-                        <input type="text" class="form-control" style="max-width:120px"
+                        <input type="text" class="form-control" style="max-width:120px" aria-label="Accent color hex"
                                value="<?= e($accentColor) ?>" id="hex-input"
                                oninput="document.getElementById('color-picker').value=this.value">
                     </div>
@@ -146,16 +146,16 @@ ob_start();
             <input type="hidden" name="action" value="change_password">
             <div style="display:flex;flex-direction:column;gap:var(--space-4)">
                 <div>
-                    <label class="form-label">Current Password</label>
-                    <input type="password" name="current_password" class="form-control" required>
+                    <label class="form-label" for="admin_current_password">Current Password</label>
+                    <input type="password" id="admin_current_password" name="current_password" class="form-control" required>
                 </div>
                 <div>
-                    <label class="form-label">New Password</label>
-                    <input type="password" name="new_password" class="form-control" minlength="8" required>
+                    <label class="form-label" for="admin_new_password">New Password</label>
+                    <input type="password" id="admin_new_password" name="new_password" class="form-control" minlength="8" required>
                 </div>
                 <div>
-                    <label class="form-label">Confirm New Password</label>
-                    <input type="password" name="confirm_password" class="form-control" required>
+                    <label class="form-label" for="admin_confirm_password">Confirm New Password</label>
+                    <input type="password" id="admin_confirm_password" name="confirm_password" class="form-control" required>
                 </div>
             </div>
             <div style="margin-top:var(--space-5)">

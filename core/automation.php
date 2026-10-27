@@ -73,20 +73,49 @@ function notify_stage_transition(int $applicantId, string $newStatus, string $ex
     $stmt = $pdo->prepare('SELECT user_id FROM applicants WHERE id = ?');
     $stmt->execute([$applicantId]);
     $row = $stmt->fetch();
-    if (!$row) return;
+    if (!$row) {
+        return;
+    }
 
     $userId = (int) $row['user_id'];
 
     $messages = [
-        'submitted'            => ['Documents Submitted', 'Your application documents have been submitted for review.', '/student/documents'],
-        'exam'                 => ['Documents Approved', 'All your documents have been approved. You are now eligible for the entrance exam.' . ($extra ? ' ' . $extra : ''), '/student/exam'],
-        'interview'            => ['Exam Passed', 'Congratulations! You passed the entrance exam. Your interview will be scheduled soon.', '/student/interview'],
-        'released'             => ['Result Released', 'Your admission result has been released. Check your result now.' . ($extra ? ' ' . $extra : ''), '/student/result'],
-        'withdrawn'            => ['Application Withdrawn', 'Your application has been withdrawn.', '/student/documents'],
-        'enrollment_confirmed' => ['Enrollment Confirmed', 'You have confirmed your enrollment. Welcome to PLP!' . ($extra ? ' ' . $extra : ''), '/student/result'],
+        'submitted' => [
+            'Documents Submitted',
+            'Your application documents have been submitted for review.',
+            '/student/documents',
+        ],
+        'exam' => [
+            'Documents Approved',
+            'All your documents have been approved. You are now eligible for the entrance exam.'
+                . ($extra ? ' ' . $extra : ''),
+            '/student/exam',
+        ],
+        'interview' => [
+            'Exam Passed',
+            'Congratulations! You passed the entrance exam. Your interview will be scheduled soon.',
+            '/student/interview',
+        ],
+        'released' => [
+            'Result Released',
+            'Your admission result has been released. Check your result now.' . ($extra ? ' ' . $extra : ''),
+            '/student/result',
+        ],
+        'withdrawn' => [
+            'Application Withdrawn',
+            'Your application has been withdrawn.',
+            '/student/documents',
+        ],
+        'enrollment_confirmed' => [
+            'Enrollment Confirmed',
+            'You have confirmed your enrollment. Welcome to PLP!' . ($extra ? ' ' . $extra : ''),
+            '/student/result',
+        ],
     ];
 
-    if (!isset($messages[$newStatus])) return;
+    if (!isset($messages[$newStatus])) {
+        return;
+    }
 
     [$title, $message, $link] = $messages[$newStatus];
     create_notification($userId, 'stage_' . $newStatus, $title, $message, $link);
@@ -118,7 +147,8 @@ function notify_stage_transition(int $applicantId, string $newStatus, string $ex
 function send_registration_email(string $email, string $name): void
 {
     $body = '<p>Welcome, <strong>' . e($name) . '</strong>!</p>'
-        . '<p>Your account has been created successfully. Please log in and upload your required documents to continue with your application.</p>'
+        . '<p>Your account has been created successfully. Please log in and upload your required documents '
+        . 'to continue with your application.</p>'
         . email_button(rtrim(BASE_URL, '/') . '/student/documents', 'Upload Documents');
     send_email(
         $email,
@@ -161,7 +191,9 @@ function auto_assign_exam_slot(int $applicantId): ?int
         error_log("[auto_assign #{$applicantId}] SKIP: auto_assign_exam_slots setting is OFF");
         return null;
     }
-    if ($applicantId <= 0) return null;
+    if ($applicantId <= 0) {
+        return null;
+    }
 
     $pdo = db();
 
@@ -200,7 +232,10 @@ function auto_assign_exam_slot(int $applicantId): ?int
     $dept = trim((string)($appl['department'] ?? ''))
           ?: course_to_department((string)($appl['course_applied'] ?? ''));
 
-    error_log("[auto_assign #{$applicantId}] status={$appl['overall_status']} course={$appl['course_applied']} users.department={$appl['department']} resolved_dept={$dept}");
+    error_log(
+        "[auto_assign #{$applicantId}] status={$appl['overall_status']} course={$appl['course_applied']} "
+        . "users.department={$appl['department']} resolved_dept={$dept}"
+    );
 
     // Active exam (if any) — when multiple exams coexist we prefer
     // slots tied to the active one so applicants don't get booked
@@ -289,7 +324,10 @@ function auto_assign_exam_slot(int $applicantId): ?int
         $stmt = $pdo->prepare($q['sql']);
         $stmt->execute($q['params']);
         $rows = $stmt->fetchAll();
-        error_log("[auto_assign #{$applicantId}] query #{$qi} params=" . json_encode($q['params']) . " found=" . count($rows));
+        error_log(
+            "[auto_assign #{$applicantId}] query #{$qi} params=" . json_encode($q['params'])
+            . " found=" . count($rows)
+        );
         if ($rows) {
             $candidates = $rows;
             break;
@@ -299,7 +337,8 @@ function auto_assign_exam_slot(int $applicantId): ?int
     if (!$candidates) {
         // Log ALL slots in the DB so we can see what's there vs what we searched for
         $allSlots = $pdo->query(
-            'SELECT id, department, exam_date, slot_time, filled, capacity FROM exam_slot_schedule ORDER BY exam_date ASC LIMIT 20'
+            'SELECT id, department, exam_date, slot_time, filled, capacity '
+            . 'FROM exam_slot_schedule ORDER BY exam_date ASC LIMIT 20'
         )->fetchAll();
         error_log("[auto_assign #{$applicantId}] NO CANDIDATES. All slots in DB: " . json_encode($allSlots));
         error_log("[auto_assign #{$applicantId}] today=" . date('Y-m-d') . " now=" . date('H:i:s'));
@@ -391,7 +430,9 @@ function auto_assign_exam_slot(int $applicantId): ?int
             );
             return $slotId;
         } catch (\Throwable $e) {
-            if ($pdo->inTransaction()) $pdo->rollBack();
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
             error_log('Auto-assign exam slot error: ' . $e->getMessage());
             // Continue to next candidate on transient errors.
             continue;
@@ -432,7 +473,9 @@ function backfill_exam_slot_assignments(): int
     }
     foreach ($waiting as $r) {
         $newSlot = auto_assign_exam_slot((int)$r['id']);
-        if ($newSlot !== null) $assigned++;
+        if ($newSlot !== null) {
+            $assigned++;
+        }
     }
     return $assigned;
 }
@@ -511,7 +554,9 @@ function auto_promote_waitlist(int $applicantId): ?int
 function get_system_user_id(): int
 {
     static $id = null;
-    if ($id !== null) return $id;
+    if ($id !== null) {
+        return $id;
+    }
     try {
         $stmt = db()->prepare('SELECT id FROM users WHERE role = \'admin\' ORDER BY id ASC LIMIT 1');
         $stmt->execute();
@@ -588,7 +633,11 @@ function auto_release_results(): array
         $pdo->prepare('UPDATE applicants SET overall_status = \'released\' WHERE id = ?')
             ->execute([(int) $appl['applicant_id']]);
 
-        notify_stage_transition((int) $appl['applicant_id'], 'released', 'Result: ' . (RESULT_LABELS[$decision] ?? ucfirst($decision)));
+        notify_stage_transition(
+            (int) $appl['applicant_id'],
+            'released',
+            'Result: ' . (RESULT_LABELS[$decision] ?? ucfirst($decision))
+        );
         $counts[$decision]++;
     }
 
@@ -649,7 +698,9 @@ function batch_create_interview_sessions(array $config, string $department, int 
                      LIMIT 1'
                 );
                 $stmt->execute([$dateStr, $dept]);
-                if ($stmt->fetch()) continue;
+                if ($stmt->fetch()) {
+                    continue;
+                }
 
                 $cols   = ['slot_date', 'slot_time', 'end_time', 'capacity', 'department', 'created_by',
                            'assigned_to', 'location_label', 'location_notes'];
@@ -752,7 +803,9 @@ function can_resend_verification(int $userId): array
 
 function find_user_by_verify_token(string $token): ?array
 {
-    if ($token === '') return null;
+    if ($token === '') {
+        return null;
+    }
     $stmt = db()->prepare('SELECT * FROM users WHERE email_verify_token = ? AND is_active = 1 LIMIT 1');
     $stmt->execute([$token]);
     $row = $stmt->fetch();
@@ -840,7 +893,12 @@ function send_verification_email(string $email, string $name, string $token, ?st
         . email_muted('If the button doesn\'t work, copy this link:<br>'
             . email_link($verifyUrl), 'margin-top:16px;');
 
-    send_email($email, 'Verify Your Email - ' . school_setting('school_name', 'PLP Admissions'), email_template('Verify Your Email', $body), $name);
+    send_email(
+        $email,
+        'Verify Your Email - ' . school_setting('school_name', 'PLP Admissions'),
+        email_template('Verify Your Email', $body),
+        $name
+    );
 }
 
 // ----------------------------------------------------------------
@@ -889,11 +947,19 @@ function reset_cooldown(int $userId): int
  */
 function reset_code_check(array $row, string $input, int $now): string
 {
-    if (!empty($row['used'])) return 'used';
-    if ((int) ($row['attempts'] ?? 0) >= RESET_MAX_ATTEMPTS) return 'locked';
+    if (!empty($row['used'])) {
+        return 'used';
+    }
+    if ((int) ($row['attempts'] ?? 0) >= RESET_MAX_ATTEMPTS) {
+        return 'locked';
+    }
 
-    $exp = is_numeric($row['expires_at'] ?? null) ? (int) $row['expires_at'] : (int) strtotime((string) ($row['expires_at'] ?? ''));
-    if ($exp <= $now) return 'expired';
+    $exp = is_numeric($row['expires_at'] ?? null)
+        ? (int) $row['expires_at']
+        : (int) strtotime((string) ($row['expires_at'] ?? ''));
+    if ($exp <= $now) {
+        return 'expired';
+    }
 
     return hash_equals((string) ($row['token'] ?? ''), hash('sha256', $input)) ? 'ok' : 'wrong';
 }
@@ -916,7 +982,9 @@ function send_reset_code_email(string $email, string $code): bool
 function record_failed_login(string $email): void
 {
     $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '';
-    if (str_contains($ip, ',')) $ip = trim(explode(',', $ip)[0]);
+    if (str_contains($ip, ',')) {
+        $ip = trim(explode(',', $ip)[0]);
+    }
     db()->prepare('INSERT INTO login_attempts (email, ip_address) VALUES (?, ?)')->execute([$email, $ip]);
 }
 
@@ -927,7 +995,9 @@ function clear_login_attempts(string $email): void
 
 function is_login_locked(string $email): bool
 {
-    $stmt = db()->prepare('SELECT COUNT(*) FROM login_attempts WHERE email = ? AND attempted_at > NOW() - INTERVAL \'15 minutes\'');
+    $stmt = db()->prepare(
+        'SELECT COUNT(*) FROM login_attempts WHERE email = ? AND attempted_at > NOW() - INTERVAL \'15 minutes\''
+    );
     $stmt->execute([$email]);
     return (int) $stmt->fetchColumn() >= 5;
 }
@@ -965,7 +1035,9 @@ function notify_reschedule_decision(
         );
         $stmt->execute([$applicantId]);
         $user = $stmt->fetch();
-        if (!$user) return;
+        if (!$user) {
+            return;
+        }
 
         $link = $kind === 'exam' ? '/student/exam' : '/student/interview';
 
@@ -1007,7 +1079,9 @@ function notify_reschedule_decision(
 function notify_staff(string $type, string $title, string $message = '', string $link = ''): void
 {
     try {
-        $staff = db()->query("SELECT id FROM users WHERE role IN ('staff','admin') AND is_active=1")->fetchAll(PDO::FETCH_COLUMN);
+        $staff = db()
+            ->query("SELECT id FROM users WHERE role IN ('staff','admin') AND is_active=1")
+            ->fetchAll(PDO::FETCH_COLUMN);
         foreach ($staff as $userId) {
             create_notification((int)$userId, $type, $title, $message, $link);
         }
@@ -1048,7 +1122,9 @@ function notify_staff_no_show(int $applicantId, string $applicantName): void
  */
 function auto_reschedule_noshow(int $applicantId, ?int $actorUserId = null): ?int
 {
-    if (school_setting('auto_reschedule_noshows', '1') !== '1') return null;
+    if (school_setting('auto_reschedule_noshows', '1') !== '1') {
+        return null;
+    }
 
     $pdo = db();
 
@@ -1068,7 +1144,8 @@ function auto_reschedule_noshow(int $applicantId, ?int $actorUserId = null): ?in
 
     // Ensure applicant stays in interview stage
     $pdo->prepare(
-        'UPDATE applicants SET overall_status = \'interview\' WHERE id = ? AND overall_status IN (\'interview\',\'result\')'
+        'UPDATE applicants SET overall_status = \'interview\' '
+        . 'WHERE id = ? AND overall_status IN (\'interview\',\'result\')'
     )->execute([$applicantId]);
 
     // Try to reschedule via the absent-aware path (which deletes the
@@ -1104,7 +1181,12 @@ function auto_reschedule_noshow(int $applicantId, ?int $actorUserId = null): ?in
                 );
             }
 
-            audit_log('auto_reschedule_noshow', "Auto-rescheduled no-show applicant {$applicantId} to slot {$newSlotId}", 'applicant', $applicantId);
+            audit_log(
+                'auto_reschedule_noshow',
+                "Auto-rescheduled no-show applicant {$applicantId} to slot {$newSlotId}",
+                'applicant',
+                $applicantId
+            );
             return $newSlotId;
         }
     } catch (\Throwable $e) {
@@ -1125,7 +1207,9 @@ function auto_reschedule_noshow(int $applicantId, ?int $actorUserId = null): ?in
 function send_document_reminders(): int
 {
     $reminderDays = (int) school_setting('doc_reminder_days', '3');
-    if ($reminderDays <= 0) return 0;
+    if ($reminderDays <= 0) {
+        return 0;
+    }
 
     $pdo = db();
     $notified = 0;
@@ -1210,9 +1294,19 @@ function batch_create_exam_slots(array $config, string $department, int $staffId
             if (!$stmt->fetch()) {
                 $pdo->prepare(
                     'INSERT INTO exam_slot_schedule
-                        (exam_id, exam_date, slot_time, end_time, room_label, department, capacity, school_year, created_by)
+                    (exam_id, exam_date, slot_time, end_time, room_label, department, capacity, school_year, created_by)
                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
-                )->execute([$examId, $dateStr, $time . ':00', $endTime . ':00', $room, $department, $capacity, $schoolYear, $staffId]);
+                )->execute([
+                    $examId,
+                    $dateStr,
+                    $time . ':00',
+                    $endTime . ':00',
+                    $room,
+                    $department,
+                    $capacity,
+                    $schoolYear,
+                    $staffId,
+                ]);
                 $created++;
             }
         }
@@ -1295,7 +1389,9 @@ function auto_close_expired_sessions(): int
 function auto_expire_accepted(): int
 {
     $deadlineDays = (int) school_setting('acceptance_deadline_days', '0');
-    if ($deadlineDays <= 0) return 0;
+    if ($deadlineDays <= 0) {
+        return 0;
+    }
 
     $pdo = db();
     $expired = 0;
@@ -1328,7 +1424,8 @@ function auto_expire_accepted(): int
             (int)$row['user_id'],
             'acceptance_expired',
             'Acceptance Slot Expired',
-            "Your acceptance for {$row['course_applied']} has expired because no action was taken within {$deadlineDays} days.",
+            "Your acceptance for {$row['course_applied']} has expired because no action was taken "
+            . "within {$deadlineDays} days.",
             '/student/result'
         );
 
@@ -1361,7 +1458,9 @@ const EXAM_AUTO_NOTE = 'Auto-submitted, connection lost';
 function warn_if_db_timezone_off(): void
 {
     static $done = false;
-    if ($done) return;
+    if ($done) {
+        return;
+    }
     $done = true;
     try {
         $tz = (string) db()->query('SHOW timezone')->fetchColumn();
@@ -1381,8 +1480,8 @@ function warn_if_db_timezone_off(): void
 function slot_close_sql(string $alias = 's'): string
 {
     return "(CASE WHEN {$alias}.end_time IS NULL THEN {$alias}.exam_date + {$alias}.slot_time + interval '90 minutes'
-                  WHEN {$alias}.end_time <= {$alias}.slot_time THEN {$alias}.exam_date + {$alias}.end_time + interval '1 day'
-                  ELSE {$alias}.exam_date + {$alias}.end_time END)";
+      WHEN {$alias}.end_time <= {$alias}.slot_time THEN {$alias}.exam_date + {$alias}.end_time + interval '1 day'
+      ELSE {$alias}.exam_date + {$alias}.end_time END)";
 }
 
 /** True while the database clock is at or before the slot close (plus an optional grace). */
@@ -1505,7 +1604,9 @@ function finalize_exam_result(int $applicantId, int $examId, array $answers, ?st
     $stmt = $pdo->prepare('SELECT user_id, course_applied FROM applicants WHERE id = ?');
     $stmt->execute([$applicantId]);
     $applicant = $stmt->fetch();
-    if (!$applicant) return null;
+    if (!$applicant) {
+        return null;
+    }
 
     $stmt = $pdo->prepare('SELECT * FROM questions WHERE exam_id = ?');
     $stmt->execute([$examId]);
@@ -1522,7 +1623,9 @@ function finalize_exam_result(int $applicantId, int $examId, array $answers, ?st
          ON CONFLICT (applicant_id, exam_id) DO NOTHING'
     );
     $ins->execute([$applicantId, $examId, $score, $total, json_encode($savedAnswers), $rank, $passed ? 1 : 0, $note]);
-    if ($ins->rowCount() === 0) return null;
+    if ($ins->rowCount() === 0) {
+        return null;
+    }
 
     // Passed advances to interview; failed stays at exam so staff can review
     // and suggest an alternative course.
@@ -1564,7 +1667,9 @@ function finalize_exam_result(int $applicantId, int $examId, array $answers, ?st
 function finalize_closed_exam_drafts(): int
 {
     static $ran = false;            // once per request
-    if ($ran) return 0;
+    if ($ran) {
+        return 0;
+    }
     $ran = true;
 
     $pdo  = db();
@@ -1575,7 +1680,9 @@ function finalize_closed_exam_drafts(): int
                                WHERE r.applicant_id = d.applicant_id AND r.exam_id = d.exam_id)';
 
     try {
-        if (!$pdo->query("SELECT EXISTS (SELECT 1 {$from})")->fetchColumn()) return 0;
+        if (!$pdo->query("SELECT EXISTS (SELECT 1 {$from})")->fetchColumn()) {
+            return 0;
+        }
 
         $rows = $pdo->query("SELECT d.applicant_id, d.exam_id, d.answers {$from}")->fetchAll();
         $done = 0;
@@ -1587,7 +1694,9 @@ function finalize_closed_exam_drafts(): int
                     exam_answers_from_draft((string) $row['answers']),
                     EXAM_AUTO_NOTE
                 );
-                if ($res !== null) $done++;
+                if ($res !== null) {
+                    $done++;
+                }
             } catch (\Throwable $e) {
                 error_log('Auto-submit of closed exam draft failed: ' . $e->getMessage());
             }

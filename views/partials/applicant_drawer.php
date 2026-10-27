@@ -16,7 +16,7 @@
 // rendered applicant_panel partial as HTML).
 // ============================================================
 ?>
-<div class="ap-drawer-backdrop" id="apDrawerBackdrop"
+<div class="ap-drawer-backdrop" id="apDrawerBackdrop" aria-hidden="true"
      onclick="closeApplicantPanel()"></div>
 
 <aside class="ap-drawer" id="apDrawer" aria-hidden="true" role="dialog"

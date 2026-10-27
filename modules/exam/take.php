@@ -281,7 +281,7 @@ if ($isSlotFuture) {
                     </summary>
                     <form method="POST" action="<?= url('/api/exam-reschedule-request') ?>" style="margin-top:var(--space-3)">
                         <?= csrf_field() ?>
-                        <textarea name="reschedule_reason" class="form-textarea" rows="3"
+                        <textarea id="resched_reason" name="reschedule_reason" aria-label="Reschedule reason" class="form-textarea" rows="3"
                                   placeholder="Why do you need to reschedule? (e.g. emergency)"
                                   required style="margin-bottom:var(--space-3)"></textarea>
                         <button type="submit" class="btn btn-ghost" style="width:100%">Submit Reschedule Request</button>
@@ -392,7 +392,7 @@ if ($isSlotPast) {
                     </summary>
                     <form method="POST" action="<?= url('/api/exam-reschedule-request') ?>" style="margin-top:var(--space-3)">
                         <?= csrf_field() ?>
-                        <textarea name="reschedule_reason" class="form-textarea" rows="3"
+                        <textarea id="missed_reason" name="reschedule_reason" aria-label="Reschedule reason" class="form-textarea" rows="3"
                                   placeholder="Why did you miss the exam, and why reschedule?"
                                   required style="margin-bottom:var(--space-3)"></textarea>
                         <button type="submit" class="btn btn-primary" style="width:100%">Submit Reschedule Request</button>
@@ -523,15 +523,15 @@ if ($needsPwGate && !$isUnlocked) {
 
             <form method="POST" style="text-align:left">
                 <?= csrf_field() ?>
-                <label class="form-label" style="display:block;margin-bottom:var(--space-2)">
+                <label class="form-label" for="exam_access_password" style="display:block;margin-bottom:var(--space-2)">
                     Access Code
                 </label>
-                <input type="text" name="exam_access_password" class="form-control"
+                <input type="text" id="exam_access_password" name="exam_access_password" class="form-control"
                        autocomplete="off" autocorrect="off" spellcheck="false"
                        style="font-family:monospace;font-size:var(--text-2xl);letter-spacing:.4em;
                               text-align:center;text-transform:uppercase;margin-bottom:var(--space-4)"
                        placeholder="Access code" <?= !$pwValid ? 'disabled' : '' ?>
-                       oninput="this.value=this.value.toUpperCase()" autofocus>
+                       oninput="this.value=this.value.toUpperCase()">
                 <?php if ($pwValid): ?>
                     <p style="font-size:var(--text-xs);color:var(--text-tertiary);margin-bottom:var(--space-4)">
                         Code expires in <strong id="gate-timer"><?= $pwSecsLeft ?></strong> seconds.
@@ -1182,7 +1182,7 @@ ob_start();
 
             <!-- ── DROPDOWN ── -->
             <?php elseif ($qType === 'dropdown'): ?>
-                <select name="answers[<?= $q['id'] ?>]" class="form-select exam-select"
+                <select id="answer_<?= (int)$q['id'] ?>" name="answers[<?= $q['id'] ?>]" aria-label="Your answer" class="form-select exam-select"
                         <?= $required ? 'required' : '' ?>
                         onchange="markAnswered(<?= $q['id'] ?>)">
                     <option value="">- Select an answer -</option>
@@ -1195,7 +1195,9 @@ ob_start();
             <!-- ── SHORT ANSWER / IDENTIFICATION ── -->\
             <?php elseif ($qType === 'short_answer' || $qType === 'identification'): ?>
                 <input type="text"
+                       id="answer_<?= (int)$q['id'] ?>"
                        name="answers[<?= $q['id'] ?>]"
+                       aria-label="Your answer"
                        class="short-answer-input"
                        placeholder="Your answer"
                        <?= $required ? 'required' : '' ?>
@@ -1203,7 +1205,9 @@ ob_start();
 
             <!-- ── PARAGRAPH ── -->
             <?php elseif ($qType === 'paragraph'): ?>
-                <textarea name="answers[<?= $q['id'] ?>]"
+                <textarea id="answer_<?= (int)$q['id'] ?>"
+                          name="answers[<?= $q['id'] ?>]"
+                          aria-label="Your answer"
                           class="paragraph-input"
                           placeholder="Your answer"
                           rows="3"

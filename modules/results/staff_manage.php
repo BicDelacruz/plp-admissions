@@ -318,6 +318,8 @@ $awaitingCount = (int)$countRows['awaiting_count'];
        "
        onmouseover="this.style.background='var(--bg-overlay)';this.style.color='var(--text-secondary)'"
        onmouseout="this.style.background='var(--bg-secondary)';this.style.color='var(--text-tertiary)'"
+       onfocus="this.style.background='var(--bg-overlay)';this.style.color='var(--text-secondary)'"
+       onblur="this.style.background='var(--bg-secondary)';this.style.color='var(--text-tertiary)'"
        title="Open the Interviews queue to record Pass/Decline">
         <?= icon('ic_fluent_clock_24_regular', 12) ?>
         <span><strong style="color:var(--text-secondary);font-weight:var(--weight-medium)"><?= $awaitingCount ?></strong>
@@ -402,7 +404,7 @@ $sortParams = ['q' => $search, 'result' => $filterRes, 'per_page' => $perPage, '
 
         <div class="auto-table-search" style="max-width:320px">
             <?= icon('ic_fluent_search_24_filled', 14) ?>
-            <input type="text" name="q" class="form-input" placeholder="Search name, email, course…" value="<?= e($search) ?>">
+            <input type="text" id="res_q" name="q" aria-label="Search" class="form-input" placeholder="Search name, email, course…" value="<?= e($search) ?>">
         </div>
 
         <?php if ($search !== ''): ?>
@@ -427,7 +429,7 @@ $sortParams = ['q' => $search, 'result' => $filterRes, 'per_page' => $perPage, '
                 <tr>
                     <?php if ($canRelease): ?>
                     <th class="col-check">
-                        <input type="checkbox" id="res-select-all" onchange="resToggleAll(this)"
+                        <input type="checkbox" id="res-select-all" aria-label="Select all" onchange="resToggleAll(this)"
                                style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent)">
                     </th>
                     <?php endif; ?>
@@ -452,7 +454,7 @@ $sortParams = ['q' => $search, 'result' => $filterRes, 'per_page' => $perPage, '
                     <?php if ($canRelease): ?>
                     <td class="col-check">
                         <?php if ($selectable): ?>
-                        <input type="checkbox" class="res-check" value="<?= (int)$row['id'] ?>"
+                        <input type="checkbox" class="res-check" aria-label="Select applicant" value="<?= (int)$row['id'] ?>"
                                onchange="resUpdateSelection()"
                                style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent)">
                         <?php endif; ?>
@@ -717,14 +719,14 @@ $sortParams = ['q' => $search, 'result' => $filterRes, 'per_page' => $perPage, '
                 </div>
                 <p id="override-name" style="font-weight:var(--weight-medium);margin:0"></p>
                 <div>
-                    <label class="form-label">Result <span style="color:var(--error)">*</span></label>
+                    <label class="form-label" for="override-result">Result <span style="color:var(--error)">*</span></label>
                     <select name="result" class="form-control" id="override-result" required>
                         <option value="accepted">Accepted</option>
                         <option value="rejected">Declined</option>
                     </select>
                 </div>
                 <div>
-                    <label class="form-label">Reason / remarks <span style="color:var(--error)">*</span></label>
+                    <label class="form-label" for="override-remarks">Reason / remarks <span style="color:var(--error)">*</span></label>
                     <textarea name="remarks" class="form-control" rows="3" id="override-remarks" required
                               placeholder="Why is this result being changed?"></textarea>
                 </div>
@@ -769,7 +771,7 @@ $sortParams = ['q' => $search, 'result' => $filterRes, 'per_page' => $perPage, '
                 </div>
                 <p id="release-override-name" style="font-weight:var(--weight-medium);margin:0"></p>
                 <div>
-                    <label class="form-label">Result <span style="color:var(--error)">*</span></label>
+                    <span class="form-label">Result <span style="color:var(--error)">*</span></span>
                     <div id="release-override-result-label" style="font-size:var(--text-sm);color:var(--text-secondary)"></div>
                 </div>
                 <div>
@@ -856,12 +858,12 @@ $sortParams = ['q' => $search, 'result' => $filterRes, 'per_page' => $perPage, '
                     </span>
                 </div>
                 <div>
-                    <label class="form-label">Suggest a course where their score qualifies:</label>
+                    <span class="form-label">Suggest a course where their score qualifies:</span>
                     <div id="suggest-course-list" style="display:flex;flex-direction:column;gap:var(--space-2);margin-top:var(--space-2)"></div>
                 </div>
                 <div>
-                    <label class="form-label">Note for applicant (optional)</label>
-                    <textarea name="suggest_note" class="form-control" rows="2"
+                    <label class="form-label" for="suggest-note">Note for applicant (optional)</label>
+                    <textarea id="suggest-note" name="suggest_note" class="form-control" rows="2"
                               placeholder="e.g. Strong match based on your exam results."></textarea>
                 </div>
             </div>

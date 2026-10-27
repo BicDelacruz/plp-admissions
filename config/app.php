@@ -7,11 +7,17 @@
 // -- Load .env file (local secrets) ------------------------------
 (function () {
     $envFile = dirname(__DIR__) . '/.env';
-    if (!file_exists($envFile)) return;
+    if (!file_exists($envFile)) {
+        return;
+    }
     foreach (file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
         $line = trim($line);
-        if ($line === '' || $line[0] === '#') continue;
-        if (strpos($line, '=') === false) continue;
+        if ($line === '' || $line[0] === '#') {
+            continue;
+        }
+        if (strpos($line, '=') === false) {
+            continue;
+        }
         [$key, $val] = explode('=', $line, 2);
         $key = trim($key);
         $val = trim($val);
@@ -115,7 +121,8 @@ define('DOCS_CORE', [
 // Form 138 is for currently Grade 12; Form 137 (or Grade 12 Form 138) is for SHS graduates.
 define('DOCS_FRESHMAN', [
     'form_138'           => 'CTC of Form 138 (Grade 11 Report Card), if currently Grade 12',
-    'form_137'           => 'Form 138 (Grade 12) or updated CTC of Form 137 with remark "For Evaluation Purposes Only", for SHS graduates',
+    'form_137'           => 'Form 138 (Grade 12) or updated CTC of Form 137 '
+        . 'with remark "For Evaluation Purposes Only", for SHS graduates',
 ]);
 
 // -- Transferee-only docs ----------------------------------------
@@ -288,7 +295,8 @@ define('COURSE_PASSING_SCORES', [
     'Bachelor of Secondary Education Major in Mathematics (BSED-MATH)'  => ['pass_from' => 4, 'confirmed' => false],
     'AB Psychology (AB Psych)'                                           => ['pass_from' => 4, 'confirmed' => false],
     'BS Computer Science (BSCS)'                                         => ['pass_from' => 4, 'confirmed' => false],
-    'BS Information Technology (BSIT)'                                   => ['pass_from' => 4, 'confirmed' => true],  // confirmed
+    // confirmed
+    'BS Information Technology (BSIT)'                                   => ['pass_from' => 4, 'confirmed' => true],
     'BS Electronics Engineering (BSECE)'                                 => ['pass_from' => 4, 'confirmed' => false],
     'BS Nursing (BSN)'                                                   => ['pass_from' => 4, 'confirmed' => false],
 ]);
@@ -310,7 +318,9 @@ define('GOOGLE_ENABLED', GOOGLE_CLIENT_ID !== '' && GOOGLE_CLIENT_SECRET !== '')
 // so a wrong or missing APP_URL on Vercel no longer causes redirect_uri_mismatch.
 define('GOOGLE_REDIRECT_URI', (function (): string {
     $override = trim((string) getenv('GOOGLE_REDIRECT_URI'));
-    if ($override !== '') return $override;
+    if ($override !== '') {
+        return $override;
+    }
     $host = (string) ($_SERVER['HTTP_HOST'] ?? '');
     if (APP_ENV === 'production' && preg_match('/^[A-Za-z0-9.\-]+(:\d{1,5})?$/', $host)) {
         return 'https://' . $host . '/auth/google/callback';

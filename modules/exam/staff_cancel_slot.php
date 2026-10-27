@@ -301,7 +301,7 @@ ob_start();
                                 <?= csrf_field() ?>
                                 <input type="hidden" name="action" value="cancel_slot">
                                 <input type="hidden" name="source_slot_id" value="<?= (int)$s['id'] ?>">
-                                <select name="target_slot_id" required class="form-control">
+                                <select id="cancel_target_<?= (int)$s['id'] ?>" name="target_slot_id" required class="form-control" aria-label="Replacement slot">
                                     <option value="">Pick a replacement slot…</option>
                                     <?php foreach ($options as $r):
                                         $left = (int)$r['capacity'] - (int)$r['filled'];
@@ -314,7 +314,7 @@ ob_start();
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
-                                <input type="text" name="reason" required maxlength="500"
+                                <input type="text" id="cancel_reason_<?= (int)$s['id'] ?>" name="reason" required maxlength="500" aria-label="Reason"
                                        placeholder="Reason shown to students (e.g. Typhoon Pepito)"
                                        class="form-control"
                                        style="font-size:var(--text-xs);height:var(--control-height);min-height:var(--control-height);padding:0 var(--space-2)">

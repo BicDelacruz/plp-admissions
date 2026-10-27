@@ -560,7 +560,8 @@ ob_start();
                 </div>
 
                 <!-- Drop zone -->
-                <div class="ai-dropzone" id="legacy-drop-zone"
+                <div class="ai-dropzone" id="legacy-drop-zone" role="button" tabindex="0"
+                     onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}"
                      onclick="document.getElementById('legacy-file-input').click()"
                      ondragover="event.preventDefault();this.classList.add('dragover')"
                      ondragleave="this.classList.remove('dragover')"
@@ -578,7 +579,7 @@ ob_start();
                             <button class="rm" onclick="event.stopPropagation();clearLegacyFile()" title="Remove"><?= icon('x', 12) ?></button>
                         </span>
                     </div>
-                    <input type="file" id="legacy-file-input"
+                    <input type="file" id="legacy-file-input" aria-label="Choose file to import"
                            accept=".csv,.xlsx,.xls,.pdf,.docx,.doc,.jpg,.jpeg,.png"
                            style="display:none"
                            onchange="handleLegacyFileSelect(this)">

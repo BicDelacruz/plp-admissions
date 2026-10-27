@@ -758,7 +758,7 @@ ob_start();
     <form method="POST" style="display:flex;align-items:center;gap:var(--space-2)">
         <?= csrf_field() ?>
         <input type="hidden" name="action" value="change_type">
-        <select name="applicant_type" class="form-select" style="width:auto">
+        <select name="applicant_type" class="form-select" style="width:auto" aria-label="Applicant type">
             <option value="freshman" <?= $applicant['applicant_type'] === 'freshman' ? 'selected' : '' ?>>Freshman</option>
             <option value="transferee" <?= $applicant['applicant_type'] === 'transferee' ? 'selected' : '' ?>>Transferee</option>
             <option value="foreign" <?= $applicant['applicant_type'] === 'foreign' ? 'selected' : '' ?>>Foreign</option>
@@ -830,14 +830,15 @@ ob_start();
 <div class="card" id="docs-card" style="padding:var(--space-4) var(--space-5);margin-bottom:var(--space-4)">
 <?php if (!$manualPage && $hasBatch): ?>
     <div id="batch-box">
-    <div class="batch-drop" id="batch-drop" role="button" tabindex="0" aria-label="Choose files to upload">
+    <div class="batch-drop" id="batch-drop" role="button" tabindex="0" aria-label="Choose files to upload"
+         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
         <p style="font-weight:var(--weight-medium);margin:0">Drop your files here</p>
         <p style="font-size:var(--text-sm);color:var(--text-tertiary);margin:var(--space-1) 0 var(--space-3)">or click to choose files · PDF, JPG, PNG or WEBP · max 4 MB each</p>
         <button type="button" class="btn btn-secondary btn-sm" id="batch-camera-btn">Take a photo</button>
     </div>
-    <input type="file" id="batch-input" accept=".pdf,.jpg,.jpeg,.png,.webp" multiple style="display:none">
-    <input type="file" id="batch-camera" accept="image/*" capture="environment" style="display:none">
-    <input type="file" id="batch-replace" accept=".pdf,.jpg,.jpeg,.png,.webp" style="display:none">
+    <input type="file" id="batch-input" aria-label="Choose files to upload" accept=".pdf,.jpg,.jpeg,.png,.webp" multiple style="display:none">
+    <input type="file" id="batch-camera" aria-label="Take a photo" accept="image/*" capture="environment" style="display:none">
+    <input type="file" id="batch-replace" aria-label="Replace file" accept=".pdf,.jpg,.jpeg,.png,.webp" style="display:none">
     <div style="font-size:var(--text-sm);color:var(--text-tertiary);margin-top:var(--space-3)">Prefer to do it one by one? <a class="batch-link" href="<?= e(url('/student/documents/manual')) ?>">Upload your documents manually</a></div>
     <div id="batch-rows" style="display:flex;flex-direction:column;margin-top:var(--space-3)"></div>
     </div>
@@ -934,7 +935,7 @@ ob_start();
             <div class="modal-body">
                 <div class="file-drop-zone" id="drop-zone"
                      data-no-auto-click style="cursor:pointer">
-                    <input type="file" name="doc_file" id="file-input" class="file-input"
+                    <input type="file" name="doc_file" id="file-input" class="file-input" aria-label="Choose file"
                            accept=".pdf,.jpg,.jpeg,.png,.webp" style="display:none">
                     <div class="file-drop-content" id="drop-content">
                         <?= icon('image:fill', 32, 'color:var(--text-tertiary);margin-bottom:var(--space-3)') ?>
@@ -1734,7 +1735,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var $drop = $('#batch-drop');
     $drop.on('click', function () { $('#batch-input').val('').trigger('click'); });
-    $drop.on('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('#batch-input').val('').trigger('click'); } });
     $('#batch-camera-btn').on('click', function (e) { e.stopPropagation(); $('#batch-camera').val('').trigger('click'); });
     $('#batch-input, #batch-camera').on('change', function () { addFiles(this.files); });
     $drop.on('dragover dragenter', function (e) { e.preventDefault(); $drop.addClass('drag-over'); });

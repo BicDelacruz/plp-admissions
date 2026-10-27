@@ -762,7 +762,7 @@ elseif ($selectedExamId) $view = 'editor';
                             <a href="<?= url('/admin/school-year') ?>">School Year</a> page.
                         </div>
 
-                        <textarea class="exam-inline exam-inline--desc" name="description" rows="1"
+                        <textarea class="exam-inline exam-inline--desc" name="description" rows="1" aria-label="Description"
                                   placeholder="Add description (optional)"
                                   data-original="<?= e($selectedExam['description'] ?? '') ?>"
                                   readonly><?= e($selectedExam['description'] ?? '') ?></textarea>
@@ -945,6 +945,8 @@ elseif ($selectedExamId) $view = 'editor';
                                 <span id="sec-title-text-<?= $sec['id'] ?>"
                                       style="font-size:var(--text-sm);font-weight:var(--weight-semibold);color:<?= $sc['text'] ?>;cursor:pointer"
                                       class="inline-editable"
+                                      role="button" tabindex="0"
+                                      onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}"
                                       onclick="startInlineSecEdit(<?= $sec['id'] ?>)"
                                       title="Click to rename"><?= e($sec['title']) ?></span>
                                 <span style="font-size:var(--text-xs);color:<?= $sc['text'] ?>;opacity:.65" id="sec-count-<?= $sec['id'] ?>"><?= count($secQs) ?> question<?= count($secQs)!==1?'s':'' ?></span>
@@ -1055,8 +1057,8 @@ elseif ($selectedExamId) $view = 'editor';
                     </div>
                 </div>
                 <div>
-                    <label class="form-label">Description</label>
-                    <textarea name="description" class="form-control" rows="2" placeholder="Brief instructions shown to students…"></textarea>
+                    <label class="form-label" for="create-exam-desc">Description</label>
+                    <textarea id="create-exam-desc" name="description" class="form-control" rows="2" placeholder="Brief instructions shown to students…"></textarea>
                 </div>
 
                 <div style="display:flex;flex-direction:column;gap:var(--space-2)">
@@ -1107,7 +1109,7 @@ elseif ($selectedExamId) $view = 'editor';
                     </div>
                 </div>
                 <div>
-                    <label class="form-label">Description</label>
+                    <label class="form-label" for="edit-exam-desc">Description</label>
                     <textarea name="description" id="edit-exam-desc" class="form-control" rows="2"></textarea>
                 </div>
 
@@ -1148,17 +1150,17 @@ elseif ($selectedExamId) $view = 'editor';
             <input type="hidden" name="section_id" id="sec-id" value="">
             <div class="modal-body" style="display:flex;flex-direction:column;gap:var(--space-4)">
                 <div>
-                    <label class="form-label">Section Title <span style="color:var(--error)">*</span></label>
+                    <label class="form-label" for="sec-title-field">Section Title <span style="color:var(--error)">*</span></label>
                     <input type="text" name="section_title" id="sec-title-field" class="form-control"
                            placeholder="e.g. Part 1: Multiple Choice" required>
                 </div>
                 <div>
-                    <label class="form-label">Description / Instructions</label>
+                    <label class="form-label" for="sec-desc-field">Description / Instructions</label>
                     <textarea name="section_desc" id="sec-desc-field" class="form-control" rows="2"
                               placeholder="e.g. Choose the best answer for each question."></textarea>
                 </div>
                 <div>
-                    <label class="form-label">Answer Mode</label>
+                    <span class="form-label">Answer Mode</span>
                     <p style="font-size:var(--text-xs);color:var(--text-tertiary);margin-bottom:var(--space-2)">
                         All questions added to this section will automatically use this type.
                     </p>
@@ -1166,6 +1168,8 @@ elseif ($selectedExamId) $view = 'editor';
                         <?php foreach ($QUESTION_TYPES as $typeKey => $typeMeta): ?>
                             <div class="type-option <?= $typeKey==='multiple_choice'?'selected':'' ?>"
                                  data-type="<?= $typeKey ?>"
+                                 role="button" tabindex="0"
+                                 onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}"
                                  onclick="selectSectionType('<?= $typeKey ?>')">
                                 <?= typeIcon($typeKey, 20) ?>
                                 <?= $typeMeta['label'] ?>
@@ -1990,7 +1994,7 @@ function togglePassingPanel() {
                 <button id="ai-puter-signout-btn" onclick="puterSignOut()" class="btn btn-ghost btn-sm" style="display:none">Sign out</button>
             </div>
             <div id="ai-step-upload">
-                <div class="ai-dropzone" id="ai-drop-zone" onclick="document.getElementById('ai-file-input').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleAiFileDrop(event)">
+                <div class="ai-dropzone" id="ai-drop-zone" role="button" tabindex="0" onkeydown="if(event.target===this&&(event.key==='Enter'||event.key===' ')){event.preventDefault();this.click();}" onclick="document.getElementById('ai-file-input').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleAiFileDrop(event)">
                     <div class="ai-dropzone-icon"><?= icon('file', 20, 'color:var(--text-tertiary)') ?></div>
                     <div id="ai-dropzone-label" style="font-size:var(--text-sm);font-weight:var(--weight-medium);color:var(--text-secondary)">Drop file here or <span style="color:var(--accent)">click to browse</span></div>
                     <div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:4px">JPG · PNG · PDF · DOCX · TXT</div>
@@ -2001,10 +2005,10 @@ function togglePassingPanel() {
                             <button class="rm" onclick="event.stopPropagation();clearAiFile()" title="Remove"><?= icon('ic_fluent_dismiss_24_regular', 12) ?></button>
                         </span>
                     </div>
-                    <input type="file" id="ai-file-input" accept=".jpg,.jpeg,.png,.pdf,.docx,.txt,.doc" style="display:none" onchange="handleAiFileSelect(this)">
+                    <input type="file" id="ai-file-input" aria-label="Choose file" accept=".jpg,.jpeg,.png,.pdf,.docx,.txt,.doc" style="display:none" onchange="handleAiFileSelect(this)">
                 </div>
                 <div style="display:flex;align-items:center;gap:var(--space-2);margin-top:var(--space-3)">
-                    <label style="font-size:var(--text-sm);color:var(--text-secondary);white-space:nowrap">Points per question</label>
+                    <label for="ai-default-points" style="font-size:var(--text-sm);color:var(--text-secondary);white-space:nowrap">Points per question</label>
                     <input type="number" id="ai-default-points" class="form-control" value="1" min="0" max="100" style="width:64px;padding:var(--space-1) var(--space-2);text-align:center">
                 </div>
             </div>

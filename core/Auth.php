@@ -39,7 +39,11 @@ class Auth
             'httponly' => true,
             'samesite' => 'Lax',
         ]);
-        if ($expires > time()) { $_COOKIE[REMEMBER_COOKIE] = $value; } else { unset($_COOKIE[REMEMBER_COOKIE]); }
+        if ($expires > time()) {
+            $_COOKIE[REMEMBER_COOKIE] = $value;
+        } else {
+            unset($_COOKIE[REMEMBER_COOKIE]);
+        }
     }
 
     public static function rememberIssue(int $userId): void
@@ -49,7 +53,9 @@ class Auth
         $expires   = time() + REMEMBER_DAYS * 86400;
         try {
             db()->prepare('DELETE FROM remember_tokens WHERE user_id = ? AND expires_at < NOW()')->execute([$userId]);
-            db()->prepare('INSERT INTO remember_tokens (user_id, selector, token_hash, expires_at) VALUES (?, ?, ?, ?)')
+            db()->prepare(
+                'INSERT INTO remember_tokens (user_id, selector, token_hash, expires_at) VALUES (?, ?, ?, ?)'
+            )
                ->execute([$userId, $selector, hash('sha256', $validator), date('Y-m-d H:i:s', $expires)]);
         } catch (\Throwable $e) {
             error_log('[remember] issue failed: ' . $e->getMessage());
@@ -71,11 +77,16 @@ class Auth
         [$selector, $validator] = $parts;
 
         try {
-            $stmt = db()->prepare('SELECT id, user_id, token_hash, (expires_at > NOW()) AS live FROM remember_tokens WHERE selector = ? LIMIT 1');
+            $stmt = db()->prepare(
+                'SELECT id, user_id, token_hash, (expires_at > NOW()) AS live '
+                . 'FROM remember_tokens WHERE selector = ? LIMIT 1'
+            );
             $stmt->execute([$selector]);
             $row = $stmt->fetch();
             if (!$row || !$row['live']) {
-                if ($row) { db()->prepare('DELETE FROM remember_tokens WHERE id = ?')->execute([$row['id']]); }
+                if ($row) {
+                    db()->prepare('DELETE FROM remember_tokens WHERE id = ?')->execute([$row['id']]);
+                }
                 self::rememberSetCookie('', time() - 3600);
                 return;
             }
@@ -96,7 +107,8 @@ class Auth
             }
 
             // Rotate the validator on every use.
-            // ponytail: two requests racing with the same old cookie look like theft and sign the user out everywhere. Upgrade: keep the previous hash for a few seconds.
+            // ponytail: two requests racing with the same old cookie look like theft and sign the user
+            // out everywhere. Upgrade: keep the previous hash for a few seconds.
             $newValidator = bin2hex(random_bytes(32));
             $expires      = time() + REMEMBER_DAYS * 86400;
             db()->prepare('UPDATE remember_tokens SET token_hash = ?, expires_at = ? WHERE id = ?')

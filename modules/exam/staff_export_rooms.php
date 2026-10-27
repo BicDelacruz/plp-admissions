@@ -329,8 +329,8 @@ if ($format === 'print') {
     <div class="left">
         <a href="<?= url('/staff/exam/slots') ?>" class="btn">← Back to Slots</a>
         <form method="GET" action="" style="display:flex;gap:8px;align-items:center;margin-left:8px">
-            <label style="font-size:10pt;color:var(--muted)">Date:</label>
-            <select name="date" class="toolbar-select" onchange="this.form.submit()">
+            <label for="room_date" style="font-size:10pt;color:var(--muted)">Date:</label>
+            <select id="room_date" name="date" class="toolbar-select" onchange="this.form.submit()">
                 <option value="">All upcoming</option>
                 <?php foreach ($datesAvail as $d): ?>
                     <option value="<?= e($d) ?>" <?= $filterDate === $d ? 'selected' : '' ?>>
@@ -339,8 +339,8 @@ if ($format === 'print') {
                 <?php endforeach; ?>
             </select>
             <?php if ($isAdmin && $deptsAvail): ?>
-                <label style="font-size:10pt;color:var(--muted);margin-left:8px">College:</label>
-                <select name="dept" class="toolbar-select" onchange="this.form.submit()">
+                <label for="room_dept" style="font-size:10pt;color:var(--muted);margin-left:8px">College:</label>
+                <select id="room_dept" name="dept" class="toolbar-select" onchange="this.form.submit()">
                     <option value="">All colleges</option>
                     <?php foreach ($deptsAvail as $d): ?>
                         <option value="<?= e($d) ?>" <?= $filterDept === $d ? 'selected' : '' ?>>
@@ -381,7 +381,7 @@ if ($format === 'print') {
     <section class="room-sheet">
         <div class="sheet-header">
             <?php if ($logoUrl): ?>
-                <img src="<?= e($logoUrl) ?>" alt="" onerror="this.style.display='none'">
+                <img src="<?= e($logoUrl) ?>" alt="">
             <?php endif; ?>
             <div class="meta">
                 <h1>Entrance Exam - Room Assignment</h1>
@@ -437,6 +437,13 @@ if ($format === 'print') {
 
 </div>
 
+<script>
+document.querySelectorAll('.sheet-header img').forEach(function (img) {
+    function hide() { img.style.display = 'none'; }
+    img.addEventListener('error', hide);
+    if (img.complete && img.naturalWidth === 0) { hide(); }
+});
+</script>
 </body>
 </html>
 <?php
@@ -570,7 +577,7 @@ ob_start();
 
         <div class="auto-table-search">
             <?= icon('ic_fluent_search_24_filled', 14) ?>
-            <input type="text" name="q" class="form-input" placeholder="Search name, course, room…" value="<?= e($search) ?>">
+            <input type="text" id="room_q" name="q" aria-label="Search" class="form-input" placeholder="Search name, course, room…" value="<?= e($search) ?>">
         </div>
 
         <select name="date" class="form-input" style="width:180px" aria-label="Exam date"

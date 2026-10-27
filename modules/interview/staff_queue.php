@@ -523,12 +523,12 @@ ob_start();
 
         <div class="auto-table-search">
             <?= icon('ic_fluent_search_24_filled', 14) ?>
-            <input type="text" name="q" class="form-input" placeholder="Filter by name or course…"
+            <input type="text" name="q" class="form-input" aria-label="Filter by name or course" placeholder="Filter by name or course…"
                    value="<?= e($filterQ) ?>" autocomplete="off">
         </div>
 
         <?php if (count($dateMap) > 1): ?>
-        <select name="date" class="form-input" style="width:230px" onchange="this.form.submit()"
+        <select name="date" class="form-input" aria-label="Interview date" style="width:230px" onchange="this.form.submit()"
                 title="Filter by interview date">
             <?php $totalApplicants = count($rows); ?>
             <option value="">
@@ -544,7 +544,7 @@ ob_start();
         <?php endif; ?>
 
         <?php if (count($slotMap) > 1): ?>
-        <select name="slot" class="form-input" style="width:260px" onchange="this.form.submit()"
+        <select name="slot" class="form-input" aria-label="Interview slot" style="width:260px" onchange="this.form.submit()"
                 title="Filter by specific slot within the selected date">
             <?php $totalSlotApplicants = array_sum(array_column($slotMap, 'count')); ?>
             <option value="">

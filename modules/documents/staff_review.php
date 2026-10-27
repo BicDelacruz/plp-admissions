@@ -294,8 +294,8 @@ if ($allApproved && $applicant['overall_status'] === 'documents'):
                 <p style="font-size:var(--text-sm);color:var(--text-secondary);margin-bottom:var(--space-3)">
                     The student will be notified and asked to upload a corrected version.
                 </p>
-                <label class="form-label">What needs to be corrected? <span style="color:var(--error)">*</span></label>
-                <textarea name="remarks" class="form-control" rows="3"
+                <label class="form-label" for="resubmit-remarks">What needs to be corrected? <span style="color:var(--error)">*</span></label>
+                <textarea id="resubmit-remarks" name="remarks" class="form-control" rows="3"
                           placeholder="e.g. Document is blurry, wrong page uploaded, expired ID" required></textarea>
             </div>
             <div class="modal-footer">
@@ -930,7 +930,7 @@ $sortParams = ['status' => $statusFilter, 'type' => $typeFilter, 'course' => $co
 
         <div class="auto-table-search">
             <?= icon('ic_fluent_search_24_filled', 14) ?>
-            <input type="text" name="q" class="form-input" placeholder="Search name, email, course…" value="<?= e($search) ?>">
+            <input type="text" name="q" class="form-input" aria-label="Search applicants" placeholder="Search name, email, course…" value="<?= e($search) ?>">
         </div>
 
         <select name="type" class="form-input" style="width:160px" onchange="this.form.submit()" aria-label="Applicant type">
@@ -958,7 +958,7 @@ $sortParams = ['status' => $statusFilter, 'type' => $typeFilter, 'course' => $co
             <thead>
                 <tr>
                     <th class="col-check">
-                        <input type="checkbox" id="bulk-select-all" onchange="bulkToggleAll(this)"
+                        <input type="checkbox" id="bulk-select-all" aria-label="Select all applicants" onchange="bulkToggleAll(this)"
                                style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent)">
                     </th>
                     <?= sortable_th('applicant',    'Applicant',    $sortCol, $sortDir, $sortParams) ?>
@@ -977,7 +977,7 @@ $sortParams = ['status' => $statusFilter, 'type' => $typeFilter, 'course' => $co
                 ?>
                 <tr class="bulk-row <?= $hasPending ? 'has-pending-docs' : '' ?>" data-id="<?= (int)$row['id'] ?>">
                     <td class="col-check">
-                        <input type="checkbox" class="bulk-check" value="<?= (int)$row['id'] ?>"
+                        <input type="checkbox" class="bulk-check" aria-label="Select applicant" value="<?= (int)$row['id'] ?>"
                                onchange="bulkUpdateSelection()"
                                style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent)">
                     </td>
