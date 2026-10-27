@@ -671,16 +671,16 @@ $customByName = array_column($customCourses, null, 'course_name');
             <input type="hidden" name="action" value="add_course">
             <div style="display:flex;flex-direction:column;gap:var(--space-4)">
                 <div>
-                    <label class="form-label">Course / Program Name <span style="color:var(--error)">*</span></label>
-                    <input type="text" name="course_name" class="form-control"
+                    <label class="form-label" for="add-course-name">Course / Program Name <span style="color:var(--error)">*</span></label>
+                    <input type="text" id="add-course-name" name="course_name" class="form-control"
                            placeholder="e.g. BS Data Science (BSDS)" required>
                     <p style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:var(--space-1)">
                         Use the full official name with the course code in brackets at the end. The same code must exist in Enrollment.
                     </p>
                 </div>
                 <div>
-                    <label class="form-label">College <span style="color:var(--error)">*</span></label>
-                    <select name="department_id" class="form-control" required>
+                    <label class="form-label" for="add-course-college">College <span style="color:var(--error)">*</span></label>
+                    <select id="add-course-college" name="department_id" class="form-control" required>
                         <option value="">Select a college</option>
                         <?php foreach ($colleges as $col): ?>
                             <option value="<?= (int)$col['id'] ?>"><?= e($col['name']) ?></option>
@@ -691,7 +691,7 @@ $customByName = array_column($customCourses, null, 'course_name');
                     </p>
                 </div>
                 <div>
-                    <label class="form-label">Accepted SHS Strands</label>
+                    <span class="form-label">Accepted SHS Strands</span>
                     <p style="font-size:var(--text-xs);color:var(--text-tertiary);margin-bottom:var(--space-2)">
                         Check all strands whose graduates may apply for this course.
                     </p>
@@ -741,11 +741,11 @@ $customByName = array_column($customCourses, null, 'course_name');
             <input type="hidden" name="course_id" id="edit-course-id">
             <div style="display:flex;flex-direction:column;gap:var(--space-4)">
                 <div>
-                    <label class="form-label">Course / Program Name <span style="color:var(--error)">*</span></label>
+                    <label class="form-label" for="edit-course-name">Course / Program Name <span style="color:var(--error)">*</span></label>
                     <input type="text" name="course_name" id="edit-course-name" class="form-control" required>
                 </div>
                 <div>
-                    <label class="form-label">College <span style="color:var(--error)">*</span></label>
+                    <label class="form-label" for="edit-course-college">College <span style="color:var(--error)">*</span></label>
                     <select name="department_id" id="edit-course-college" class="form-control" required>
                         <option value="">Select a college</option>
                         <?php foreach ($colleges as $col): ?>
@@ -754,7 +754,7 @@ $customByName = array_column($customCourses, null, 'course_name');
                     </select>
                 </div>
                 <div>
-                    <label class="form-label">Accepted SHS Strands</label>
+                    <span class="form-label">Accepted SHS Strands</span>
                     <div class="row row-cols-1 row-cols-md-2" style="--bs-gutter-x:var(--space-2);--bs-gutter-y:var(--space-2)" id="edit-strand-grid">
                     <?php foreach (SHS_STRANDS as $sKey => $sLabel): ?>
                         <label style="display:flex;align-items:flex-start;gap:var(--space-2);cursor:pointer">

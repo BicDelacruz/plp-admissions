@@ -70,16 +70,16 @@ ob_start();
             <input type="hidden" name="action" value="change_password">
             <div style="display:flex;flex-direction:column;gap:var(--space-4)">
                 <div>
-                    <label class="form-label">Current Password</label>
-                    <input type="password" name="current_password" class="form-control" required>
+                    <label class="form-label" for="staff_current_password">Current Password</label>
+                    <input type="password" id="staff_current_password" name="current_password" class="form-control" required>
                 </div>
                 <div>
-                    <label class="form-label">New Password</label>
-                    <input type="password" name="new_password" class="form-control" minlength="8" required>
+                    <label class="form-label" for="staff_new_password">New Password</label>
+                    <input type="password" id="staff_new_password" name="new_password" class="form-control" minlength="8" required>
                 </div>
                 <div>
-                    <label class="form-label">Confirm New Password</label>
-                    <input type="password" name="confirm_password" class="form-control" required>
+                    <label class="form-label" for="staff_confirm_password">Confirm New Password</label>
+                    <input type="password" id="staff_confirm_password" name="confirm_password" class="form-control" required>
                 </div>
             </div>
             <div style="margin-top:var(--space-5)">

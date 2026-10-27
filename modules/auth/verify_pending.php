@@ -155,7 +155,7 @@ ob_start();
                 class="form-input auth-code <?= isset($errors['code']) ? 'error' : '' ?>"
                 inputmode="numeric" pattern="[0-9]{6}" maxlength="6"
                 autocomplete="one-time-code" placeholder="123456"
-                required autofocus>
+                required>
             <?php if (!empty($errors['code'])): ?>
                 <span class="form-error"><?= e($errors['code']) ?></span>
             <?php endif; ?>

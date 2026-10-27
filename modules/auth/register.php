@@ -538,7 +538,7 @@ ob_start();
                 <?php endif; ?>
             </div>
             <div class="form-group">
-                <label class="form-label">Sex <span>*</span></label>
+                <span class="form-label">Sex <span>*</span></span>
                 <div class="sex-toggle <?= isset($errors['sex']) ? 'error' : '' ?>">
                     <input type="hidden" name="sex" id="sex_value" value="<?= e($old['sex'] ?? '') ?>">
                     <button type="button" class="sex-btn <?= ($old['sex'] ?? '') === 'M' ? 'active' : '' ?>"

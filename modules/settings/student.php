@@ -132,13 +132,13 @@ ob_start();
                 <!-- Row 1: First / Middle -->
                 <div class="row row-cols-1 row-cols-md-2" style="--bs-gutter-x:var(--space-4);--bs-gutter-y:var(--space-4)">
                     <div>
-                        <label class="form-label">First Name *</label>
-                        <input type="text" name="first_name" class="form-control"
+                        <label class="form-label" for="st_first_name">First Name *</label>
+                        <input type="text" id="st_first_name" name="first_name" class="form-control"
                             value="<?= e($user['first_name'] ?? '') ?>" required>
                     </div>
                     <div>
-                        <label class="form-label">Middle Name</label>
-                        <input type="text" name="middle_name" class="form-control"
+                        <label class="form-label" for="st_middle_name">Middle Name</label>
+                        <input type="text" id="st_middle_name" name="middle_name" class="form-control"
                             value="<?= e($user['middle_name'] ?? '') ?>">
                     </div>
                 </div>
@@ -146,13 +146,13 @@ ob_start();
                 <!-- Row 2: Last / Suffix -->
                 <div class="row row-cols-1 row-cols-md-2" style="--bs-gutter-x:var(--space-4);--bs-gutter-y:var(--space-4)">
                     <div>
-                        <label class="form-label">Last Name *</label>
-                        <input type="text" name="last_name" class="form-control"
+                        <label class="form-label" for="st_last_name">Last Name *</label>
+                        <input type="text" id="st_last_name" name="last_name" class="form-control"
                             value="<?= e($user['last_name'] ?? '') ?>" required>
                     </div>
                     <div>
-                        <label class="form-label">Suffix</label>
-                        <input type="text" name="suffix" class="form-control"
+                        <label class="form-label" for="st_suffix">Suffix</label>
+                        <input type="text" id="st_suffix" name="suffix" class="form-control"
                             value="<?= e($user['suffix'] ?? '') ?>"
                             placeholder="e.g. Jr., III">
                     </div>
@@ -161,13 +161,13 @@ ob_start();
                 <!-- Row 3: Birthdate / Sex -->
                 <div class="row row-cols-1 row-cols-md-2" style="--bs-gutter-x:var(--space-4);--bs-gutter-y:var(--space-4)">
                     <div>
-                        <label class="form-label">Birthdate *</label>
-                        <input type="date" name="birthdate" class="form-control"
+                        <label class="form-label" for="st_birthdate">Birthdate *</label>
+                        <input type="date" id="st_birthdate" name="birthdate" class="form-control"
                             value="<?= e($user['birthdate'] ?? '') ?>"
                             max="<?= date('Y-m-d', strtotime('-15 years')) ?>" required>
                     </div>
                     <div>
-                        <label class="form-label">Sex *</label>
+                        <span class="form-label">Sex *</span>
                         <div class="sex-toggle-settings">
                             <input type="hidden" name="sex" id="settings_sex_value" value="<?= e($user['sex'] ?? '') ?>">
                             <button type="button" class="sex-btn-s <?= ($user['sex'] ?? '') === 'M' ? 'active' : '' ?>"
@@ -180,9 +180,9 @@ ob_start();
 
                 <!-- Row 4: Address -->
                 <div>
-                    <label class="form-label">Address *</label>
+                    <label class="form-label" for="st_address">Address *</label>
                     <div class="input-wrapper has-suffix" style="position:relative">
-                        <input type="text" name="address" class="form-control"
+                        <input type="text" id="st_address" name="address" class="form-control"
                             value="<?= e($addressDisplay) ?>"
                             placeholder="Street / Barangay"
                             style="padding-right:100px" required>
@@ -196,15 +196,15 @@ ob_start();
                 <!-- Row 5: Email (read-only) / Phone -->
                 <div class="row row-cols-1 row-cols-md-2" style="--bs-gutter-x:var(--space-4);--bs-gutter-y:var(--space-4)">
                     <div>
-                        <label class="form-label">Email</label>
-                        <input type="email" class="form-control" value="<?= e($user['email']) ?>" disabled>
+                        <label class="form-label" for="st_email">Email</label>
+                        <input type="email" id="st_email" class="form-control" value="<?= e($user['email']) ?>" disabled>
                         <p style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:var(--space-1)">
                             Email cannot be changed.
                         </p>
                     </div>
                     <div>
-                        <label class="form-label">Phone Number *</label>
-                        <input type="tel" name="phone" class="form-control"
+                        <label class="form-label" for="st_phone">Phone Number *</label>
+                        <input type="tel" id="st_phone" name="phone" class="form-control"
                             value="<?= e($user['phone'] ?? '') ?>"
                             placeholder="09XX XXX XXXX" required>
                     </div>
@@ -235,16 +235,16 @@ ob_start();
             <input type="hidden" name="action" value="change_password">
             <div style="display:flex;flex-direction:column;gap:var(--space-4)">
                 <div>
-                    <label class="form-label">Current Password</label>
-                    <input type="password" name="current_password" class="form-control" required>
+                    <label class="form-label" for="st_current_password">Current Password</label>
+                    <input type="password" id="st_current_password" name="current_password" class="form-control" required>
                 </div>
                 <div>
-                    <label class="form-label">New Password</label>
-                    <input type="password" name="new_password" class="form-control" minlength="8" required>
+                    <label class="form-label" for="st_new_password">New Password</label>
+                    <input type="password" id="st_new_password" name="new_password" class="form-control" minlength="8" required>
                 </div>
                 <div>
-                    <label class="form-label">Confirm New Password</label>
-                    <input type="password" name="confirm_password" class="form-control" required>
+                    <label class="form-label" for="st_confirm_password">Confirm New Password</label>
+                    <input type="password" id="st_confirm_password" name="confirm_password" class="form-control" required>
                 </div>
             </div>
             <div style="margin-top:var(--space-5)">

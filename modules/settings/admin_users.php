@@ -185,7 +185,7 @@ ob_start();
 
         <div class="auto-table-search">
             <?= icon('ic_fluent_search_24_filled', 14) ?>
-            <input type="text" name="q" class="form-input" placeholder="Search by name or email…" value="<?= e($filterQ) ?>">
+            <input type="text" name="q" class="form-input" aria-label="Search users" placeholder="Search by name or email…" value="<?= e($filterQ) ?>">
         </div>
 
         <select name="department" class="form-input" style="width:240px" onchange="this.form.submit()" aria-label="Department">
@@ -242,7 +242,7 @@ ob_start();
                             <?= csrf_field() ?>
                             <input type="hidden" name="action" value="update_department">
                             <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
-                            <select name="department" class="form-control" style="width:100%"
+                            <select name="department" class="form-control" style="width:100%" aria-label="Department"
                                     onchange="this.form.submit()">
                                 <option value="">- none -</option>
                                 <?php foreach ($availableDepts as $deptName): ?>
@@ -352,15 +352,15 @@ ob_start();
             <input type="hidden" name="action" value="create_user">
             <div class="modal-body" style="display:flex;flex-direction:column;gap:var(--space-4)">
                 <div>
-                    <label class="form-label">Full Name <span style="color:var(--error)">*</span></label>
-                    <input type="text" name="name" class="form-control" required>
+                    <label class="form-label" for="create_user_name">Full Name <span style="color:var(--error)">*</span></label>
+                    <input type="text" id="create_user_name" name="name" class="form-control" required>
                 </div>
                 <div>
-                    <label class="form-label">Email <span style="color:var(--error)">*</span></label>
-                    <input type="email" name="email" class="form-control" required>
+                    <label class="form-label" for="create_user_email">Email <span style="color:var(--error)">*</span></label>
+                    <input type="email" id="create_user_email" name="email" class="form-control" required>
                 </div>
                 <div>
-                    <label class="form-label">Role <span style="color:var(--error)">*</span></label>
+                    <label class="form-label" for="role-select">Role <span style="color:var(--error)">*</span></label>
                     <select name="role" id="role-select" class="form-control" required>
                         <option value="">Select role…</option>
                         <option value="<?= ROLE_STAFF ?>">Professor (conduct interviews)</option>
@@ -371,7 +371,7 @@ ob_start();
                     </select>
                 </div>
                 <div>
-                    <label class="form-label" id="dept-label">
+                    <label class="form-label" id="dept-label" for="dept-select">
                         Department
                         <span id="dept-hint" style="color:var(--text-tertiary);font-weight:400"> - optional for SSO and Admin</span>
                     </label>
@@ -383,8 +383,8 @@ ob_start();
                     </select>
                 </div>
                 <div>
-                    <label class="form-label">Password <span style="color:var(--error)">*</span></label>
-                    <input type="password" name="password" class="form-control" minlength="8" required>
+                    <label class="form-label" for="create_user_password">Password <span style="color:var(--error)">*</span></label>
+                    <input type="password" id="create_user_password" name="password" class="form-control" minlength="8" required>
                     <p style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:4px">Minimum 8 characters.</p>
                 </div>
             </div>
@@ -411,8 +411,8 @@ ob_start();
             <input type="hidden" name="user_id" id="reset-uid">
             <div class="modal-body">
                 <p id="reset-name" style="font-weight:var(--weight-medium);margin-bottom:var(--space-4)"></p>
-                <label class="form-label">New Password <span style="color:var(--error)">*</span></label>
-                <input type="password" name="new_password" class="form-control" minlength="8" required>
+                <label class="form-label" for="reset_new_password">New Password <span style="color:var(--error)">*</span></label>
+                <input type="password" id="reset_new_password" name="new_password" class="form-control" minlength="8" required>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-ghost" onclick="document.getElementById('reset-pw-modal').style.display='none'">Cancel</button>

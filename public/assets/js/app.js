@@ -230,7 +230,7 @@ const FileDropZone = (() => {
         if (!input) return;
 
         // Click zone → open file picker (skip if zone handles its own clicks)
-        if (!zone.hasAttribute('data-no-auto-click')) {
+        if (!zone.dataset.noAutoClick) {
             zone.addEventListener('click', (e) => {
                 if (e.target !== input) input.click();
             });
@@ -290,7 +290,7 @@ const FileDropZone = (() => {
 // ============================================================
 function initAlerts() {
     document.querySelectorAll('[data-auto-dismiss]').forEach(el => {
-        const ms = parseInt(el.dataset.autoDismiss, 10) || 4000;
+        const ms = Number.parseInt(el.dataset.autoDismiss, 10) || 4000;
         setTimeout(() => {
             el.style.transition = 'opacity 0.3s ease';
             el.style.opacity = '0';
@@ -570,7 +570,7 @@ const FontSize = (() => {
         });
         document.querySelectorAll('[data-font-size-slider]').forEach(slider => {
             const index = SIZES.indexOf(size);
-            const max = parseInt(slider.max || String(SIZES.length - 1), 10) || SIZES.length - 1;
+            const max = Number.parseInt(slider.max || String(SIZES.length - 1), 10) || SIZES.length - 1;
             const pct = max === 0 ? 0 : (index / max) * 100;
             slider.value = String(index);
             slider.style.setProperty('--font-slider-progress', `${pct}%`);
@@ -584,7 +584,7 @@ const FontSize = (() => {
     function init() {
         document.querySelectorAll('[data-font-size-slider]').forEach(slider => {
             slider.addEventListener('input', () => {
-                const index = Math.max(0, Math.min(SIZES.length - 1, parseInt(slider.value, 10) || 0));
+                const index = Math.max(0, Math.min(SIZES.length - 1, Number.parseInt(slider.value, 10) || 0));
                 apply(SIZES[index]);
             });
         });
@@ -639,7 +639,7 @@ const AutoPageSize = (() => {
 
     function cssVar(name, fallback) {
         const raw = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-        const n = parseInt(raw, 10);
+        const n = Number.parseInt(raw, 10);
         return Number.isNaN(n) ? fallback : n;
     }
 
@@ -671,7 +671,7 @@ const AutoPageSize = (() => {
         // key with everything but letters, digits and _ turned into _.
         const cookieKey = storageKey.replace(/[^a-zA-Z0-9_]/g, '_');
         const reloadCountKey = storageKey + ':reloads';
-        const currentPerPage = parseInt(root.dataset.currentPerPage || '0', 10);
+        const currentPerPage = Number.parseInt(root.dataset.currentPerPage || '0', 10);
         // Safety valve: allow a couple of auto-corrections per page load,
         // then stop — never reload forever.
         const MAX_AUTO_RELOADS = 3;
@@ -690,7 +690,7 @@ const AutoPageSize = (() => {
         }
 
         function measureAndMaybeReload() {
-            const reloadsSoFar = parseInt(sessionStorage.getItem(reloadCountKey) || '0', 10);
+            const reloadsSoFar = Number.parseInt(sessionStorage.getItem(reloadCountKey) || '0', 10);
             if (reloadsSoFar >= MAX_AUTO_RELOADS) return false;
 
             const rows = computeRows(root, toolbar);
@@ -785,8 +785,8 @@ window.FilterBar = FilterBar;
 // ============================================================
 const ScrollTable = (() => {
     function setup(card) {
-        const limit   = Math.max(1, parseInt(card.dataset.limit || '10', 10));
-        const batch   = Math.max(1, parseInt(card.dataset.batch || String(limit), 10));
+        const limit   = Math.max(1, Number.parseInt(card.dataset.limit || '10', 10));
+        const batch   = Math.max(1, Number.parseInt(card.dataset.batch || String(limit), 10));
         const rows    = Array.from(card.querySelectorAll('tr[data-st-row]'));
         const search  = card.querySelector('[data-st-search]');
         const filters = Array.from(card.querySelectorAll('[data-st-filter]'));
@@ -805,10 +805,10 @@ const ScrollTable = (() => {
 
         function matches(row) {
             const q = query();
-            if (q && !(row.getAttribute('data-search') || '').includes(q)) return false;
+            if (q && !(row.dataset.search || '').includes(q)) return false;
             return filters.every((f) => {
                 if (f.value === '') return true;
-                const have = (row.getAttribute('data-' + f.dataset.stFilter) || '').split('|');
+                const have = (row.dataset[f.dataset.stFilter] || '').split('|');
                 return have.includes(f.value);
             });
         }
@@ -823,10 +823,10 @@ const ScrollTable = (() => {
                 if (ok) matched++;
                 const show = ok && (editing || visible < shown);
                 row.hidden = !show;
-                row.removeAttribute('data-st-last');
+                delete row.dataset.stLast;
                 if (show) { visible++; last = row; }
             });
-            if (last) last.setAttribute('data-st-last', '');
+            if (last) last.dataset.stLast = '';
             if (empty) empty.hidden = rows.length === 0 || matched > 0;
             if (more) {
                 more.hidden = visible >= matched;
@@ -882,10 +882,38 @@ const SelectMenu = (() => {
 
     function eligible(el) {
         return !!el && el.tagName === 'SELECT' && !el.multiple
-            && !el.hasAttribute('size') && !el.hasAttribute('data-native');
+            && !el.hasAttribute('size') && !el.dataset.native;
     }
 
     function isOpen() { return !!panel && panel.classList.contains('open'); }
+
+    // Keys while the list is open. Same keys and behavior as before.
+    function handleOpenKey(e) {
+        switch (e.key) {
+            case 'ArrowDown': e.preventDefault(); move(1); return;
+            case 'ArrowUp':   e.preventDefault(); move(-1); return;
+            case 'Home':      e.preventDefault(); setActive(entries.findIndex((en) => !en.option.disabled), true); return;
+            case 'End': {
+                e.preventDefault();
+                for (let i = entries.length - 1; i >= 0; i--) {
+                    if (!entries[i].option.disabled) { setActive(i, true); break; }
+                }
+                return;
+            }
+            case 'Enter':
+            case ' ':
+                e.preventDefault();
+                if (active >= 0) choose(entries[active]); else close();
+                return;
+            case 'Escape': e.preventDefault(); e.stopPropagation(); close(); return;
+            case 'Tab': close(); return;
+            default:
+                if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                    e.preventDefault();
+                    typeahead(e.key);
+                }
+        }
+    }
 
     function ensurePanel() {
         if (panel) return panel;
@@ -1041,33 +1069,7 @@ const SelectMenu = (() => {
         }, true);
 
         document.addEventListener('keydown', (e) => {
-            if (isOpen()) {
-                switch (e.key) {
-                    case 'ArrowDown': e.preventDefault(); move(1); return;
-                    case 'ArrowUp':   e.preventDefault(); move(-1); return;
-                    case 'Home':      e.preventDefault(); setActive(entries.findIndex((en) => !en.option.disabled), true); return;
-                    case 'End': {
-                        e.preventDefault();
-                        for (let i = entries.length - 1; i >= 0; i--) {
-                            if (!entries[i].option.disabled) { setActive(i, true); break; }
-                        }
-                        return;
-                    }
-                    case 'Enter':
-                    case ' ':
-                        e.preventDefault();
-                        if (active >= 0) choose(entries[active]); else close();
-                        return;
-                    case 'Escape': e.preventDefault(); e.stopPropagation(); close(); return;
-                    case 'Tab': close(); return;
-                    default:
-                        if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-                            e.preventDefault();
-                            typeahead(e.key);
-                        }
-                        return;
-                }
-            }
+            if (isOpen()) { handleOpenKey(e); return; }
             const sel = e.target;
             if (eligible(sel) && !e.ctrlKey && !e.metaKey
                 && (e.key === 'Enter' || e.key === ' ' || e.key === 'F4'
@@ -1231,37 +1233,37 @@ function createCardBulkSelector(cfg) {
     function tBtn()  { return document.getElementById(cfg.toggleBtnId); }
 
     function updateCount() {
-        var g = grid(); if (!g) return;
-        var n = g.querySelectorAll(cfg.checkboxSel + ':checked').length;
-        var c = document.getElementById(cfg.countId);
+        const g = grid(); if (!g) return;
+        const n = g.querySelectorAll(cfg.checkboxSel + ':checked').length;
+        const c = document.getElementById(cfg.countId);
         if (c) c.textContent = n + ' selected';
-        var btn = document.getElementById(cfg.deleteBtnId);
+        const btn = document.getElementById(cfg.deleteBtnId);
         if (btn) btn.disabled = (n === 0);
     }
 
     function cancelSelectMode() {
-        var g = grid(); if (!g) return;
+        const g = grid(); if (!g) return;
         g.classList.remove('is-selecting');
         g.querySelectorAll(cfg.checkboxSel).forEach(function (cb) { cb.checked = false; });
         g.querySelectorAll(cfg.cardSel).forEach(function (c) { c.classList.remove('is-selected'); });
-        var btn = tBtn(); if (btn) btn.textContent = 'Select';
-        var b = bar(); if (b) b.classList.remove('is-visible');
+        const btn = tBtn(); if (btn) btn.textContent = 'Select';
+        const b = bar(); if (b) b.classList.remove('is-visible');
     }
 
     function toggleSelectMode() {
-        var g = grid(); if (!g) return;
+        const g = grid(); if (!g) return;
         if (g.classList.contains('is-selecting')) {
             cancelSelectMode();
         } else {
             g.classList.add('is-selecting');
-            var btn = tBtn(); if (btn) btn.textContent = 'Done';
-            var b = bar(); if (b) b.classList.add('is-visible');
+            const btn = tBtn(); if (btn) btn.textContent = 'Done';
+            const b = bar(); if (b) b.classList.add('is-visible');
             updateCount();
         }
     }
 
     function onCheckboxChange(cb) {
-        var card = cb.closest(cfg.cardSel);
+        const card = cb.closest(cfg.cardSel);
         if (card) card.classList.toggle('is-selected', cb.checked);
         updateCount();
     }
@@ -1270,8 +1272,8 @@ function createCardBulkSelector(cfg) {
     // first call returns false, asks, then clicks the button again with a flag set.
     function confirmBulkDelete(btn) {
         if (btn && btn.dataset.bulkOk) { delete btn.dataset.bulkOk; return true; }
-        var g = grid(); if (!g) return false;
-        var ids = Array.from(g.querySelectorAll(cfg.checkboxSel + ':checked'))
+        const g = grid(); if (!g) return false;
+        const ids = Array.from(g.querySelectorAll(cfg.checkboxSel + ':checked'))
             .map(function (cb) { return cb.value; });
         if (ids.length === 0) return false;
         ui.confirm(cfg.confirmMsg(ids.length), { danger: true, ok: 'Remove' }).then(function (ok) {
@@ -1279,7 +1281,7 @@ function createCardBulkSelector(cfg) {
             document.getElementById(cfg.idsInputId).value = ids.join(',');
             btn.dataset.bulkOk = '1';
             btn.click();
-        });
+        }).catch(function (err) { console.error(err); });
         return false;
     }
 
