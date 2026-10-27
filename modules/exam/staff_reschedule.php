@@ -460,7 +460,7 @@ ob_start();
 
         <div class="auto-table-search">
             <?= icon('ic_fluent_search_24_filled', 14) ?>
-            <input type="text" name="q" class="form-input" placeholder="Search student, course, reason…" value="<?= e($search) ?>">
+            <input type="text" id="resched_q" name="q" aria-label="Search" class="form-input" placeholder="Search student, course, reason…" value="<?= e($search) ?>">
         </div>
 
         <?php if ($deptOptions): ?>
@@ -537,7 +537,7 @@ ob_start();
                     </td>
                     <?php if ($canReschedule): ?>
                     <td>
-                        <select name="target_slot_id" form="<?= $approveFormId ?>" class="form-control">
+                        <select id="resched_target_<?= (int)$rr['id'] ?>" name="target_slot_id" form="<?= $approveFormId ?>" class="form-control" aria-label="Target slot">
                             <option value="0">Auto-assign</option>
                             <?php foreach ($openSlots as $s):
                                 if ((int)$s['id'] === (int)$rr['slot_id']) continue;
@@ -554,7 +554,7 @@ ob_start();
                         </select>
                     </td>
                     <td>
-                        <input type="text" name="deny_reason" form="<?= $denyFormId ?>"
+                        <input type="text" id="resched_deny_<?= (int)$rr['id'] ?>" name="deny_reason" form="<?= $denyFormId ?>" aria-label="Deny reason"
                                placeholder="Optional, shown to student"
                                title="Reason shown to the student if you deny"
                                maxlength="500"

@@ -423,8 +423,8 @@ ob_start();
 
             <?php if (count($allSYs) > 1): ?>
             <div style="display:flex;align-items:center;gap:var(--space-2);">
-                <label style="font-size:var(--text-sm);color:var(--text-secondary);white-space:nowrap;">School Year</label>
-                <select class="toolbar-select" onchange="location.href=this.value" aria-label="School year">
+                <label for="db-school-year" style="font-size:var(--text-sm);color:var(--text-secondary);white-space:nowrap;">School Year</label>
+                <select id="db-school-year" class="toolbar-select" onchange="location.href=this.value">
                     <?php foreach ($allSYs as $sy): ?>
                         <?php
                         $params = $_GET;
@@ -467,8 +467,8 @@ ob_start();
                     <div class="dp-divider"></div>
                     <button class="dp-item <?= $range==='custom'     ?'active':''?>" onclick="dpCustom()">Custom range&hellip;</button>
                     <div class="dp-custom-row <?= $range==='custom'?'show':''?>" id="dpCustomRow">
-                        <input type="date" class="dp-date-in" id="dpFrom" value="<?= e($fromDate ?? '') ?>">
-                        <input type="date" class="dp-date-in" id="dpTo"   value="<?= e($toDate   ?? '') ?>">
+                        <input type="date" class="dp-date-in" id="dpFrom" aria-label="From date" value="<?= e($fromDate ?? '') ?>">
+                        <input type="date" class="dp-date-in" id="dpTo" aria-label="To date" value="<?= e($toDate   ?? '') ?>">
                         <button class="btn btn-primary" style="padding:var(--space-1) var(--space-3);font-size:var(--text-sm)" onclick="dpApply()">Go</button>
                     </div>
                 </div>
@@ -547,7 +547,7 @@ ob_start();
                 <!-- Donut — flex:1 mirrors the Sex side below -->
                 <div style="flex:1;min-width:0;padding-left:var(--space-4);display:flex;align-items:center;justify-content:center;">
                     <div class="db-donut-wrap" title="<?= $completionPct ?>% released">
-                        <svg class="db-donut" viewBox="0 0 58 58">
+                        <svg class="db-donut" viewBox="0 0 58 58" role="img" aria-label="<?= $completionPct ?>% released">
                             <circle class="db-donut-bg"   cx="29" cy="29" r="24" fill="none" stroke-width="7"/>
                             <circle class="db-donut-fill" cx="29" cy="29" r="24" fill="none" stroke-width="7"
                                     stroke-dasharray="<?= $circ ?>"

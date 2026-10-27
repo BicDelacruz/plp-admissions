@@ -93,7 +93,7 @@ audit_log('admission_print', 'Viewed printable admission record: ' . $fullName, 
 
     <header class="pr-head">
         <?php if ($logoUrl !== ''): ?>
-            <img class="pr-logo" src="<?= e($logoUrl) ?>" alt="" onerror="this.remove()">
+            <img class="pr-logo" src="<?= e($logoUrl) ?>" alt="">
         <?php endif; ?>
         <div class="pr-school-meta">
             <div class="pr-school"><?= e($schoolName) ?></div>
@@ -138,6 +138,10 @@ audit_log('admission_print', 'Viewed printable admission record: ' . $fullName, 
 <script src="<?= e(asset('js/jquery.min.js')) ?>"></script>
 <script>
 $('#printBtn').on('click', function () { window.print(); });
+// Drop the logo if it fails to load (also when it already failed before this ran).
+$('.pr-logo').on('error', function () { $(this).remove(); }).each(function () {
+    if (this.complete && !this.naturalWidth) { $(this).remove(); }
+});
 </script>
 </body>
 </html>
