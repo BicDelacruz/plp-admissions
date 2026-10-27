@@ -247,7 +247,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                     <?= icon('gear', 15) ?>
                     Settings
                 </a>
-                <div class="dropdown-item theme-toggle-row" onclick="
+                <div class="dropdown-item theme-toggle-row" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" onclick="
                     const t = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
                     document.documentElement.dataset.theme = t;
                     localStorage.setItem('plp_theme', t);
@@ -276,7 +276,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                 ?>
                 <?php if ($_canWithdraw): ?>
                 <div class="dropdown-separator"></div>
-                <a href="#" class="dropdown-item danger" onclick="event.preventDefault();document.getElementById('withdraw-modal').style.display='flex'">
+                <a href="#" class="dropdown-item danger" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" onclick="event.preventDefault();document.getElementById('withdraw-modal').style.display='flex'">
                     <?= icon('x-circle', 15) ?>
                     Withdraw Application
                 </a>
@@ -341,6 +341,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                 <div class="dropdown">
                     <div class="sidebar-user" data-dropdown tabindex="0" role="button"
                          aria-label="User menu" aria-haspopup="true"
+                         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}"
                          data-tooltip="<?= e($authUser['name'] ?? 'Account') ?>">
                         <div class="user-avatar"><?= e($userInitials) ?></div>
                         <div class="user-info">
@@ -363,7 +364,7 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                             <?= icon('gear', 15) ?>
                             Settings
                         </a>
-                        <div class="dropdown-item theme-toggle-row" onclick="
+                        <div class="dropdown-item theme-toggle-row" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" onclick="
                             const t = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
                             document.documentElement.dataset.theme = t;
                             localStorage.setItem('plp_theme', t);
@@ -620,14 +621,14 @@ header("Referrer-Policy: strict-origin-when-cross-origin");
                     </div>
                 </div>
                 <div>
-                    <label class="form-label">Type <strong>Withdraw</strong> to confirm</label>
+                    <label class="form-label" for="withdraw-confirm-input">Type <strong>Withdraw</strong> to confirm</label>
                     <input type="text" id="withdraw-confirm-input" class="form-control"
                            placeholder="Withdraw" autocomplete="off" style="max-width:220px;text-transform:none"
                            oninput="document.getElementById('withdraw-submit-btn').disabled = this.value.trim().toLowerCase() !== 'withdraw'">
                 </div>
                 <div>
-                    <label class="form-label">Reason <span style="color:var(--text-tertiary);font-weight:var(--weight-regular)">(optional)</span></label>
-                    <textarea name="withdraw_reason" class="form-control" rows="2"
+                    <label class="form-label" for="withdraw-reason">Reason <span style="color:var(--text-tertiary);font-weight:var(--weight-regular)">(optional)</span></label>
+                    <textarea name="withdraw_reason" id="withdraw-reason" class="form-control" rows="2"
                               placeholder="e.g. Enrolling at a different school"></textarea>
                 </div>
             </div>

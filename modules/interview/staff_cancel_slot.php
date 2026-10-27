@@ -317,7 +317,7 @@ ob_start();
 
         <div class="auto-table-search">
             <?= icon('ic_fluent_search_24_filled', 14) ?>
-            <input type="text" name="q" class="form-input" placeholder="Search by date, interviewer, department or room…" value="<?= e($search) ?>">
+            <input type="text" name="q" class="form-input" aria-label="Search slots" placeholder="Search by date, interviewer, department or room…" value="<?= e($search) ?>">
         </div>
 
         <?php if ($search !== ''): ?>
@@ -378,7 +378,7 @@ ob_start();
                     </td>
                     <?php else: ?>
                     <td>
-                        <select name="target_slot_id" form="<?= $formId ?>" required class="form-control">
+                        <select name="target_slot_id" aria-label="Replacement slot" form="<?= $formId ?>" required class="form-control">
                             <option value="">Pick a replacement slot…</option>
                             <?php foreach ($options as $r):
                                 $left = (int)$r['capacity'] - (int)$r['booked'];
@@ -393,7 +393,7 @@ ob_start();
                         </select>
                     </td>
                     <td>
-                        <input type="text" name="reason" form="<?= $formId ?>" required maxlength="500"
+                        <input type="text" name="reason" aria-label="Cancellation reason" form="<?= $formId ?>" required maxlength="500"
                                placeholder="Reason shown to students (e.g. Typhoon Pepito)"
                                class="form-control"
                                style="font-size:var(--text-xs);height:var(--control-height);min-height:var(--control-height);padding:0 var(--space-2)">

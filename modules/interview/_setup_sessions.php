@@ -51,7 +51,7 @@ $totalSessCount = array_sum(array_column($sessDateMap, 'count'));
 ?>
 <?php if (count($sessDateMap) > 1): ?>
 <div class="select-toolbar">
-    <select id="sess-date-filter" class="form-control" title="Filter by session date">
+    <select id="sess-date-filter" class="form-control" aria-label="Filter by session date" title="Filter by session date">
         <option value="" data-count="<?= (int)$totalSessCount ?>">
             All dates · <?= (int)$totalSessCount ?> session<?= (int)$totalSessCount === 1 ? '' : 's' ?>
         </option>
@@ -126,7 +126,7 @@ foreach ($byDate as $date => $dateSlots) {
              data-date="<?= e($date) ?>"
              onclick='handleSessCardClick(event, <?= $editPayload ?>)'>
             <?php if ($canManage): ?>
-                <input type="checkbox" class="select-card-check sess-select-checkbox"
+                <input type="checkbox" class="select-card-check sess-select-checkbox" aria-label="Select session"
                        value="<?= (int)$slot['id'] ?>"
                        <?= $undeletable ? 'disabled title="Has bookings - cannot remove"' : '' ?>
                        onclick="event.stopPropagation();onSessCheckboxChange(this)">
@@ -250,8 +250,8 @@ foreach ($byDate as $date => $dateSlots) {
 
                 <!-- Shared fields: interviewer + location -->
                 <div>
-                    <label class="form-label">Assigned Interviewer <span style="color:var(--error)">*</span></label>
-                    <select name="assigned_to" class="form-control" required>
+                    <label class="form-label" for="add_assigned_to">Assigned Interviewer <span style="color:var(--error)">*</span></label>
+                    <select name="assigned_to" id="add_assigned_to" class="form-control" required>
                         <option value="">- Select staff -</option>
                         <?php foreach ($staffList as $s): ?>
                             <option value="<?= (int)$s['id'] ?>"><?= e($s['name']) ?></option>
@@ -259,38 +259,38 @@ foreach ($byDate as $date => $dateSlots) {
                     </select>
                 </div>
                 <div>
-                    <label class="form-label">Location Label <span style="color:var(--error)">*</span></label>
-                    <input type="text" name="location_label" class="form-control" required
+                    <label class="form-label" for="add_location_label">Location Label <span style="color:var(--error)">*</span></label>
+                    <input type="text" name="location_label" id="add_location_label" class="form-control" required
                            placeholder="e.g. Room 201, Desk A">
                 </div>
                 <div>
-                    <label class="form-label">
+                    <label class="form-label" for="add_location_notes">
                         Directions / Notes
                         <span style="color:var(--text-tertiary);font-weight:400"> - optional</span>
                     </label>
-                    <input type="text" name="location_notes" class="form-control"
+                    <input type="text" name="location_notes" id="add_location_notes" class="form-control"
                            placeholder="e.g. 2nd floor, turn left at the bulletin board">
                 </div>
 
                 <!-- ── Single-session fields ─────────────────────── -->
                 <div id="add-single-fields" style="display:flex;flex-direction:column;gap:var(--space-4)">
                     <div>
-                        <label class="form-label">Date <span style="color:var(--error)">*</span></label>
-                        <input type="date" name="slot_date" class="form-control"
+                        <label class="form-label" for="add_slot_date">Date <span style="color:var(--error)">*</span></label>
+                        <input type="date" name="slot_date" id="add_slot_date" class="form-control"
                                value="<?= date('Y-m-d', strtotime('+1 day')) ?>">
                     </div>
                     <div class="row row-cols-1 row-cols-md-3" style="--bs-gutter-x:var(--space-3);--bs-gutter-y:var(--space-3)">
                         <div>
-                            <label class="form-label">Start Time <span style="color:var(--error)">*</span></label>
-                            <input type="time" name="slot_time" class="form-control" value="09:00">
+                            <label class="form-label" for="add_slot_time">Start Time <span style="color:var(--error)">*</span></label>
+                            <input type="time" name="slot_time" id="add_slot_time" class="form-control" value="09:00">
                         </div>
                         <div>
-                            <label class="form-label">End Time <span style="color:var(--error)">*</span></label>
-                            <input type="time" name="slot_end_time" class="form-control" value="16:00">
+                            <label class="form-label" for="add_slot_end_time">End Time <span style="color:var(--error)">*</span></label>
+                            <input type="time" name="slot_end_time" id="add_slot_end_time" class="form-control" value="16:00">
                         </div>
                         <div>
-                            <label class="form-label">Capacity <span style="color:var(--error)">*</span></label>
-                            <input type="number" name="capacity" class="form-control"
+                            <label class="form-label" for="add_capacity">Capacity <span style="color:var(--error)">*</span></label>
+                            <input type="number" name="capacity" id="add_capacity" class="form-control"
                                    value="30" min="1" max="500">
                         </div>
                     </div>
@@ -303,32 +303,32 @@ foreach ($byDate as $date => $dateSlots) {
                     </p>
                     <div class="row row-cols-1 row-cols-md-2" style="--bs-gutter-x:var(--space-3);--bs-gutter-y:var(--space-3)">
                         <div>
-                            <label class="form-label">Start Date <span style="color:var(--error)">*</span></label>
-                            <input type="date" name="start_date" class="form-control"
+                            <label class="form-label" for="add_start_date">Start Date <span style="color:var(--error)">*</span></label>
+                            <input type="date" name="start_date" id="add_start_date" class="form-control"
                                    value="<?= date('Y-m-d', strtotime('+1 day')) ?>">
                         </div>
                         <div>
-                            <label class="form-label">End Date <span style="color:var(--error)">*</span></label>
-                            <input type="date" name="end_date" class="form-control"
+                            <label class="form-label" for="add_end_date">End Date <span style="color:var(--error)">*</span></label>
+                            <input type="date" name="end_date" id="add_end_date" class="form-control"
                                    value="<?= date('Y-m-d', strtotime('+14 days')) ?>">
                         </div>
                     </div>
                     <div class="row row-cols-1 row-cols-md-3" style="--bs-gutter-x:var(--space-3);--bs-gutter-y:var(--space-3)">
                         <div>
-                            <label class="form-label">Start Time</label>
-                            <input type="time" name="start_time" class="form-control" value="09:00">
+                            <label class="form-label" for="add_start_time">Start Time</label>
+                            <input type="time" name="start_time" id="add_start_time" class="form-control" value="09:00">
                         </div>
                         <div>
-                            <label class="form-label">End Time</label>
-                            <input type="time" name="end_time" class="form-control" value="16:00">
+                            <label class="form-label" for="add_end_time">End Time</label>
+                            <input type="time" name="end_time" id="add_end_time" class="form-control" value="16:00">
                         </div>
                         <div>
-                            <label class="form-label">Capacity</label>
-                            <input type="number" name="capacity_batch" class="form-control" value="30" min="1" max="500">
+                            <label class="form-label" for="add_capacity_batch">Capacity</label>
+                            <input type="number" name="capacity_batch" id="add_capacity_batch" class="form-control" value="30" min="1" max="500">
                         </div>
                     </div>
                     <div>
-                        <label class="form-label" style="margin-bottom:var(--space-2)">Days of Week</label>
+                        <span class="form-label" style="margin-bottom:var(--space-2)">Days of Week</span>
                         <div style="display:flex;flex-wrap:wrap;gap:var(--space-3)">
                             <?php foreach ([1=>'Mon',2=>'Tue',3=>'Wed',4=>'Thu',5=>'Fri'] as $dn => $dl): ?>
                                 <label class="form-check" style="gap:var(--space-1)">
@@ -371,7 +371,7 @@ foreach ($byDate as $date => $dateSlots) {
             <input type="hidden" name="slot_id" id="edit-sess-id">
             <div class="modal-body" style="display:flex;flex-direction:column;gap:var(--space-4)">
                 <div>
-                    <label class="form-label">Assigned Interviewer <span style="color:var(--error)">*</span></label>
+                    <label class="form-label" for="edit-sess-assigned">Assigned Interviewer <span style="color:var(--error)">*</span></label>
                     <select name="assigned_to" id="edit-sess-assigned" class="form-control" required>
                         <option value="">- Select staff -</option>
                         <?php foreach ($staffList as $s): ?>
@@ -380,28 +380,28 @@ foreach ($byDate as $date => $dateSlots) {
                     </select>
                 </div>
                 <div>
-                    <label class="form-label">Location Label <span style="color:var(--error)">*</span></label>
+                    <label class="form-label" for="edit-sess-label">Location Label <span style="color:var(--error)">*</span></label>
                     <input type="text" name="location_label" id="edit-sess-label" class="form-control" required>
                 </div>
                 <div>
-                    <label class="form-label">Directions / Notes</label>
+                    <label class="form-label" for="edit-sess-notes">Directions / Notes</label>
                     <input type="text" name="location_notes" id="edit-sess-notes" class="form-control">
                 </div>
                 <div>
-                    <label class="form-label">Date <span style="color:var(--error)">*</span></label>
+                    <label class="form-label" for="edit-sess-date">Date <span style="color:var(--error)">*</span></label>
                     <input type="date" name="slot_date" id="edit-sess-date" class="form-control" required>
                 </div>
                 <div class="row row-cols-1 row-cols-md-3" style="--bs-gutter-x:var(--space-3);--bs-gutter-y:var(--space-3)">
                     <div>
-                        <label class="form-label">Start Time <span style="color:var(--error)">*</span></label>
+                        <label class="form-label" for="edit-sess-time">Start Time <span style="color:var(--error)">*</span></label>
                         <input type="time" name="slot_time" id="edit-sess-time" class="form-control" required>
                     </div>
                     <div>
-                        <label class="form-label">End Time <span style="color:var(--error)">*</span></label>
+                        <label class="form-label" for="edit-sess-end">End Time <span style="color:var(--error)">*</span></label>
                         <input type="time" name="slot_end_time" id="edit-sess-end" class="form-control" required>
                     </div>
                     <div>
-                        <label class="form-label">Capacity <span style="color:var(--error)">*</span></label>
+                        <label class="form-label" for="edit-sess-cap">Capacity <span style="color:var(--error)">*</span></label>
                         <input type="number" name="capacity" id="edit-sess-cap" class="form-control"
                                min="1" max="500" required>
                     </div>

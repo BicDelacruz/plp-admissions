@@ -356,7 +356,7 @@ ob_start();
                     </summary>
                     <form method="POST" action="<?= url('/api/reschedule-request') ?>" style="margin-top:var(--space-3)">
                         <?= csrf_field() ?>
-                        <textarea name="reschedule_reason" class="form-textarea" rows="3" placeholder="Why do you need to reschedule? (e.g. emergency)" required style="margin-bottom:var(--space-3)"></textarea>
+                        <textarea name="reschedule_reason" aria-label="Reason for rescheduling" class="form-textarea" rows="3" placeholder="Why do you need to reschedule? (e.g. emergency)" required style="margin-bottom:var(--space-3)"></textarea>
                         <button type="submit" class="btn btn-ghost" style="width:100%">Submit Reschedule Request</button>
                     </form>
                 </details>
@@ -453,7 +453,7 @@ ob_start();
                     </summary>
                     <form method="POST" action="<?= url('/api/reschedule-request') ?>" style="margin-top:var(--space-3)">
                         <?= csrf_field() ?>
-                        <textarea name="reschedule_reason" class="form-textarea" rows="3" placeholder="Why do you need to reschedule?" required style="margin-bottom:var(--space-3)"></textarea>
+                        <textarea name="reschedule_reason" aria-label="Reason for rescheduling" class="form-textarea" rows="3" placeholder="Why do you need to reschedule?" required style="margin-bottom:var(--space-3)"></textarea>
                         <button type="submit" class="btn btn-ghost" style="width:100%">Submit Reschedule Request</button>
                     </form>
                 </details>

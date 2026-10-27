@@ -606,7 +606,7 @@ if (!$isDean) {
 
         <div class="auto-table-search">
             <?= icon('ic_fluent_search_24_filled', 14) ?>
-            <input type="text" name="q" class="form-input" placeholder="Search name, email, course…" value="<?= e($search) ?>">
+            <input type="text" name="q" class="form-input" aria-label="Search applicants" placeholder="Search name, email, course…" value="<?= e($search) ?>">
         </div>
 
         <?php if ($deptOptions): ?>
@@ -679,7 +679,7 @@ if (!$isDean) {
                                name="applicant_ids[]"
                                form="absent-resched-form"
                                value="<?= (int)$row['applicant_id'] ?>"
-                               class="js-select-row">
+                               class="js-select-row" aria-label="Select applicant">
                     </td>
                     <?php endif; ?>
                     <td style="font-size:var(--text-sm)" title="<?= e($row['student_email']) ?>">
@@ -765,7 +765,7 @@ if (!$isDean) {
 
         <div class="auto-table-search">
             <?= icon('ic_fluent_search_24_filled', 14) ?>
-            <input type="text" name="q" class="form-input" placeholder="Search student, course, reason…" value="<?= e($search) ?>">
+            <input type="text" name="q" class="form-input" aria-label="Search requests" placeholder="Search student, course, reason…" value="<?= e($search) ?>">
         </div>
 
         <?php if ($deptOptions): ?>
@@ -837,7 +837,7 @@ if (!$isDean) {
                     </td>
                     <?php if ($canReschedule): ?>
                     <td>
-                        <select name="target_slot_id" form="<?= $approveFormId ?>" class="form-control">
+                        <select name="target_slot_id" aria-label="Target slot" form="<?= $approveFormId ?>" class="form-control">
                             <option value="0">Auto-assign</option>
                             <?php foreach ($openSlots as $s):
                                 $spotsLeft = (int)$s['capacity'] - (int)$s['booked'];
@@ -852,7 +852,7 @@ if (!$isDean) {
                         </select>
                     </td>
                     <td>
-                        <input type="text" name="deny_reason" form="<?= $denyFormId ?>"
+                        <input type="text" name="deny_reason" aria-label="Denial reason" form="<?= $denyFormId ?>"
                                placeholder="Optional, shown to student"
                                title="Reason shown to the student if you deny"
                                maxlength="500"
