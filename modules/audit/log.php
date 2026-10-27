@@ -177,11 +177,11 @@ ob_start();
         <?php if ($isAdmin): ?>
         <div class="auto-table-search">
             <?= icon('ic_fluent_search_24_filled', 14) ?>
-            <input type="text" name="user" class="form-input" placeholder="Search by name…" value="<?= e($filterUser) ?>">
+            <input type="text" id="audit_user" name="user" aria-label="Search by name" class="form-input" placeholder="Search by name…" value="<?= e($filterUser) ?>">
         </div>
         <?php endif; ?>
 
-        <select name="action" class="form-input" style="width:200px" onchange="this.form.submit()">
+        <select id="audit_action" name="action" aria-label="Filter by action" class="form-input" style="width:200px" onchange="this.form.submit()">
             <option value="">All actions</option>
             <?php foreach ($actionGroups as $group => $actions): ?>
                 <optgroup label="<?= e($group) ?>">
@@ -194,7 +194,7 @@ ob_start();
             <?php endforeach; ?>
         </select>
 
-        <input type="date" name="date" class="form-input" style="width:160px" value="<?= e($filterDate) ?>"
+        <input type="date" id="audit_date" name="date" aria-label="Filter by date" class="form-input" style="width:160px" value="<?= e($filterDate) ?>"
                onchange="this.form.submit()">
 
         <?php if ($hasFilters): ?>
