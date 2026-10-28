@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($action==='accept') {
             $reason=trim((string)($_POST['reason'] ?? ''));
             $gwa = trim((string)($_POST['inputted_gwa'] ?? ''));
-            if (!preg_match('/^(?:7[5-9]|[89][0-9]|100)(?:\\.[0-9]{1,2})?$/', $gwa)) {
+            if (!preg_match('/^(?:7[5-9]|[89][0-9]|100)(?:\.[0-9]{1,2})?$/', $gwa)) {
                 Session::flash('error', 'Enter a report card GWA from 75 to 100.');
                 redirect('/admin/enrollment-handoff');
             }
