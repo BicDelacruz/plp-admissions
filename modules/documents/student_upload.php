@@ -103,7 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $value = trim((string)($_POST['inputted_gwa'] ?? ''));
         if (!in_array($applicant['overall_status'], ['pending', 'documents', 'submitted'], true)) {
             Session::flash('error', 'GWA changes are closed for this application.');
-        } elseif (!preg_match('/^(?:7[5-9]|[89][0-9]|100)(?:\\.[0-9]{1,2})?$/', $value)) {
+        } elseif (!preg_match('/^(?:7[5-9]|[89][0-9]|100)(?:\.[0-9]{1,2})?$/', $value)) {
             Session::flash('error', 'Enter a GWA from 75 to 100, with up to two decimal places.');
         } else {
             $db->prepare('UPDATE applicants SET inputted_gwa = ?, gwa_verified_at = NULL, gwa_verified_by = NULL WHERE id = ?')
