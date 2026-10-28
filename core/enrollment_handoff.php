@@ -105,8 +105,10 @@ function enrollment_full_name(array $row): string
 function enrollment_handoff_payload(PDO $db, int $applicantId): array
 {
     $stmt = $db->prepare(
-        'SELECT a.id, a.applicant_type, a.course_applied, a.school_year,
+        'SELECT a.id, a.applicant_type, a.course_applied, a.school_year, a.created_at,
+                a.shs_strand, a.inputted_gwa, a.gwa_verified_at,
                 u.name, u.first_name, u.middle_name, u.last_name, u.suffix, u.email,
+                u.birthdate, u.sex, u.address, u.phone,
                 ar.result, ar.enrollment_intent, ar.released_at
          FROM applicants a
          JOIN users u ON u.id = a.user_id
@@ -158,6 +160,21 @@ function enrollment_handoff_payload(PDO $db, int $applicantId): array
         'full_name'      => $fullName,
         'email'          => strtolower(trim((string) $row['email'])),
         'program_code'   => $code,
+        'program_name'   => (string) $row['course_applied'],
+        'applicant_details' => [
+            'first_name' => trim((string) $row['first_name']),
+            'middle_name' => trim((string) $row['middle_name']),
+            'last_name' => trim((string) $row['last_name']),
+            'suffix' => trim((string) $row['suffix']),
+            'birthdate' => $row['birthdate'] ?: null,
+            'sex' => $row['sex'] ?: null,
+            'address' => trim((string) $row['address']),
+            'contact_number' => trim((string) $row['phone']),
+            'shs_strand' => trim((string) $row['shs_strand']),
+            'source_created_on' => substr((string) $row['created_at'], 0, 10),
+        ],
+        'inputted_gwa' => $row['inputted_gwa'] !== null ? (float) $row['inputted_gwa'] : null,
+        'gwa_verified' => $row['gwa_verified_at'] !== null,
         'admission_date' => substr((string) $row['released_at'], 0, 10),
         'admission_type' => enrollment_admission_type((string) $row['applicant_type']),
         'source_name'    => 'PLP Admissions',
@@ -450,7 +467,7 @@ function enrollment_handoff_state(PDO $db, int $applicantId): ?array
  * and marks it sent on success. Safe to call again: a sent row is left alone.
  * Returns [ok, message].
  */
-function enrollment_handoff_send(PDO $db, int $applicantId): array
+function enrollment_handoff_send(PDO $db, int $applicantId, bool $refreshAlreadySent = false): array
 {
     try {
         [$payload, $buildError, $kind] = enrollment_handoff_payload($db, $applicantId);
@@ -466,7 +483,7 @@ function enrollment_handoff_send(PDO $db, int $applicantId): array
 
         $stmt = $db->prepare('SELECT status FROM enrollment_handoff_outbox WHERE applicant_id = ?');
         $stmt->execute([$applicantId]);
-        if ($stmt->fetchColumn() === 'sent') {
+        if ($stmt->fetchColumn() === 'sent' && !$refreshAlreadySent) {
             return [true, 'Already sent to Enrollment.'];
         }
 
