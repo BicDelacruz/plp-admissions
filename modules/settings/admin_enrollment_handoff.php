@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 redirect('/admin/enrollment-handoff');
             }
         }
-        [$ok,$message]=enrollment_handoff_send($db,$id);
+        [$ok,$message]=enrollment_handoff_send($db,$id,$action==='retry');
         audit_log($ok?'enrollment_handoff_admin_sent':'enrollment_handoff_admin_failed',"Applicant {$id}: {$message}",'applicant',$id);
         Session::flash($ok?'success':'error',($action==='accept'?'Acceptance recorded. ':'').($ok?'Handoff sent. ':'Handoff not sent. ').$message);
     } else {
