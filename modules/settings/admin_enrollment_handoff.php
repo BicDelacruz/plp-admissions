@@ -24,6 +24,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (in_array($action,['retry','accept'],true) && $id && $id>0) {
         if ($action==='accept') {
             $reason=trim((string)($_POST['reason'] ?? ''));
+            $gwa = trim((string)($_POST['inputted_gwa'] ?? ''));
+            if (!preg_match('/^(?:7[5-9]|[89][0-9]|100)(?:\\.[0-9]{1,2})?$/', $gwa)) {
+                Session::flash('error', 'Enter a report card GWA from 75 to 100.');
+                redirect('/admin/enrollment-handoff');
+            }
             if (mb_strlen($reason)<8 || mb_strlen($reason)>500) {
                 Session::flash('error','A written approval reason of 8 to 500 characters is required.');
                 redirect('/admin/enrollment-handoff');
@@ -47,7 +52,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     intent_submitted_at=NOW(),remarks=concat_ws(E'\n',NULLIF(admission_results.remarks,''),EXCLUDED.remarks),
                     released_by=EXCLUDED.released_by,released_at=NOW()");
                 $q->execute([$id,$remark,Auth::id()]);
-                $db->prepare("UPDATE applicants SET overall_status='released' WHERE id=?")->execute([$id]);
+                $db->prepare("UPDATE applicants SET overall_status='released',
+                    inputted_gwa=?, gwa_verified_at=NULL, gwa_verified_by=NULL WHERE id=?")->execute([$gwa,$id]);
                 $db->commit();
                 audit_log('admission_manual_accept_for_handoff',$remark,'applicant',$id);
             } catch (Throwable $e) {
@@ -90,6 +96,10 @@ ob_start();
 <option value="<?= (int)$r['id'] ?>"><?= e($full) ?> · <?= e($r['course_applied']) ?> · <?= e($r['result']?:'Pending') ?></option>
 <?php endforeach; ?>
 </select>
+<label class="form-label" for="accept-gwa" style="margin-top:var(--space-3)">Report Card GWA (required for manual acceptance)</label>
+<input class="form-control" id="accept-gwa" name="inputted_gwa" type="number" min="75" max="100" step="0.01"
+    placeholder="e.g. 89.50">
+<p style="color:var(--text-secondary);margin-top:var(--space-1)">Staff verifies the recorded GWA separately using the single Verify GWA button on the applicant's document review page.</p>
 <label class="form-label" for="accept-reason" style="margin-top:var(--space-3)">Reason for manual acceptance</label>
 <textarea id="accept-reason" name="reason" class="form-control" rows="3" maxlength="500" placeholder="Required only for manual acceptance"></textarea>
 <div style="display:flex;gap:var(--space-3);flex-wrap:wrap;margin-top:var(--space-3)">
