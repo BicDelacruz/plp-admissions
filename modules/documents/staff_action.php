@@ -29,6 +29,24 @@ $flagReply = function (bool $ok, string $msg, int $applicantId) use ($isAjax) {
 
 switch ($action) {
 
+    case 'verify_gwa':
+        // Single staff action: confirm the applicant-entered GWA against their report card.
+        $verify = $db->prepare("UPDATE applicants
+            SET gwa_verified_at = NOW(), gwa_verified_by = ?
+            WHERE id = ? AND inputted_gwa IS NOT NULL
+            RETURNING inputted_gwa");
+        $verify->execute([$staffId, $id]);
+        $gwa = $verify->fetchColumn();
+        if ($gwa === false) {
+            Session::flash('error', 'Applicant GWA is missing. Ask the applicant to enter it first.');
+        } else {
+            audit_log('applicant_gwa_verified', "Staff {$staffId} verified inputted GWA {$gwa} for applicant {$id}", 'applicant', $id);
+            Session::flash('success', 'GWA verified.');
+        }
+        redirect('/staff/applicants/' . $id);
+        break;
+
+
     case 'unapprove':
         // Revert an approved document back to uploaded so it can be re-reviewed.
         // Only allowed while the applicant is still in submitted status (not yet advanced to exam).
