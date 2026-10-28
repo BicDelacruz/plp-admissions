@@ -168,6 +168,9 @@ $items = [
     ['href' => '/staff/results',     'key' => 'results',     'label' => 'Results',          'icon' => 'medal',   'pending' => $_navResPending,
         'roles' => [ROLE_ADMIN, ROLE_DEAN]],
 
+    ['href' => '/admin/enrollment-handoff', 'key' => 'enrollment-handoff', 'label' => 'Enrollment Handoff', 'icon' => 'arrows-clockwise',
+        'roles' => [ROLE_ADMIN]],
+
     ['href' => '/admin/users',       'key' => 'users',       'label' => 'Users',            'icon' => 'shield-check',
         'roles' => [ROLE_ADMIN]],
     ['href' => '/admin/audit-log',   'key' => 'audit-log',   'label' => 'Audit Log',        'icon' => 'eye',

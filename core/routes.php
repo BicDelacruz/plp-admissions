@@ -103,6 +103,9 @@ $router->get( '/admin/courses',    'settings/admin_courses');
 $router->post('/admin/courses',    'settings/admin_courses');
 $router->get( '/admin/settings',   'settings/admin');
 $router->post('/admin/settings',   'settings/admin');
+$router->get( '/admin/enrollment-handoff', 'settings/admin_enrollment_handoff');
+$router->post('/admin/enrollment-handoff', 'settings/admin_enrollment_handoff');
+$router->post('/api/enrollment-retry-sync', 'api/enrollment_retry_sync');
 
 $router->get( '/admin/audit-log',  'audit/log');
 $router->get( '/staff/audit-log',  'audit/log');
