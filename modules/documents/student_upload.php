@@ -98,6 +98,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $action = $_POST['action'] ?? 'upload';
 
+    // Applicant supplies the GWA reported on Form 138. A new value clears staff verification.
+    if ($action === 'save_gwa') {
+        $value = trim((string)($_POST['inputted_gwa'] ?? ''));
+        if (!in_array($applicant['overall_status'], ['pending', 'documents', 'submitted'], true)) {
+            Session::flash('error', 'GWA changes are closed for this application.');
+        } elseif (!preg_match('/^(?:7[5-9]|[89][0-9]|100)(?:\\.[0-9]{1,2})?$/', $value)) {
+            Session::flash('error', 'Enter a GWA from 75 to 100, with up to two decimal places.');
+        } else {
+            $db->prepare('UPDATE applicants SET inputted_gwa = ?, gwa_verified_at = NULL, gwa_verified_by = NULL WHERE id = ?')
+                ->execute([$value, $applicantId]);
+            audit_log('applicant_gwa_entered', "Applicant {$applicantId} entered GWA for document review", 'applicant', $applicantId);
+            Session::flash('success', 'GWA saved. Staff will verify it against your report card.');
+        }
+        redirect('/student/documents');
+    }
+
     // ---- Submit application ----
     if ($action === 'submit_application') {
         try {
@@ -106,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $s = $docRows[$slug]['status'] ?? 'pending';
                 if (in_array($s, ['uploaded', 'approved'], true)) $uploadedCount++;
             }
-            $readyToSubmit = $uploadedCount === count($requiredDocs) && !$stageMissing;
+            $readyToSubmit = $uploadedCount === count($requiredDocs) && !$stageMissing && $applicant['inputted_gwa'] !== null;
 
             if ($readyToSubmit && !$isSubmitted) {
                 $db->prepare('UPDATE applicants SET overall_status = \'submitted\' WHERE id = ?')
@@ -114,6 +130,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $isSubmitted = true;
             } elseif ($isSubmitted) {
                 $errors[] = 'Application is already submitted.';
+            } elseif ($applicant['inputted_gwa'] === null) {
+                $errors[] = 'Enter your report card GWA before submitting.';
             } elseif ($stageMissing) {
                 $errors[] = 'Choose whether you are currently in Grade 12 or a Senior High School graduate before submitting.';
             } else {
@@ -733,6 +751,27 @@ ob_start();
 
 
 
+
+<!-- Student GWA is checked by staff against Form 138 or the equivalent report card. -->
+<div class="card" style="padding:var(--space-4) var(--space-5);margin-bottom:var(--space-4)">
+  <h3 style="margin-bottom:var(--space-2)">Report Card GWA</h3>
+  <p style="color:var(--text-secondary)">Enter the GWA printed on your report card or Form 138 (75 to 100).</p>
+  <form method="POST" style="display:flex;gap:var(--space-3);align-items:end;flex-wrap:wrap">
+    <?= csrf_field() ?>
+    <input type="hidden" name="action" value="save_gwa">
+    <label class="form-label">Your GWA
+      <input class="form-control" type="number" name="inputted_gwa" min="75" max="100" step="0.01"
+        value="<?= e((string)($applicant['inputted_gwa'] ?? '')) ?>" required
+        <?= !in_array($applicant['overall_status'],['pending','documents','submitted'],true) ? 'disabled' : '' ?>>
+    </label>
+    <?php if (in_array($applicant['overall_status'],['pending','documents','submitted'],true)): ?>
+      <button class="btn btn-primary" type="submit">Save GWA</button>
+    <?php endif; ?>
+  </form>
+  <p style="margin-top:var(--space-2)">
+    <?= !empty($applicant['gwa_verified_at']) ? 'GWA verified by Admissions staff.' : 'Awaiting staff verification.' ?>
+  </p>
+</div>
 
 <!-- Client notice -->
 <div class="alert alert-info" style="margin-bottom:var(--space-4);display:block;line-height:1.6">
