@@ -144,6 +144,27 @@ if ($applicantId) {
     ob_start();
 ?>
 <div id="doc-review">
+<div class="card" style="padding:var(--space-4);margin-bottom:var(--space-4)">
+  <h3>Report Card GWA</h3>
+  <?php if ($applicant['inputted_gwa'] !== null): ?>
+    <p>Inputted GWA: <strong><?= e((string)$applicant['inputted_gwa']) ?></strong></p>
+    <?php if (!empty($applicant['gwa_verified_at'])): ?>
+      <span class="badge badge-approved">Verified</span>
+    <?php else: ?>
+      <form method="POST" action="<?= url('/staff/documents/' . $applicantId) ?>" style="margin-top:var(--space-2)">
+        <?= csrf_field() ?>
+        <input type="hidden" name="action" value="verify_gwa">
+        <button class="btn btn-success" type="submit">Verify GWA</button>
+      </form>
+    <?php endif; ?>
+  <?php else: ?>
+    <p>Waiting for applicant to input their GWA.</p>
+  <?php endif; ?>
+  <p style="color:var(--text-secondary);margin-top:var(--space-2)">
+    Compare the inputted GWA with the uploaded report card or Form 138, then press Verify GWA.
+  </p>
+</div>
+
 <div style="display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-6)">
     <div style="margin-left:auto"></div>
     <?php if ($approvableCount > 0): ?>
