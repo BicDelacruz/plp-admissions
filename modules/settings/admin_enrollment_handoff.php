@@ -77,7 +77,7 @@ $statusRefresh = enrollment_handoff_refresh_status($db);
 
 $rows=$db->query("SELECT a.id,a.course_applied,a.school_year,a.applicant_type,a.overall_status,
  u.first_name,u.middle_name,u.last_name,u.name,ar.result,ar.enrollment_intent,
- h.status AS handoff_status,h.attempts,h.last_error,h.enrollment_student_number,h.enrollment_stage,h.enrollment_stage_at
+ h.status AS handoff_status,h.applicant_ref,h.attempts,h.last_error,h.enrollment_student_number,h.enrollment_stage,h.enrollment_stage_at
  FROM applicants a JOIN users u ON u.id=a.user_id
  LEFT JOIN admission_results ar ON ar.applicant_id=a.id
  LEFT JOIN enrollment_handoff_outbox h ON h.applicant_id=a.id
@@ -120,10 +120,18 @@ ob_start();
   <div class="notice warning">Status refresh unavailable: <?= e($statusRefresh['message']) ?>. Showing the last saved transfer details.</div>
 <?php endif; ?>
 <div style="overflow-x:auto"><table class="auto-table"><thead><tr><th>Applicant ID</th><th>Name</th><th>Course</th><th>Decision</th><th>Intent</th><th>Handoff</th><th>Enrollment Status</th><th>Attempts</th><th>Student Number</th><th>Last Error</th></tr></thead><tbody>
-<?php foreach($rows as $r): $full=trim(implode(' ',array_filter([$r['first_name'],$r['middle_name'],$r['last_name']])))?:$r['name']; ?>
+<?php foreach($rows as $r):
+  $full=trim(implode(' ',array_filter([$r['first_name'],$r['middle_name'],$r['last_name']])))?:$r['name'];
+  [$enrollmentLabel,$enrollmentBadge] = enrollment_display_status(
+    ['status'=>$r['handoff_status'],'enrollment_stage'=>$r['enrollment_stage']],
+    ($r['result'] ?? null)==='accepted' && ($r['enrollment_intent'] ?? null)==='confirmed',
+    $statusRefresh['ok'] &&
+      (($r['handoff_status'] ?? null)!=='sent' ||
+       in_array((string)($r['applicant_ref'] ?? ''),$statusRefresh['verified_refs'] ?? [],true))
+  );
+?>
 <tr><td><?= (int)$r['id'] ?></td><td><?= e($full) ?></td><td><?= e($r['course_applied']) ?></td><td><?= e($r['result']?:'Pending') ?></td><td><?= e($r['enrollment_intent']?:'Awaiting') ?></td><td><?= e($r['handoff_status']?:'Not sent') ?></td>
-<td><?= e(($r['enrollment_stage'] ?? null) === 'enrolled' ? 'Officially Enrolled' :
-  (!empty($r['enrollment_student_number']) ? 'Pending' : 'Not yet received')) ?></td>
+<td><span class="badge <?= e($enrollmentBadge) ?>"><?= e($enrollmentLabel) ?></span></td>
 <td><?= (int)$r['attempts'] ?></td>
 <td><?= e($r['enrollment_student_number']?:'Not assigned') ?></td>
 <td style="white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;min-width:260px;max-width:520px"><?= e($r['last_error']?:'None') ?></td></tr>
