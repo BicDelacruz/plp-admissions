@@ -77,6 +77,24 @@ $applicantCollege = function_exists('course_to_department')
 
 $stepperCurrent = current_step($applicant, $_examResult, $_interviewSlot, $result);
 
+// Page refresh automatically pulls this applicant's current enrollment status
+// using the server-side Admissions to Enrollment REST bridge.
+$enrollmentIntentConfirmed = ($result['result'] ?? null) === 'accepted' &&
+    ($result['enrollment_intent'] ?? null) === 'confirmed';
+$enrollmentStatusRefresh = $enrollmentIntentConfirmed
+    ? enrollment_handoff_refresh_status($db, (int)$applicantId)
+    : ['ok' => true, 'checked' => 0];
+$enrollmentHandoff = $enrollmentIntentConfirmed
+    ? enrollment_handoff_state($db, (int)$applicantId)
+    : null;
+[$enrollmentStatusLabel, $enrollmentStatusBadge] = enrollment_display_status(
+    $enrollmentHandoff,
+    $enrollmentIntentConfirmed,
+    !($enrollmentHandoff && ($enrollmentHandoff['status'] ?? null) === 'sent') ||
+      ($enrollmentStatusRefresh['ok'] && ($enrollmentStatusRefresh['checked'] ?? 0) > 0)
+);
+
+
 // Withdrawal state helpers
 $isWithdrawn = ($applicant['overall_status'] === 'withdrawn');
 $canWithdraw = !$isWithdrawn;
@@ -172,6 +190,34 @@ ob_start();
             One step left - confirm your enrollment to receive your visit date from the Registrar, then bring the <strong>original copies</strong> of your documents so we can verify them. After that, you're officially enrolled.
         </p>
 
+
+        <!-- Prominent, authoritative enrollment status. Updated on every page load. -->
+        <section aria-label="Current enrollment status"
+            style="border:2px solid <?= $enrollmentStatusLabel === 'Officially Enrolled' ? 'var(--success)' : 'var(--border)' ?>;border-radius:var(--radius);background:var(--bg-subtle);padding:var(--space-5);margin-bottom:var(--space-6);text-align:center">
+            <div style="font-size:var(--text-xs);text-transform:uppercase;letter-spacing:.09em;font-weight:var(--weight-semibold);color:var(--text-secondary);margin-bottom:var(--space-2)">
+                Your Current Enrollment Status
+            </div>
+            <div style="margin-bottom:var(--space-3)">
+                <span class="badge <?= e($enrollmentStatusBadge) ?>"
+                    style="font-size:var(--text-lg);font-weight:var(--weight-bold);padding:var(--space-3) var(--space-5);display:inline-block;line-height:1.4">
+                    <?= e($enrollmentStatusLabel) ?>
+                </span>
+            </div>
+            <?php if ($enrollmentStatusLabel === 'Officially Enrolled'): ?>
+                <p style="color:var(--text-secondary);margin:0">The PLP Enrollment Registrar has confirmed your official enrollment.</p>
+            <?php elseif ($enrollmentStatusLabel === 'Temporarily unavailable'): ?>
+                <p style="color:var(--text-secondary);margin:0">The live Enrollment status could not be checked. This does not change your Admissions acceptance. Check again when you revisit this page.</p>
+            <?php else: ?>
+                <p style="color:var(--text-secondary);margin:0">Admission acceptance and enrollment intent are not proof of official enrollment. Wait for the Registrar's confirmation.</p>
+            <?php endif; ?>
+            <?php if (!empty($enrollmentHandoff['enrollment_student_number'])): ?>
+                <p style="font-size:var(--text-sm);margin:var(--space-3) 0 0">Enrollment student number:
+                    <strong><?= e($enrollmentHandoff['enrollment_student_number']) ?></strong>
+                </p>
+            <?php endif; ?>
+            <p style="font-size:var(--text-xs);color:var(--text-tertiary);margin:var(--space-3) 0 0">Checked automatically when this page opened.</p>
+        </section>
+
         <!-- Documents to bring -->
         <div style="background:var(--bg-subtle);border-radius:var(--radius);padding:var(--space-5);margin-bottom:var(--space-5)">
             <div style="font-size:var(--text-xs);text-transform:uppercase;letter-spacing:.06em;color:var(--text-tertiary);font-weight:var(--weight-semibold);margin-bottom:var(--space-1)">Bring the originals of</div>
@@ -198,7 +244,7 @@ ob_start();
         <!-- Confirm enrollment. Confirming also sends the applicant to Enrollment. -->
         <?php
             $isConfirmed = ($result['enrollment_intent'] ?? '') === 'confirmed';
-            $handoff     = $isConfirmed ? enrollment_handoff_state($db, (int) $applicantId) : null;
+            $handoff     = $isConfirmed ? $enrollmentHandoff : null;
             $handoffSent = $handoff && $handoff['status'] === 'sent';
             $enrollmentSiteUrl = trim((string) getenv('ENROLLMENT_SITE_URL'));
         ?>
@@ -214,18 +260,18 @@ ob_start();
                 </form>
             <?php elseif ($handoffSent): ?>
                 <p style="font-size:var(--text-sm);color:var(--success);font-weight:var(--weight-medium);margin:0 0 var(--space-3)">
-                    Enrollment confirmed. Check your email for a link to set your Enrollment password.
+                    Your enrollment intent was confirmed and your information was sent to Enrollment. Your official enrollment status is shown above.
                 </p>
                 <?php if ($enrollmentSiteUrl !== ''): ?>
                     <a href="<?= e($enrollmentSiteUrl) ?>" class="btn btn-primary" target="_blank" rel="noopener noreferrer">Go to Enrollment</a>
                 <?php endif; ?>
             <?php elseif ($handoff && $handoff['status'] === 'rejected'): ?>
                 <p style="font-size:var(--text-sm);color:var(--text-secondary);margin:0">
-                    Enrollment confirmed. The Registrar will contact you about your next step.
+                    Your enrollment intent is confirmed. The Registrar will contact you about the next step.
                 </p>
             <?php else: ?>
                 <p style="font-size:var(--text-sm);color:var(--text-secondary);margin:0">
-                    Enrollment confirmed. We are sending your details to the Registrar. You will get an email when it is done.
+                    Your enrollment intent is confirmed. Your information is awaiting transfer to the Registrar.
                 </p>
             <?php endif; ?>
         </div>
