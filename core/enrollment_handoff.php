@@ -703,6 +703,7 @@ function enrollment_handoff_refresh_status(PDO $db, ?int $applicantId = null): a
             AND (enrollment_student_number IS DISTINCT FROM ?
               OR enrollment_stage IS DISTINCT FROM ?)");
         $checked = 0;
+        $verifiedRefs = [];
         foreach ($json['records'] as $record) {
             if (!is_array($record)) continue;
             $ref = $record['applicant_ref'] ?? null;
@@ -712,9 +713,10 @@ function enrollment_handoff_refresh_status(PDO $db, ?int $applicantId = null): a
                 !is_string($number) || !preg_match('/^[A-Za-z0-9-]{3,20}$/', $number) ||
                 !in_array($stage, ['student', 'enrolled'], true)) continue;
             $update->execute([$number, $stage, $ids[$ref], $number, $stage]);
+            $verifiedRefs[] = $ref;
             ++$checked;
         }
-        return ['ok' => true, 'checked' => $checked, 'message' => 'Enrollment status checked.'];
+        return ['ok' => true, 'checked' => $checked, 'verified_refs' => $verifiedRefs, 'message' => 'Enrollment status checked.'];
     } catch (\Throwable $error) {
         error_log('Enrollment status read failed: '.$error->getMessage());
         return ['ok' => false, 'message' => 'Enrollment status could not be refreshed.'];
