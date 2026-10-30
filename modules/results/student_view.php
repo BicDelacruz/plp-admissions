@@ -187,7 +187,13 @@ ob_start();
         </div>
 
         <p style="font-size:var(--text-sm);color:var(--text-secondary);text-align:center;margin-bottom:var(--space-6);max-width:520px;margin-left:auto;margin-right:auto">
-            One step left - confirm your enrollment to receive your visit date from the Registrar, then bring the <strong>original copies</strong> of your documents so we can verify them. After that, you're officially enrolled.
+            <?php if ($enrollmentStatusLabel === 'Officially Enrolled'): ?>
+                Your enrollment has been confirmed by the Registrar. Keep your student number and enrollment details for your records.
+            <?php elseif ($enrollmentIntentConfirmed): ?>
+                Your Admissions intent is confirmed. Bring the <strong>original copies</strong> of your documents when requested. The Registrar will separately confirm official enrollment.
+            <?php else: ?>
+                Confirm that you intend to enroll, then follow the Registrar's instructions for document validation and official enrollment.
+            <?php endif; ?>
         </p>
 
 
@@ -215,7 +221,7 @@ ob_start();
                     <strong><?= e($enrollmentHandoff['enrollment_student_number']) ?></strong>
                 </p>
             <?php endif; ?>
-            <p style="font-size:var(--text-xs);color:var(--text-tertiary);margin:var(--space-3) 0 0">Checked automatically when this page opened.</p>
+            <p style="font-size:var(--text-xs);color:var(--text-tertiary);margin:var(--space-3) 0 0">Enrollment status refreshes automatically when you open or reload this page.</p>
         </section>
 
         <!-- Documents to bring -->
