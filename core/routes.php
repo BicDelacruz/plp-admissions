@@ -75,6 +75,7 @@ $router->post('/staff/interviews/cancel-slot',  'interview/staff_cancel_slot');
 // view is no longer needed.
 $router->post('/staff/interviews/{id}',         'interview/staff_action');
 $router->get( '/staff/results',                  'results/staff_manage');
+$router->get( '/staff/enrollment-status', 'settings/staff_enrollment_status');
 $router->post('/staff/results/bulk',             'results/staff_bulk');
 $router->post('/staff/results/auto-waitlist',    'results/staff_auto_waitlist');
 $router->post('/staff/results/auto-release',    'results/staff_auto_release');
