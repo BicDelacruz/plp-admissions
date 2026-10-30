@@ -452,6 +452,7 @@ function enrollment_handoff_state(PDO $db, int $applicantId): ?array
 {
     try {
         $stmt = $db->prepare('SELECT status, enrollment_result, last_error, attempts, sent_at,
+                    enrollment_student_number, enrollment_stage, enrollment_stage_at,
                     visit_date, visit_start_time, visit_end_time, visit_office
              FROM enrollment_handoff_outbox WHERE applicant_id = ?');
         $stmt->execute([$applicantId]);
@@ -622,65 +623,120 @@ function enrollment_handoff_retry_pending(PDO $db): int
 
 
 /**
- * Read the authoritative Enrollment status for existing handoffs through its
- * authenticated REST API. Updates cached columns already in the Admissions
- * outbox. Called only server-side by the administrator's handoff page.
+ * Refresh an applicant's current Enrollment status from the authenticated
+ * Enrollment API when their result page loads. When applicantId is null, use
+ * one bounded request for the administrator or SSO listing page.
+ * Does not change acceptance, enrollment intent, or send new handoffs.
  */
-function enrollment_handoff_refresh_status(PDO $db): array
+function enrollment_handoff_refresh_status(PDO $db, ?int $applicantId = null): array
 {
-    $intakeUrl = trim((string) getenv('ENROLLMENT_INTAKE_URL'));
-    $secret = trim((string) getenv('ENROLLMENT_INTAKE_SECRET'));
-    if ($intakeUrl === '' || $secret === '') return ['ok' => false, 'message' => 'Integration URL or shared secret is missing.'];
+    $intakeUrl = trim((string)getenv('ENROLLMENT_INTAKE_URL'));
+    $secret = trim((string)getenv('ENROLLMENT_INTAKE_SECRET'));
+    if ($intakeUrl === '' || $secret === '') {
+        return ['ok' => false, 'message' => 'Integration URL or secret is not configured.'];
+    }
     $url = preg_replace('~/intake/?$~', '/status', $intakeUrl);
-    if ($url === $intakeUrl || $url === null) return ['ok' => false, 'message' => 'Enrollment intake URL is not recognized.'];
-    if (!str_starts_with($url, 'https://') && APP_ENV === 'production') return ['ok' => false, 'message' => 'HTTPS required.'];
-    $rows = $db->query("SELECT applicant_id, applicant_ref, enrollment_stage, enrollment_student_number
-       FROM enrollment_handoff_outbox
-       WHERE applicant_ref IS NOT NULL
-       ORDER BY id DESC LIMIT 250")->fetchAll(PDO::FETCH_ASSOC);
-    if (!$rows) return ['ok' => true, 'message' => 'No recorded handoffs.'];
-    $ch = curl_init($url);
-    curl_setopt_array($ch, [
-        CURLOPT_POST => true,
-        CURLOPT_POSTFIELDS => json_encode(['applicant_refs' => array_values(array_unique(array_column($rows, 'applicant_ref')))]),
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_CONNECTTIMEOUT => 3,
-        CURLOPT_TIMEOUT => 8,
-        CURLOPT_HTTPHEADER => [
-            'Authorization: Bearer ' . $secret,
-            'Content-Type: application/json',
-            'Accept: application/json',
-        ],
-        CURLOPT_FOLLOWLOCATION => false,
-    ]);
-    $body = curl_exec($ch);
-    $http = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-    if ($body === false || $http !== 200) {
-        return ['ok' => false, 'message' => 'Enrollment status API is unavailable (HTTP ' . $http . ').'];
+    if (!is_string($url) || $url === $intakeUrl) {
+        return ['ok' => false, 'message' => 'Enrollment status URL could not be derived.'];
     }
-    $data = json_decode((string) $body, true);
-    if (!is_array($data) || !is_array($data['records'] ?? null)) {
-        return ['ok' => false, 'message' => 'Enrollment status response was invalid.'];
+    $parsedUrl = parse_url($url);
+    if (!is_array($parsedUrl) || !in_array($parsedUrl['scheme'] ?? '', ['http', 'https'], true) ||
+        empty($parsedUrl['host']) ||
+        (APP_ENV === 'production' && ($parsedUrl['scheme'] ?? '') !== 'https')) {
+        return ['ok' => false, 'message' => 'Enrollment status URL must use HTTPS in production.'];
     }
-    $ids = [];
-    foreach ($rows as $row) $ids[$row['applicant_ref']] = (int) $row['applicant_id'];
-    $stmt = $db->prepare("UPDATE enrollment_handoff_outbox SET
-       enrollment_student_number = ?,
-       enrollment_stage = CASE WHEN enrollment_stage = 'enrolled' THEN 'enrolled' ELSE ? END,
-       enrollment_stage_at = CASE WHEN enrollment_stage IS DISTINCT FROM ? THEN NOW() ELSE enrollment_stage_at END
-       WHERE applicant_id = ?");
-    $synced = 0;
-    foreach ($data['records'] as $record) {
-        if (!is_array($record)) continue;
-        $ref = $record['applicant_ref'] ?? null;
-        $number = $record['student_number'] ?? null;
-        $stage = $record['stage'] ?? null;
-        if (!is_string($ref) || !isset($ids[$ref]) ||
-            !is_string($number) || !preg_match('/^[A-Za-z0-9-]{3,20}$/', $number) ||
-            !in_array($stage, ['student', 'enrolled'], true)) continue;
-        $stmt->execute([$number, $stage, $stage, $ids[$ref]]);
-        ++$synced;
+    if ($applicantId !== null && $applicantId < 1) {
+        return ['ok' => false, 'message' => 'Invalid applicant identifier.'];
     }
-    return ['ok' => true, 'message' => $synced . ' Enrollment status record(s) updated.'];
+
+    try {
+        if ($applicantId === null) {
+            $rows = $db->query("SELECT applicant_id, applicant_ref
+                FROM enrollment_handoff_outbox
+                WHERE applicant_ref IS NOT NULL AND status = 'sent'
+                ORDER BY id DESC LIMIT 250")->fetchAll(PDO::FETCH_ASSOC);
+        } else {
+            $query = $db->prepare("SELECT applicant_id, applicant_ref
+                FROM enrollment_handoff_outbox
+                WHERE applicant_id=? AND applicant_ref IS NOT NULL AND status='sent'");
+            $query->execute([$applicantId]);
+            $rows = $query->fetchAll(PDO::FETCH_ASSOC);
+        }
+        if (!$rows) {
+            return ['ok' => true, 'checked' => 0, 'message' => 'No transferred applicant requires a status lookup.'];
+        }
+
+        $refs = array_values(array_unique(array_column($rows, 'applicant_ref')));
+        $body = json_encode(['applicant_refs' => $refs], JSON_THROW_ON_ERROR);
+        $ch = curl_init($url);
+        if (!$ch) throw new RuntimeException('Could not initialize status request.');
+        curl_setopt_array($ch, [
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $body,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CONNECTTIMEOUT => 2,
+            CURLOPT_TIMEOUT => 7,
+            CURLOPT_HTTPHEADER => [
+                'Authorization: Bearer '.$secret,
+                'Content-Type: application/json',
+                'Accept: application/json',
+            ],
+            CURLOPT_FOLLOWLOCATION => false,
+        ]);
+        $answer = curl_exec($ch);
+        $status = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        if (!is_string($answer) || $status !== 200) {
+            return ['ok' => false, 'message' => 'Enrollment status is temporarily unavailable (HTTP '.$status.').'];
+        }
+        $json = json_decode($answer, true);
+        if (!is_array($json) || !is_array($json['records'] ?? null)) {
+            return ['ok' => false, 'message' => 'Enrollment returned an invalid status response.'];
+        }
+        $ids = [];
+        foreach ($rows as $row) $ids[(string)$row['applicant_ref']] = (int)$row['applicant_id'];
+        $update = $db->prepare("UPDATE enrollment_handoff_outbox
+          SET enrollment_student_number=?,
+              enrollment_stage=?,
+              enrollment_stage_at=NOW()
+          WHERE applicant_id=?
+            AND (enrollment_student_number IS DISTINCT FROM ?
+              OR enrollment_stage IS DISTINCT FROM ?)");
+        $checked = 0;
+        foreach ($json['records'] as $record) {
+            if (!is_array($record)) continue;
+            $ref = $record['applicant_ref'] ?? null;
+            $number = $record['student_number'] ?? null;
+            $stage = $record['stage'] ?? null;
+            if (!is_string($ref) || !isset($ids[$ref]) ||
+                !is_string($number) || !preg_match('/^[A-Za-z0-9-]{3,20}$/', $number) ||
+                !in_array($stage, ['student', 'enrolled'], true)) continue;
+            $update->execute([$number, $stage, $ids[$ref], $number, $stage]);
+            ++$checked;
+        }
+        return ['ok' => true, 'checked' => $checked, 'message' => 'Enrollment status checked.'];
+    } catch (\Throwable $error) {
+        error_log('Enrollment status read failed: '.$error->getMessage());
+        return ['ok' => false, 'message' => 'Enrollment status could not be refreshed.'];
+    }
+}
+
+/** Resolve status labels for admitted applicants from current, trusted state. */
+function enrollment_display_status(
+    ?array $handoff,
+    bool $intentConfirmed,
+    bool $liveStatusChecked = true
+): array {
+    if (!$intentConfirmed) return ['Not yet confirmed', 'badge-neutral'];
+    if (!$handoff || ($handoff['status'] ?? null) !== 'sent') {
+        return ['Pending transfer', 'badge-review'];
+    }
+    if (!$liveStatusChecked) return ['Temporarily unavailable', 'badge-review'];
+    if (($handoff['enrollment_stage'] ?? null) === 'enrolled') {
+        return ['Officially Enrolled', 'badge-approved'];
+    }
+    if (($handoff['enrollment_stage'] ?? null) === 'student') {
+        return ['Pending Registrar Enrollment', 'badge-review'];
+    }
+    return ['Pending confirmation', 'badge-review'];
 }
