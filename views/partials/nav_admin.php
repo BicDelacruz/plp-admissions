@@ -165,6 +165,8 @@ $items = [
     // an academic-oversight one, and SSO owns it end-to-end.
     ['href' => '/staff/interviews/absent?tab=requests', 'key' => 'reschedule', 'label' => 'Interview Reschedules', 'icon' => 'arrows-clockwise', 'pending' => $_navReschedPending,
         'roles' => [ROLE_ADMIN, ROLE_SSO]],
+    ['href' => '/staff/enrollment-status', 'key' => 'student-enrollment-status', 'label' => 'Enrollment Status', 'icon' => 'student',
+        'roles' => [ROLE_SSO, ROLE_ADMIN]],
     ['href' => '/staff/results',     'key' => 'results',     'label' => 'Results',          'icon' => 'medal',   'pending' => $_navResPending,
         'roles' => [ROLE_ADMIN, ROLE_DEAN]],
 
