@@ -71,9 +71,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     redirect('/admin/enrollment-handoff');
 }
 
+// Read Enrollment's authoritative student numbers and confirmed status over
+// the existing authenticated REST bridge; never access Enrollment's DB directly.
+$statusRefresh = enrollment_handoff_refresh_status($db);
+
 $rows=$db->query("SELECT a.id,a.course_applied,a.school_year,a.applicant_type,a.overall_status,
  u.first_name,u.middle_name,u.last_name,u.name,ar.result,ar.enrollment_intent,
- h.status AS handoff_status,h.attempts,h.last_error,h.enrollment_student_number
+ h.status AS handoff_status,h.attempts,h.last_error,h.enrollment_student_number,h.enrollment_stage,h.enrollment_stage_at
  FROM applicants a JOIN users u ON u.id=a.user_id
  LEFT JOIN admission_results ar ON ar.applicant_id=a.id
  LEFT JOIN enrollment_handoff_outbox h ON h.applicant_id=a.id
@@ -110,9 +114,19 @@ ob_start();
 <p style="margin-top:var(--space-3);color:var(--text-secondary)">Manual acceptance changes the Admissions decision and intent. It does not mean Registrar enrollment is complete.</p>
 </section>
 <section class="card" style="padding:var(--space-6);margin-top:var(--space-5)">
-<h2>Latest Handoff Status</h2><div style="overflow-x:auto"><table class="auto-table"><thead><tr><th>Applicant ID</th><th>Name</th><th>Course</th><th>Decision</th><th>Intent</th><th>Handoff</th><th>Attempts</th><th>Student Number</th><th>Last Error</th></tr></thead><tbody>
+<h2>Latest Handoff Status</h2>
+<p style="color:var(--text-secondary)">Enrollment status is read from Enrollment's REST API. "Officially Enrolled" requires Registrar confirmation; otherwise the student is pending.</p>
+<?php if (!$statusRefresh['ok']): ?>
+  <div class="notice warning">Status refresh unavailable: <?= e($statusRefresh['message']) ?>. Showing the last saved transfer details.</div>
+<?php endif; ?>
+<div style="overflow-x:auto"><table class="auto-table"><thead><tr><th>Applicant ID</th><th>Name</th><th>Course</th><th>Decision</th><th>Intent</th><th>Handoff</th><th>Enrollment Status</th><th>Attempts</th><th>Student Number</th><th>Last Error</th></tr></thead><tbody>
 <?php foreach($rows as $r): $full=trim(implode(' ',array_filter([$r['first_name'],$r['middle_name'],$r['last_name']])))?:$r['name']; ?>
-<tr><td><?= (int)$r['id'] ?></td><td><?= e($full) ?></td><td><?= e($r['course_applied']) ?></td><td><?= e($r['result']?:'Pending') ?></td><td><?= e($r['enrollment_intent']?:'Awaiting') ?></td><td><?= e($r['handoff_status']?:'Not sent') ?></td><td><?= (int)$r['attempts'] ?></td><td><?= e($r['enrollment_student_number']?:'Not assigned') ?></td><td><?= e($r['last_error']?:'None') ?></td></tr>
+<tr><td><?= (int)$r['id'] ?></td><td><?= e($full) ?></td><td><?= e($r['course_applied']) ?></td><td><?= e($r['result']?:'Pending') ?></td><td><?= e($r['enrollment_intent']?:'Awaiting') ?></td><td><?= e($r['handoff_status']?:'Not sent') ?></td>
+<td><?= e(($r['enrollment_stage'] ?? null) === 'enrolled' ? 'Officially Enrolled' :
+  (!empty($r['enrollment_student_number']) ? 'Pending' : 'Not yet received')) ?></td>
+<td><?= (int)$r['attempts'] ?></td>
+<td><?= e($r['enrollment_student_number']?:'Not assigned') ?></td>
+<td style="white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;min-width:260px;max-width:520px"><?= e($r['last_error']?:'None') ?></td></tr>
 <?php endforeach; ?></tbody></table></div></section>
 <?php
 $content=ob_get_clean(); $pageTitle='Enrollment Handoff'; $activeNav='enrollment-handoff'; $pageWide=true;
