@@ -8,7 +8,8 @@ $refresh = enrollment_handoff_refresh_status($db);
 
 $stmt = $db->query("SELECT a.id, a.course_applied, a.school_year,
     u.name AS applicant_name, ar.result, ar.enrollment_intent,
-    h.status AS handoff_status, h.enrollment_student_number, h.enrollment_stage
+    h.status AS handoff_status, h.applicant_ref,
+    h.enrollment_student_number, h.enrollment_stage
     FROM applicants a
     JOIN users u ON u.id=a.user_id
     JOIN admission_results ar ON ar.applicant_id=a.id AND ar.result='accepted'
@@ -46,7 +47,10 @@ ob_start();
                 [$statusLabel,$statusBadge] = enrollment_display_status(
                     $row,
                     ($row['enrollment_intent'] ?? null) === 'confirmed',
-                    $refresh['ok']
+                    ($refresh['ok'] && (
+                        ($row['handoff_status'] ?? null) !== 'sent' ||
+                        in_array((string)($row['applicant_ref'] ?? ''), $refresh['verified_refs'] ?? [], true)
+                    ))
                 );
             ?>
                 <tr>
