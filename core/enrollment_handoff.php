@@ -453,6 +453,7 @@ function enrollment_handoff_state(PDO $db, int $applicantId): ?array
     try {
         $stmt = $db->prepare('SELECT status, enrollment_result, last_error, attempts, sent_at,
                     enrollment_student_number, enrollment_stage, enrollment_stage_at,
+                    enrollment_detail_status,
                     visit_date, visit_start_time, visit_end_time, visit_office
              FROM enrollment_handoff_outbox WHERE applicant_id = ?');
         $stmt->execute([$applicantId]);
@@ -694,25 +695,38 @@ function enrollment_handoff_refresh_status(PDO $db, ?int $applicantId = null): a
             return ['ok' => false, 'message' => 'Enrollment returned an invalid status response.'];
         }
         $ids = [];
-        foreach ($rows as $row) $ids[(string)$row['applicant_ref']] = (int)$row['applicant_id'];
+        foreach ($rows as $row) {
+            $ids[(string)$row['applicant_ref']] = (int)$row['applicant_id'];
+        }
+        // Never silently reassign the Enrollment student number to another
+        // Admissions applicant. A mismatch needs staff reconciliation.
+        $current = $db->prepare("SELECT enrollment_student_number
+            FROM enrollment_handoff_outbox WHERE applicant_id = ?");
         $update = $db->prepare("UPDATE enrollment_handoff_outbox
           SET enrollment_student_number=?,
               enrollment_stage=?,
+              enrollment_detail_status=?,
               enrollment_stage_at=NOW()
           WHERE applicant_id=?
+            AND (enrollment_student_number IS NULL OR enrollment_student_number = ?)
             AND (enrollment_student_number IS DISTINCT FROM ?
-              OR enrollment_stage IS DISTINCT FROM ?)");
+              OR enrollment_stage IS DISTINCT FROM ?
+              OR enrollment_detail_status IS DISTINCT FROM ?)");
         $checked = 0;
         $verifiedRefs = [];
         foreach ($json['records'] as $record) {
             if (!is_array($record)) continue;
             $ref = $record['applicant_ref'] ?? null;
-            $number = $record['student_number'] ?? null;
-            $stage = $record['stage'] ?? null;
-            if (!is_string($ref) || !isset($ids[$ref]) ||
-                !is_string($number) || !preg_match('/^[A-Za-z0-9-]{3,20}$/', $number) ||
-                !in_array($stage, ['student', 'enrolled'], true)) continue;
-            $update->execute([$number, $stage, $ids[$ref], $number, $stage]);
+            if (!is_string($ref) || !isset($ids[$ref])) continue;
+            $id = $ids[$ref];
+            $current->execute([$id]);
+            $existingNumber = $current->fetchColumn();
+            $parsed = enrollment_parse_status_record(
+                $record, $ref, is_string($existingNumber) ? $existingNumber : null
+            );
+            if ($parsed === null) continue;
+            [$number, $stage, $detail] = $parsed;
+            $update->execute([$number, $stage, $detail, $id, $number, $number, $stage, $detail]);
             $verifiedRefs[] = $ref;
             ++$checked;
         }
@@ -723,7 +737,41 @@ function enrollment_handoff_refresh_status(PDO $db, ?int $applicantId = null): a
     }
 }
 
-/** Resolve status labels for admitted applicants from current, trusted state. */
+/**
+ * Validate one authenticated Enrollment status record before persistence.
+ * The applicant reference must be from the original handoff; a student number
+ * cannot be reassigned by a later callback or mismatched status response.
+ * Old Enrollment servers only return stage; support those conservatively.
+ */
+function enrollment_parse_status_record(array $record, string $expectedRef, ?string $existingNumber = null): ?array
+{
+    if (($record['applicant_ref'] ?? null) !== $expectedRef) return null;
+    $number = $record['student_number'] ?? null;
+    $stage = $record['stage'] ?? null;
+    if (!is_string($number) || !preg_match('/^[A-Za-z0-9-]{3,20}$/', $number) ||
+        ($existingNumber !== null && $existingNumber !== '' && $existingNumber !== $number) ||
+        !in_array($stage, ['student', 'enrolled'], true)) return null;
+
+    $allowed = [
+        'pending_enrollment',
+        'pending_registrar_enrollment',
+        'returned_for_correction',
+        'confirmed_demonstration',
+        'officially_enrolled',
+    ];
+    $detail = $record['enrollment_status'] ??
+        ($stage === 'enrolled' ? 'officially_enrolled' : 'pending_registrar_enrollment');
+    if (!is_string($detail) || !in_array($detail, $allowed, true)) return null;
+    if (($detail === 'officially_enrolled') !== ($stage === 'enrolled')) return null;
+    if (isset($record['cor_available']) &&
+        (!is_bool($record['cor_available']) ||
+         $record['cor_available'] !== in_array($detail, ['confirmed_demonstration','officially_enrolled'], true))) {
+        return null;
+    }
+    return [$number, $stage, $detail];
+}
+
+/** Resolve enrollment status independently of the unchanged admission decision. */
 function enrollment_display_status(
     ?array $handoff,
     bool $intentConfirmed,
@@ -734,11 +782,22 @@ function enrollment_display_status(
         return ['Pending transfer', 'badge-review'];
     }
     if (!$liveStatusChecked) return ['Temporarily unavailable', 'badge-review'];
+
+    $detail = $handoff['enrollment_detail_status'] ?? null;
+    $labels = [
+        'pending_enrollment' => ['Pending Enrollment', 'badge-review'],
+        'pending_registrar_enrollment' => ['Pending Registrar Enrollment', 'badge-review'],
+        'returned_for_correction' => ['Returned for Correction', 'badge-review'],
+        'confirmed_demonstration' => ['Confirmed (Demonstration)', 'badge-approved'],
+        'officially_enrolled' => ['Officially Enrolled', 'badge-approved'],
+    ];
+    if (isset($labels[$detail])) return $labels[$detail];
+    // Safe fallback for existing outbox rows from the older two-stage bridge.
     if (($handoff['enrollment_stage'] ?? null) === 'enrolled') {
         return ['Officially Enrolled', 'badge-approved'];
     }
     if (($handoff['enrollment_stage'] ?? null) === 'student') {
         return ['Pending Registrar Enrollment', 'badge-review'];
     }
-    return ['Pending confirmation', 'badge-review'];
+    return ['Pending Enrollment', 'badge-review'];
 }
