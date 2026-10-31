@@ -72,6 +72,39 @@ check(is_string(enrollment_status_parse(['applicant_ref' => 'nope', 'stage' => '
 check(is_string(enrollment_status_parse(['applicant_ref' => 'ADM-2026-000042', 'stage' => 'graduated', 'student_number' => '1'])), 'unknown stage is refused');
 check(is_string(enrollment_status_parse(['applicant_ref' => 'ADM-2026-000042', 'stage' => 'student', 'student_number' => ''])), 'missing student number is refused');
 
+$statuses = [
+    'pending_enrollment' => 'Pending Enrollment',
+    'pending_registrar_enrollment' => 'Pending Registrar Enrollment',
+    'returned_for_correction' => 'Returned for Correction',
+    'confirmed_demonstration' => 'Confirmed (Demonstration)',
+    'officially_enrolled' => 'Officially Enrolled',
+];
+foreach ($statuses as $key => $label) {
+    $stage = $key === 'officially_enrolled' ? 'enrolled' : 'student';
+    $record = [
+        'applicant_ref' => 'ADM-2026-000042', 'student_number' => '26-50604',
+        'stage' => $stage, 'enrollment_status' => $key,
+        'cor_available' => in_array($key, ['officially_enrolled', 'confirmed_demonstration'], true),
+    ];
+    check(enrollment_parse_status_record($record, $record['applicant_ref'], '26-50604') ===
+        ['26-50604', $stage, $key], "$key parsed and matches the existing identity");
+    check(enrollment_display_status(['status'=>'sent','enrollment_detail_status'=>$key], true)[0] === $label,
+        "$key gets the right label");
+}
+$wrong = ['applicant_ref' => 'ADM-2026-000042', 'student_number' => '26-50604',
+    'stage' => 'student', 'enrollment_status' => 'officially_enrolled'];
+check(enrollment_parse_status_record($wrong, 'ADM-2026-000042') === null, 'student stage cannot claim official enrollment');
+$wrong['enrollment_status'] = 'confirmed_demonstration';
+$wrong['cor_available'] = true;
+check(enrollment_parse_status_record($wrong, 'ADM-2026-000042', '26-99999') === null, 'different linked student number is rejected');
+check(enrollment_parse_status_record($wrong, 'ADM-2026-000041') === null, 'different applicant reference is rejected');
+check(enrollment_display_status(['status'=>'sent','enrollment_detail_status'=>'confirmed_demonstration'],true,false)[0] ===
+    'Temporarily unavailable', 'failed refresh is not falsely confirmed');
+check(enrollment_parse_status_record([
+    'applicant_ref'=>'ADM-2026-000042','student_number'=>'26-50604','stage'=>'student'
+], 'ADM-2026-000042') === ['26-50604','student','pending_registrar_enrollment'],
+    'old two-stage API remains supported');
+
 check(enrollment_retry_delay(0) === 0, 'first retry has no wait');
 check(enrollment_retry_delay(3) === 900, 'wait grows by 5 minutes per attempt');
 check(enrollment_retry_delay(99) === 3600, 'wait stops growing at 1 hour');
