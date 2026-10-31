@@ -188,7 +188,9 @@ ob_start();
 
         <p style="font-size:var(--text-sm);color:var(--text-secondary);text-align:center;margin-bottom:var(--space-6);max-width:520px;margin-left:auto;margin-right:auto">
             <?php if ($enrollmentStatusLabel === 'Officially Enrolled'): ?>
-                Your enrollment has been confirmed by the Registrar. Keep your student number and enrollment details for your records.
+                Your official university enrollment has been confirmed by the Registrar. Keep your student number and enrollment details for your records.
+            <?php elseif ($enrollmentStatusLabel === 'Confirmed (Demonstration)'): ?>
+                The Registrar confirmed your project demonstration enrollment. This is not an official university enrollment.
             <?php elseif ($enrollmentIntentConfirmed): ?>
                 Your Admissions intent is confirmed. Bring the <strong>original copies</strong> of your documents when requested. The Registrar will separately confirm official enrollment.
             <?php else: ?>
@@ -199,7 +201,7 @@ ob_start();
 
         <!-- Prominent, authoritative enrollment status. Updated on every page load. -->
         <section aria-label="Current enrollment status"
-            style="border:2px solid <?= $enrollmentStatusLabel === 'Officially Enrolled' ? 'var(--success)' : 'var(--border)' ?>;border-radius:var(--radius);background:var(--bg-subtle);padding:var(--space-5);margin-bottom:var(--space-6);text-align:center">
+            style="border:2px solid <?= in_array($enrollmentStatusLabel, ['Officially Enrolled', 'Confirmed (Demonstration)'], true) ? 'var(--success)' : 'var(--border)' ?>;border-radius:var(--radius);background:var(--bg-subtle);padding:var(--space-5);margin-bottom:var(--space-6);text-align:center">
             <div style="font-size:var(--text-xs);text-transform:uppercase;letter-spacing:.09em;font-weight:var(--weight-semibold);color:var(--text-secondary);margin-bottom:var(--space-2)">
                 Your Current Enrollment Status
             </div>
@@ -210,11 +212,25 @@ ob_start();
                 </span>
             </div>
             <?php if ($enrollmentStatusLabel === 'Officially Enrolled'): ?>
-                <p style="color:var(--text-secondary);margin:0">The PLP Enrollment Registrar has confirmed your official enrollment.</p>
+                <p style="color:var(--text-secondary);margin:0">The PLP Enrollment Registrar has confirmed official university enrollment.</p>
+            <?php elseif ($enrollmentStatusLabel === 'Confirmed (Demonstration)'): ?>
+                <p style="color:var(--text-secondary);margin:0">Your project demonstration registration has been confirmed. A demonstration COR is available in the Enrollment Portal. It is not proof of official university enrollment.</p>
+            <?php elseif ($enrollmentStatusLabel === 'Returned for Correction'): ?>
+                <p style="color:var(--text-secondary);margin:0">The Registrar returned your enrollment for correction. Open the Enrollment Portal to review the reason and resubmit.</p>
+            <?php elseif ($enrollmentStatusLabel === 'Pending Registrar Enrollment'): ?>
+                <p style="color:var(--text-secondary);margin:0">Your enrollment is awaiting Registrar processing. This is not yet official confirmation.</p>
+            <?php elseif ($enrollmentStatusLabel === 'Pending Enrollment'): ?>
+                <p style="color:var(--text-secondary);margin:0">Your admission is accepted. Open the Enrollment Portal to prepare and submit your enrollment.</p>
             <?php elseif ($enrollmentStatusLabel === 'Temporarily unavailable'): ?>
-                <p style="color:var(--text-secondary);margin:0">The live Enrollment status could not be checked. This does not change your Admissions acceptance. Check again when you revisit this page.</p>
+                <p style="color:var(--text-secondary);margin:0">Live Enrollment status could not be checked. Your admission decision is unchanged. Check again when you revisit this page.</p>
             <?php else: ?>
-                <p style="color:var(--text-secondary);margin:0">Admission acceptance and enrollment intent are not proof of official enrollment. Wait for the Registrar's confirmation.</p>
+                <p style="color:var(--text-secondary);margin:0">Admission acceptance and enrollment intent are separate from official registration.</p>
+            <?php endif; ?>
+            <?php if (in_array($enrollmentStatusLabel, ['Officially Enrolled', 'Confirmed (Demonstration)'], true)): ?>
+                <?php $corEnrollmentUrl = trim((string)getenv('ENROLLMENT_SITE_URL')); ?>
+                <?php if ($corEnrollmentUrl !== ''): ?>
+                    <p style="margin:var(--space-3) 0 0"><a class="btn btn-primary" target="_blank" rel="noopener noreferrer" href="<?= e(rtrim($corEnrollmentUrl, '/') . '/student/enrollment') ?>">View COR in Enrollment Portal</a></p>
+                <?php endif; ?>
             <?php endif; ?>
             <?php if (!empty($enrollmentHandoff['enrollment_student_number'])): ?>
                 <p style="font-size:var(--text-sm);margin:var(--space-3) 0 0">Enrollment student number:
