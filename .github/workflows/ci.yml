@@ -25,6 +25,9 @@ jobs:
           php-version: "8.2"
           coverage: none
 
+      - name: Test Enrollment handoff status mappings
+        run: php tests/enrollment_handoff_check.php
+
       # No build or typecheck step exists for plain PHP, so the syntax check
       # is the equivalent gate. lib/ is vendored PHPMailer and not ours to
       # lint. Every file is checked before failing so one run lists all
